@@ -26,10 +26,8 @@ const BlogCard = ({ img }: BlogCardProps) => {
             Project
           </h3>
           <h4 className=" text-lg opacity-70 mt-2 line-clamp-3 md:line-clamp-none">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis,
-            alias repudiandae voluptatem maiores earum, fuga cum consequuntur
-            nulla officia repellat illum ipsam non veniam quisquam eaque
-            incidunt. Reiciendis, commodi a.
+            How Radar keeps live-call guidance narrow, cited, and tenant-aware
+            while admins control source approval and release readiness.
           </h4>
           <Button className=" mt-4 hidden md:block" variant="outline">
             Read More

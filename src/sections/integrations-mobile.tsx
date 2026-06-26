@@ -14,7 +14,6 @@ import salesForce from "@/assets/images/salesforce.png";
 import googleMeet from "@/assets/images/google-meet.png";
 import hubspot from "@/assets/images/hubspot.png";
 
-import Marquee from "react-fast-marquee";
 import Image from "next/image";
 
 const IntegrationsMobile = () => {
@@ -95,50 +94,37 @@ const IntegrationsMobile = () => {
   ];
 
   return (
-    <section id="integrations-mobile" className=" md:hidden py-20">
+    <section id="sources-mobile" className="w-full overflow-hidden py-20 md:hidden">
       <div className=" max-w-7xl w-full flex flex-col items-center mx-auto">
         <div className=" inline-flex bg-white border rounded-full shadow-md items-center justify-center py-2 px-6">
-          <p className=" text-lg">Integrations</p>
+          <p className=" text-lg">Approved Sources</p>
         </div>
 
         <h2 className=" text-5xl px-4 md:px-0 md:text-7xl max-w-2xl font-medium text-center mt-6 mx-auto">
-          Connect integrations you use every day
+          Connect the systems your team already trusts
         </h2>
+        <p className="mt-4 max-w-2xl px-4 text-center text-lg leading-7 text-black/60">
+          Source connectors stay disabled until admins approve ownership,
+          freshness, and citation policy.
+        </p>
       </div>
-      <Marquee className=" mt-12">
-        {row1.map((item) => (
+      <div className="mt-12 grid w-full grid-cols-3 gap-3 px-4">
+        {[...row1, ...row2].map((item) => (
           <div
             key={item.title}
-            className="flex items-center mr-4 justify-center bg-white h-32 aspect-square rounded-xl border border-input"
+            className="flex aspect-square w-full items-center justify-center rounded-xl border border-input bg-white"
           >
-            <div className=" h-16 aspect-square relative">
+            <div className="relative h-12 aspect-square">
               <Image
                 fill
-                className=" object-contain"
+                className="object-contain"
                 src={item.icon}
                 alt={item.title}
               />
             </div>
           </div>
         ))}
-      </Marquee>
-      <Marquee direction="right" className=" mt-4">
-        {row2.map((item) => (
-          <div
-            key={item.title}
-            className="flex items-center mr-4 justify-center bg-white h-32 aspect-square rounded-xl border border-input"
-          >
-            <div className=" h-16 aspect-square relative">
-              <Image
-                fill
-                className=" object-contain"
-                src={item.icon}
-                alt={item.title}
-              />
-            </div>
-          </div>
-        ))}
-      </Marquee>
+      </div>
     </section>
   );
 };

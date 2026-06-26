@@ -7,13 +7,13 @@ import {
 
 const Faq = () => {
   return (
-    <section className=" py-40 w-full container px-0">
+    <section id="faq" className=" py-40 w-full container px-0">
       <div className="w-full md:max-w-2xl mx-auto flex flex-col items-center">
         <div className=" inline-flex bg-white border rounded-full shadow-md items-center justify-center py-2 px-6 w-fit mb-6">
-          <p className=" text-lg">FAQ&apos;s</p>
+          <p className=" text-lg">FAQ</p>
         </div>
         <h2 className=" text-5xl md:text-7xl max-w-3xl font-medium text-center mt-6 mx-auto">
-          Got A Question?
+          Questions teams ask before turning Radar on
         </h2>
         <Accordion
           type="single"
@@ -23,70 +23,55 @@ const Faq = () => {
         >
           <AccordionItem value="item-1">
             <AccordionTrigger>
-              How long does a website project usually take to complete?
+              Does Radar answer without approved sources?
             </AccordionTrigger>
             <AccordionContent>
-              Most website projects at Atlas Labs take 4 to 8 weeks, depending
-              on the complexity and specific requirements. We provide a detailed
-              timeline after our initial consultation to ensure we meet your
-              needs efficiently.
+              No. Answer and proof cards require approved source citations. If
+              the evidence is missing, Radar should ask for clarification, mark
+              the response as needing confirmation, or escalate.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
             <AccordionTrigger>
-              What if I just want a single website?
+              What does the rep see during a call?
             </AccordionTrigger>
             <AccordionContent>
-              No problem! We offer one-time website design and development
-              services tailored to your needs. Reach out to us, and we&apos;ll
-              create a custom plan for your project.
+              The live surface is intentionally small: a capture indicator and a
+              slim drawer with one cited guidance card when help is available.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-3">
-            <AccordionTrigger>Do you outsource any work?</AccordionTrigger>
+            <AccordionTrigger>What belongs in Knowledge Studio?</AccordionTrigger>
             <AccordionContent>
-              At Atlas Labs, we handle all core design and development work
-              in-house to maintain quality and consistency. For specialized
-              services outside our expertise, we collaborate with trusted
-              partners who share our commitment to excellence.
+              Approved documents, policies, playbooks, source owners, freshness
+              checks, replay tests, gaps, analytics, settings, and audit history.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-4">
-            <AccordionTrigger>What are your payment terms?</AccordionTrigger>
+            <AccordionTrigger>Can Radar run before APIs are configured?</AccordionTrigger>
             <AccordionContent>
-              At Atlas Labs, we offer flexible payment terms. Our services are
-              billed biweekly at a rate of $2,499 per month. There are no
-              long-term contracts, and you can pause your subscription at any
-              time. Payments are processed securely through Stripe, ensuring
-              convenience and security for all transactions.
+              The UI can show setup, empty, loading, and error states. Production
+              guidance should stay disabled until live capture, retrieval, and
+              source approval are configured.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-5">
             <AccordionTrigger>
-              We have a limited budget, will you still work with us?
+              How does Radar handle uncertain technical questions?
             </AccordionTrigger>
             <AccordionContent>
-              Absolutely! At Atlas Labs, we believe great design should be
-              accessible to everyone. We&apos;re happy to discuss your budget
-              and find a solution that works for you, whether it&apos;s a phased
-              approach, a simplified design, or a customized payment plan. Reach
-              out to us, and we&apos;ll explore options to fit your needs.
+              It keeps uncertainty visible. Depending on the evidence and policy
+              state, a card can answer, ask, request confirmation, or escalate.
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-6">
             <AccordionTrigger>
-              Why wouldn&apos;t I just hire a designer or developer?
+              Is this page using real customer data?
             </AccordionTrigger>
             <AccordionContent>
-              At Atlas Labs, we value collaboration and believe in working
-              closely with our clients throughout the project lifecycle. To
-              collaborate with us, simply reach out to our team through our
-              website&apos;s contact form, email, or phone. We will schedule a
-              consultation to discuss your project requirements, goals, and
-              expectations. Once we have a clear understanding of your needs, we
-              will work together to develop a tailored plan and establish
-              effective channels of communication to ensure smooth collaboration
-              throughout the project.
+              No. Product-like surfaces on this page are empty or
+              not-configured states so the UI does not imply connected
+              production data.
             </AccordionContent>
           </AccordionItem>
         </Accordion>

@@ -9,11 +9,11 @@ import Pricing from "@/sections/pricing";
 import Solutions from "@/sections/solutions";
 import Testimonials from "@/sections/testimonials";
 import Lenis from "@studio-freight/lenis";
-import Image from "next/image";
-import logoIcon from "@/assets/icons/logo-icon.svg";
+import Link from "next/link";
 
 import { useEffect } from "react";
 import IntegrationsMobile from "@/sections/integrations-mobile";
+import { RadarLogo } from "@/components/radar/radar-ui";
 
 const HomePage = () => {
   useEffect(() => {
@@ -29,19 +29,23 @@ const HomePage = () => {
   return (
     <div>
       <Hero>
-        <div className=" flex flex-col items-center justify-center h-full">
-          <div className="inline-flex bg-white shadow-md border rounded-xl aspect-square h-16 items-center justify-center">
-            <Image width={28} height={28} src={logoIcon} alt="Logo icon" />
-          </div>
-          <h1 className="text-6xl font-medium text-center mt-6">
-            Think, plan, and track <br className=" hidden md:block" />
-            <span className=" text-[#848484]">all in one place</span>
+        <div className="flex h-full max-w-4xl flex-col items-center justify-center">
+          <RadarLogo compact markClassName="h-16 w-16 rounded-2xl" />
+          <h1 className="mt-6 text-center text-5xl font-medium leading-[1.05] text-black md:text-7xl">
+            Live guidance that stays <br className="hidden md:block" />
+            <span className="text-[#848484]">hidden until needed</span>
           </h1>
-          <p className="text-center text-xl text-black/50 mt-8 max-w-2xl">
-            Efficiently manage your tasks and boost productivity.
+          <p className="mt-8 max-w-2xl text-center text-lg leading-8 text-black/55 md:text-xl">
+            Radar listens quietly during complex B2B technical conversations,
+            then surfaces approved, cited answers only when a rep needs help.
           </p>
-          <div className=" w-full inline-flex items-center justify-center mt-8">
-            <Button>Get free demo</Button>
+          <div className="mt-8 inline-flex w-full flex-col items-center justify-center gap-3 md:flex-row">
+            <Button asChild>
+              <Link href="/auth/sign-in">Request access</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/#knowledge-studio">View Knowledge Studio</Link>
+            </Button>
           </div>
         </div>
       </Hero>

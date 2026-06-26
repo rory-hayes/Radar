@@ -1,233 +1,83 @@
 "use client";
 
-import bottomLeftImage from "@/assets/images/bottom-left.png";
-import bottomRightImage from "@/assets/images/bottom-right.png";
-import topleftImage from "@/assets/images/sticky-note.png";
-import topRightImage from "@/assets/images/top-right.png";
-import Image from "next/image";
-
-import { motion, useAnimate } from "framer-motion";
-import { useEffect } from "react";
-
-import cursorYouImage from "@/assets/icons/cursor-you.svg";
-import Pointer from "@/components/common/pointer";
+import {
+  GuidanceCard,
+  RadarEmptyState,
+  RadarIndicator,
+  RadarLivePanel,
+} from "@/components/radar/radar-ui";
+import { motion } from "framer-motion";
+import { Database, FileCheck2 } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface HeroProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export default function Hero({ children }: HeroProps) {
-  const [topLeftDesignScope, topLeftDesignAnimate] = useAnimate();
-  const [topLeftPointerScope, topLeftPointerAnimate] = useAnimate();
-
-  const [bottomLeftDesignScope, bottomLeftDesignAnimate] = useAnimate();
-  const [bottomLeftPointerScope, bottomLeftPointerAnimate] = useAnimate();
-
-  const [toprightDesignScope, topRightDesignAnimate] = useAnimate();
-  const [toprightPointerScope, topRightPointerAnimate] = useAnimate();
-
-  const [bottomrightDesignScope, bottomRightDesignAnimate] = useAnimate();
-  const [bottomrightPointerScope, bottomRightPointerAnimate] = useAnimate();
-
-  useEffect(() => {
-    topLeftDesignAnimate([
-      [topLeftDesignScope.current, { opacity: 1 }, { duration: 0.5 }],
-      [
-        topLeftDesignScope.current,
-        { y: 0, x: 0 },
-        { duration: 0.5, delay: 0.05 },
-      ],
-    ]);
-    topLeftPointerAnimate([
-      [topLeftPointerScope.current, { opacity: 1 }, { duration: 0.5 }],
-      [topLeftPointerScope.current, { y: 0, x: 0 }, { duration: 0.5 }],
-      [
-        topLeftPointerScope.current,
-        { x: 120, y: [0, 40, 0] },
-        { duration: 1, ease: "easeInOut" },
-      ],
-    ]);
-
-    bottomLeftDesignAnimate([
-      [
-        bottomLeftDesignScope.current,
-        { opacity: 1 },
-        { duration: 0.5, delay: 2.5 },
-      ],
-      [bottomLeftDesignScope.current, { y: 0, x: 0 }, { duration: 0.5 }],
-    ]);
-    bottomLeftPointerAnimate([
-      [
-        bottomLeftPointerScope.current,
-        { opacity: 1 },
-        { duration: 0.5, delay: 2.5 },
-      ],
-      [bottomLeftPointerScope.current, { y: 0, x: -100 }, { duration: 0.5 }],
-      [
-        bottomLeftPointerScope.current,
-        { x: 240, y: [0, 20, 0] },
-        { duration: 1, ease: "easeInOut" },
-      ],
-    ]);
-
-    topRightDesignAnimate([
-      [
-        toprightDesignScope.current,
-        { opacity: 1 },
-        { duration: 0.5, delay: 1.5 },
-      ],
-      [toprightDesignScope.current, { y: 100, x: 100 }, { duration: 0.5 }],
-    ]);
-    topRightPointerAnimate([
-      [
-        toprightPointerScope.current,
-        { opacity: 1 },
-        { duration: 0.5, delay: 1.5 },
-      ],
-      [toprightPointerScope.current, { y: 0, x: 0 }, { duration: 0.5 }],
-      [
-        toprightPointerScope.current,
-        { x: 0, y: 0 },
-        { duration: 1, ease: "easeInOut" },
-      ],
-    ]);
-
-    bottomRightDesignAnimate([
-      [
-        bottomrightDesignScope.current,
-        { opacity: 1 },
-        { duration: 0.5, delay: 3.5 },
-      ],
-      [bottomrightDesignScope.current, { y: -80, x: 10 }, { duration: 0.5 }],
-    ]);
-    bottomRightPointerAnimate([
-      [
-        bottomrightPointerScope.current,
-        { opacity: 1 },
-        { duration: 0.5, delay: 3.5 },
-      ],
-      [bottomrightPointerScope.current, { y: 100, x: 40 }, { duration: 0.5 }],
-      [
-        bottomrightPointerScope.current,
-        { x: 40, y: 100 },
-        { duration: 1, ease: "easeInOut" },
-      ],
-    ]);
-  }, [
-    topLeftDesignAnimate,
-    topLeftDesignScope,
-    topLeftPointerAnimate,
-    topLeftPointerScope,
-    bottomLeftDesignAnimate,
-    bottomLeftDesignScope,
-    bottomLeftPointerAnimate,
-    bottomLeftPointerScope,
-    topRightDesignAnimate,
-    toprightDesignScope,
-    topRightPointerAnimate,
-    toprightPointerScope,
-    bottomRightDesignAnimate,
-    bottomrightDesignScope,
-    bottomRightPointerAnimate,
-    bottomrightPointerScope,
-  ]);
-
   return (
-    <section className=" w-full h-[92vh] flex flex-col items-center justify-center px-4 md:px-6">
-      <div
-        className="py-24 overflow-clip bg-[#FAFAFA] bg-[radial-gradient(#CECECE_1px,transparent_1px)] [background-size:16px_16px] flex flex-col justify-center border border-input rounded-3xl w-full h-full"
-        style={{
-          cursor: `url(${cursorYouImage.src}) auto`,
-        }}
-      >
-        <div className="container relative h-full">
-          <motion.div
-            ref={topLeftDesignScope}
-            initial={{ opacity: 0, y: 100, x: 100 }}
-            drag
-            className=" absolute hidden lg:block -left-[22rem] -top-28"
-          >
-            <Image
-              src={topleftImage}
-              className=" object-contain"
-              alt="Design 1"
-              draggable="false"
-            />
-          </motion.div>
-          <motion.div
-            ref={topLeftPointerScope}
-            initial={{ opacity: 0, y: 100, x: 200 }}
-            className="absolute hidden lg:block -left-24 top-48"
-          >
-            <Pointer color="blue" name="Abiola" />
-          </motion.div>
+    <section className="w-full px-4 md:px-6">
+      <div className="relative flex min-h-[92vh] w-full flex-col justify-center overflow-hidden rounded-3xl border border-input bg-[#FAFAFA] bg-[radial-gradient(#CECECE_1px,transparent_1px)] px-4 py-20 [background-size:16px_16px] md:px-10">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/90 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-white/95 to-transparent" />
 
-          <motion.div
-            ref={bottomrightDesignScope}
-            initial={{ opacity: 0, y: 100, x: 100 }}
-            drag
-            className=" absolute hidden lg:block -right-96 -bottom-60"
-          >
-            <Image
-              src={bottomRightImage}
-              className=" object-contain scale-90"
-              quality={100}
-              alt="Design 4"
-              draggable="false"
-            />
-          </motion.div>
-          <motion.div
-            ref={bottomrightPointerScope}
-            initial={{ opacity: 0, y: 320, x: 240 }}
-            className="absolute hidden lg:block right-24 bottom-[18rem]"
-          >
-            <Pointer color="orange" name="Alan" />
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 42, rotate: -2 }}
+          animate={{ opacity: 1, y: 0, rotate: -5 }}
+          transition={{ duration: 0.7, delay: 0.1, ease: "easeOut" }}
+          className="absolute -left-12 top-24 hidden w-[22rem] lg:block"
+        >
+          <RadarLivePanel />
+        </motion.div>
 
-          <motion.div
-            ref={toprightDesignScope}
-            initial={{ opacity: 0, y: 0, x: 200 }}
-            drag
-            className=" absolute hidden lg:block -right-80 -top-52"
-          >
-            <Image
-              src={topRightImage}
-              className=" object-contain scale-90 rotate-6"
-              quality={100}
-              alt="Design 4"
-              draggable="false"
-            />
-          </motion.div>
-          <motion.div
-            ref={toprightPointerScope}
-            initial={{ opacity: 0, y: -120, x: 250 }}
-            className="absolute hidden lg:block right-10 top-52"
-          >
-            <Pointer color="green" name="Duke" />
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 54, y: 36, rotate: 2 }}
+          animate={{ opacity: 1, x: 0, y: 0, rotate: 4 }}
+          transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
+          className="absolute -right-10 top-28 hidden w-[22rem] lg:block"
+        >
+          <GuidanceCard
+            title="Waiting for a real call"
+            description="No guidance is generated until live capture is enabled and approved sources are available."
+          />
+        </motion.div>
 
-          <motion.div
-            ref={bottomLeftDesignScope}
-            initial={{ opacity: 0, y: -100, x: 100 }}
-            drag
-            className=" absolute hidden lg:block -left-[23rem] -bottom-40"
-          >
-            <Image
-              src={bottomLeftImage}
-              className=" object-contain scale-90"
-              quality={100}
-              alt="Design 4"
-              draggable="false"
-            />
-          </motion.div>
-          <motion.div
-            ref={bottomLeftPointerScope}
-            initial={{ opacity: 0, y: -260, x: 100 }}
-            className="absolute hidden lg:block -left-24 bottom-10"
-          >
-            <Pointer color="violet" name="Dimitri" />
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 48, rotate: 4 }}
+          animate={{ opacity: 1, y: 0, rotate: 2 }}
+          transition={{ duration: 0.7, delay: 0.5, ease: "easeOut" }}
+          className="absolute -bottom-6 left-12 hidden w-[20rem] lg:block"
+        >
+          <RadarEmptyState
+            icon={Database}
+            title="Knowledge Studio empty"
+            description="Admins add approved documents, policies, and playbooks before Radar can cite them."
+          />
+        </motion.div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 48, rotate: -4 }}
+          animate={{ opacity: 1, y: 0, rotate: -2 }}
+          transition={{ duration: 0.7, delay: 0.7, ease: "easeOut" }}
+          className="absolute -bottom-4 right-16 hidden w-[19rem] lg:block"
+        >
+          <div className="rounded-3xl border border-input bg-white p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+            <RadarIndicator
+              state="warning"
+              label="Proof required"
+              detail="Answers need approved citations."
+            />
+            <RadarEmptyState
+              icon={FileCheck2}
+              title="No cited answer yet"
+              description="Radar asks for confirmation instead of inventing proof."
+              compact
+              className="mt-4"
+            />
+          </div>
+        </motion.div>
+
+        <div className="container relative z-10 flex min-h-[60vh] items-center justify-center">
           {children}
         </div>
       </div>

@@ -28,43 +28,38 @@ const BlogHero = () => {
       </div>
       <div className=" container w-full md:px-40 py-12 px-0">
         <p className=" text-xl text-black opacity-70 mb-10">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. At illo
-          perspiciatis itaque, unde iste nesciunt voluptatem nemo, quasi cumque
-          libero pariatur optio, soluta sunt nulla veniam minima! Sapiente,
-          quibusdam delectus.
+          Radar V1 is designed around explicit capture, approved knowledge, and
+          one cited guidance card at a time. The goal is to support complex
+          customer conversations without turning the live call into another
+          dashboard.
         </p>
         <h3 className=" text-4xl font-medium text-black">Webflow</h3>
         <p className=" text-xl text-black opacity-70 mt-4">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. At illo
-          perspiciatis itaque, unde iste nesciunt voluptatem nemo, quasi cumque
-          libero pariatur optio, soluta sunt nulla veniam minima! Sapiente,
-          quibusdam delectus.
+          Webflow-style launch speed is useful for marketing surfaces, but Radar
+          production paths need stronger controls: tenant isolation, permission
+          checks, audit trails, retention jobs, and source approval before
+          customer data is used.
         </p>
         <p className=" text-xl text-black opacity-70 mt-4">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. At illo
-          perspiciatis itaque, unde iste nesciunt voluptatem nemo, quasi cumque
-          libero pariatur optio, soluta sunt nulla veniam minima! Sapiente,
-          quibusdam delectus.
+          That separation keeps product pages flexible while the application
+          shell remains strict about real data, empty states, and unsupported
+          answer handling.
         </p>
 
         <h3 className=" text-4xl font-medium text-black mt-10">Framer</h3>
         <p className=" text-xl text-black opacity-70 mt-4">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. At illo
-          perspiciatis itaque, unde iste nesciunt voluptatem nemo, quasi cumque
-          libero pariatur optio, soluta sunt nulla veniam minima! Sapiente,
-          quibusdam delectus.
+          Framer-style interaction can make review and source workflows feel
+          polished, but the core assistance path should stay quiet and
+          predictable during customer calls.
         </p>
         <p className=" text-xl text-black opacity-70 mt-4">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. At illo
-          perspiciatis itaque, unde iste nesciunt voluptatem nemo, quasi cumque
-          libero pariatur optio, soluta sunt nulla veniam minima! Sapiente,
-          quibusdam delectus.
+          Admins need richer surfaces for approvals, replay, gaps, freshness,
+          analytics, settings, and audit history.
         </p>
         <p className=" text-xl text-black opacity-70 mt-4">
-          Lorem ipsum dolor, sit amet consectetur adipisicing elit. At illo
-          perspiciatis itaque, unde iste nesciunt voluptatem nemo, quasi cumque
-          libero pariatur optio, soluta sunt nulla veniam minima! Sapiente,
-          quibusdam delectus.
+          The live overlay should show only what is needed: capture state,
+          pause/end controls, and a single cited card when the system has enough
+          evidence to help.
         </p>
       </div>
 

@@ -1,9 +1,8 @@
 "use client";
 
-import logo from "@/assets/icons/logo.svg";
 import NavLink from "@/components/common/nav-link";
+import { RadarLogo } from "@/components/radar/radar-ui";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -25,34 +24,31 @@ const Navigation = () => {
         scroll ? "border-b shadow-sm" : ""
       }`}
     >
-      <nav className="w-full flex items-center justify-between px-4 md:px-20 py-2.5 md:py-2">
-        <div className=" w-full">
-          <Link href="/">
-            <div className=" relative h-12 w-[140px]">
-              <Image fill src={logo} alt="Logo" />
-            </div>
+      <nav className="flex w-full items-center justify-between gap-4 px-4 py-2.5 md:grid md:grid-cols-[1fr_auto_1fr] md:px-20 md:py-2">
+        <div className="min-w-0">
+          <Link href="/" aria-label="Radar home">
+            <RadarLogo />
           </Link>
         </div>
 
-        <aside className=" hidden md:block">
-          <div className=" w-full flex flex-col items-center">
-            <ul className=" inline-flex items-center gap-8">
-              <NavLink link="/#features">Features</NavLink>
-              <NavLink link="/#solutions">Solutions</NavLink>
-              <NavLink link="/#integrations">Integrations</NavLink>
-              <NavLink link="/changelog">Changelog</NavLink>
-              <NavLink link="/#pricing">Pricing</NavLink>
-              <NavLink link="/blog">Blog</NavLink>
+        <aside className="hidden md:block">
+          <div className="flex min-w-0 flex-col items-center">
+            <ul className="inline-flex items-center gap-6 lg:gap-8">
+              <NavLink link="/#platform">Platform</NavLink>
+              <NavLink link="/#knowledge-studio">Knowledge Studio</NavLink>
+              <NavLink link="/#sources">Sources</NavLink>
+              <NavLink link="/#proof">Proof</NavLink>
+              <NavLink link="/#rollout">Rollout</NavLink>
             </ul>
           </div>
         </aside>
 
-        <div className=" w-full flex items-center justify-end gap-4">
+        <div className="flex min-w-0 items-center justify-end gap-4">
           <Link className=" hidden md:block" href="/auth/sign-in">
             <Button variant="ghost">Sign In</Button>
           </Link>
           <Link href="/auth/sign-in">
-            <Button>Get free demo</Button>
+            <Button>Request access</Button>
           </Link>
         </div>
       </nav>

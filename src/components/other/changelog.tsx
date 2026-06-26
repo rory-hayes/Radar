@@ -51,12 +51,12 @@ export function Changelog() {
       content: (
         <div>
           <p className="text-black/70 text-xl font-normal mb-8">
-            I usually run out of copy, but when I see content this big, I try to
-            integrate lorem ipsum.
+            Added operational review flows for source updates, policy approvals,
+            and session follow-up.
           </p>
           <p className="text-black/70 text-xl font-normal mb-8">
-            Lorem ipsum is for people who are too lazy to write copy. But we are
-            not. Here are some more example of beautiful designs I built.
+            Expanded the changelog to cover release controls, audit visibility,
+            and production readiness work.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <Image

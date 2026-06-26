@@ -1,165 +1,82 @@
 "use client";
 
-import cursorYouImage from "@/assets/icons/cursor-you.svg";
-import Image from "next/image";
-import Link from "next/link";
-import logo from "@/assets/icons/logo.svg";
 import NavLink from "@/components/common/nav-link";
+import {
+  RadarEmptyState,
+  RadarLogo,
+  RadarStatusRow,
+} from "@/components/radar/radar-ui";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Database, FileCheck2, Radio } from "lucide-react";
+import Link from "next/link";
 
-import one from "@/assets/images/1.png";
-import two from "@/assets/images/2.png";
-import three from "@/assets/images/3.png";
-import four from "@/assets/images/4.png";
-import five from "@/assets/images/5.png";
+const primaryLinks = [
+  { href: "/#platform", label: "Platform" },
+  { href: "/#knowledge-studio", label: "Knowledge Studio" },
+  { href: "/#sources", label: "Approved Sources" },
+  { href: "/#proof", label: "Proof Model" },
+  { href: "/#rollout", label: "Rollout" },
+];
 
-import six from "@/assets/images/6.png";
-import seven from "@/assets/images/7.png";
-import eight from "@/assets/images/8.png";
-import nine from "@/assets/images/9.png";
-import ten from "@/assets/images/10.png";
+const secondaryLinks = [
+  { href: "mailto:support@radar.local", label: "Contact" },
+  { href: "/auth/sign-in", label: "Sign In" },
+  { href: "/#faq", label: "FAQ" },
+];
 
 const Footer = () => {
   return (
-    <section className=" w-full px-4 md:px-6 h-fit md:h-[92vh]">
-      <footer
-        className=" px-4 md:px-14 pt-12 overflow-clip flex flex-col justify-between bg-[#FAFAFA] bg-[radial-gradient(#CECECE_1px,transparent_1px)] [background-size:16px_16px] border border-input rounded-b-none rounded-3xl w-full h-full"
-        style={{
-          cursor: `url(${cursorYouImage.src}) auto`,
-        }}
-      >
-        <div className=" w-full flex flex-col md:flex-row items-start justify-between">
-          <div className="flex flex-col w-full items-start">
-            <div className=" w-full">
-              <Link href="/">
-                <div className=" relative h-12 w-[140px]">
-                  <Image fill src={logo} alt="Logo" />
-                </div>
-              </Link>
-            </div>
-            <h3 className=" text-5xl max-w-lg font-medium text-black mt-4">
-              Stay organized and boost your productivity
+    <section className="h-fit w-full px-4 md:px-6">
+      <footer className="flex h-full w-full flex-col justify-between overflow-hidden rounded-3xl rounded-b-none border border-input bg-[#FAFAFA] bg-[radial-gradient(#CECECE_1px,transparent_1px)] px-4 pt-12 [background-size:16px_16px] md:min-h-[78vh] md:px-14">
+        <div className="flex w-full flex-col items-start justify-between gap-12 md:flex-row">
+          <div className="flex w-full max-w-xl flex-col items-start">
+            <Link href="/" aria-label="Radar home">
+              <RadarLogo />
+            </Link>
+            <h3 className="mt-6 max-w-lg text-5xl font-medium leading-tight text-black">
+              Approved knowledge, quiet live guidance, cited answers
             </h3>
+            <p className="mt-6 text-lg leading-8 text-black/60">
+              Radar V1 keeps the live experience small and the admin experience
+              rigorous, so customer teams can trust what appears on a call.
+            </p>
           </div>
 
-          <div className="flex items-start gap-20">
-            <div className=" w-full grid grid-cols-1 gap-y-4 gap-x-2 mt-16">
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-
-                <NavLink link="mailto:support@astrae.design">Contact</NavLink>
-              </div>
-
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/changelog">What&apos;s New</NavLink>
-              </div>
-
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/blog">Blog</NavLink>
-              </div>
-
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/legals/terms">Legals</NavLink>
-              </div>
-            </div>
-
-            <div className=" w-full grid grid-cols-1 gap-y-4 gap-x-2 mt-16">
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/#features">Features</NavLink>
-              </div>
-
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/#solutions">Solutions</NavLink>
-              </div>
-
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/#integrations">Integrations</NavLink>
-              </div>
-
-              <div className=" inline-flex items-center gap-2 w-[200px] group">
-                <ArrowRight className=" group-hover:text-primary" />
-                <NavLink link="/#pricing">Pricing</NavLink>
-              </div>
-            </div>
+          <div className="grid w-full gap-10 sm:grid-cols-2 md:w-auto md:grid-cols-2 md:gap-20">
+            <FooterLinkGroup links={primaryLinks} />
+            <FooterLinkGroup links={secondaryLinks} />
           </div>
         </div>
 
-        <div className=" hidden md:block -mb-20">
-          <div className="h-[16rem] w-full relative">
-            <Image
-              src={four}
-              className=" absolute md:scale-75 right-auto left-0 bottom-0"
-              alt="Footer image"
-            />
-            <Image
-              src={five}
-              className=" absolute md:scale-75 left-auto right-0"
-              alt="Footer image"
-            />
-            <Image
-              src={two}
-              className=" absolute md:scale-75 right-auto left-96 -top-16 bottom-auto"
-              alt="Footer image"
-            />
-            <Image
-              src={one}
-              className=" absolute md:scale-75 left-auto right-96 bottom-auto -top-12"
-              alt="Footer image"
-            />
-            <Image
-              src={three}
-              className=" absolute md:scale-75 left-auto right-1/2 translate-x-1/2"
-              alt="Footer image"
-            />
-          </div>
-          <div className=" w-full flex justify-end">
-            <div className="h-[16rem] w-[85%] relative">
-              <Image
-                src={six}
-                className=" absolute md:scale-75 right-auto left-0 bottom-20"
-                alt="Footer image"
-              />
-              <Image
-                src={seven}
-                className=" absolute md:scale-75 left-auto right-28"
-                alt="Footer image"
-              />
-              <Image
-                src={eight}
-                className=" absolute md:scale-75 right-auto left-80 -top-20 bottom-auto"
-                alt="Footer image"
-              />
-              <Image
-                src={nine}
-                className=" absolute md:scale-75 left-auto right-96 bottom-auto -top-20"
-                alt="Footer image"
-              />
-              <Image
-                src={ten}
-                className=" absolute md:scale-75 left-auto right-1/2 translate-x-1/2"
-                alt="Footer image"
-              />
-            </div>
-          </div>
+        <div className="mt-16 grid gap-4 md:grid-cols-3">
+          <RadarStatusRow
+            icon={Radio}
+            title="Live capture"
+            description="Off until configured for production calls."
+            state="warning"
+          />
+          <RadarStatusRow
+            icon={Database}
+            title="Knowledge Studio"
+            description="Waiting for approved sources."
+          />
+          <RadarEmptyState
+            icon={FileCheck2}
+            title="No generated guidance"
+            description="This UI does not ship seeded answer history."
+          />
         </div>
 
-        <div className="pb-24">
+        <div className="pb-12">
           <Separator
             orientation="horizontal"
-            className=" w-full mb-12 md:mb-6 mt-12 md:mt-0"
+            className="mb-8 mt-12 w-full md:mt-16"
           />
 
-          <div className=" flex flex-col md:flex-row items-center justify-between text-base">
-            <p>© 2024 Prodexa. All rights reserved.</p>
+          <div className="flex flex-col items-center justify-between text-base text-black/60 md:flex-row">
+            <p>(c) 2026 Radar. All rights reserved.</p>
 
-            <div className="flex flex-col md:flex-row items-center mt-4 md:mt-0 gap-4">
+            <div className="mt-4 flex flex-col items-center gap-4 md:mt-0 md:flex-row">
               <p>Privacy Policy</p>
               <p>Terms Of Service</p>
             </div>
@@ -169,5 +86,22 @@ const Footer = () => {
     </section>
   );
 };
+
+function FooterLinkGroup({
+  links,
+}: {
+  links: Array<{ href: string; label: string }>;
+}) {
+  return (
+    <div className="grid w-full grid-cols-1 gap-x-2 gap-y-4">
+      {links.map((link) => (
+        <div key={link.href} className="group inline-flex max-w-full items-center gap-2">
+          <ArrowRight className="h-5 w-5 group-hover:text-primary" />
+          <NavLink link={link.href}>{link.label}</NavLink>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default Footer;

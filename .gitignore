@@ -31,6 +31,13 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local Codex/MCP config
+.codex/config.toml
+
+# local package-manager workaround files
+pnpm-workspace.yaml
 
 # vercel
 .vercel

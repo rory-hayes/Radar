@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Sign In | Prodexa",
+  title: "Sign In | Radar",
   description:
-    "Login to the prodexa dashboard and start managing your tasks and boost productivity",
+    "Sign in to Radar to configure Knowledge Studio, approved sources, and live guidance.",
 };
 
 import "../../globals.css";

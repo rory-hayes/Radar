@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Radar Live Assist",
+  "description": "Visible live-call capture indicator and slim guidance drawer for Radar V1.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Radar",
+    "default_popup": "src/popup.html"
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["activeTab", "offscreen", "scripting", "storage", "tabCapture", "tabs"],
+  "host_permissions": ["https://api.openai.com/*", "http://localhost:3000/*", "https://*/v1/*", "https://*/api/v1/*"]
+}

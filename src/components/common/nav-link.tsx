@@ -10,14 +10,16 @@ interface NavLinkProps {
 
 const NavLink = ({ children, link }: NavLinkProps) => {
   return (
-    <Link href={link} rel="nofollow" className="block overflow-hidden">
+    <Link href={link} rel="nofollow" className="block overflow-hidden whitespace-nowrap">
       <motion.div
         whileHover={{ y: -20 }}
         transition={{ ease: "backInOut", duration: 0.5 }}
-        className="h-[20px] text-base"
+        className="h-[20px] whitespace-nowrap text-base"
       >
-        <span className={cn("flex h-[20px] items-center")}>{children}</span>
-        <span className="flex h-[20px] items-center text-primary">
+        <span className={cn("flex h-[20px] items-center whitespace-nowrap")}>
+          {children}
+        </span>
+        <span className="flex h-[20px] items-center whitespace-nowrap text-primary">
           {children}
         </span>
       </motion.div>
