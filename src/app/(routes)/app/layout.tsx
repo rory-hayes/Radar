@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { redirect } from "next/navigation";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { getAuthSession } from "@/lib/auth/session";
 import "../../globals.css";
 
 const geistSans = localFont({
@@ -20,11 +22,17 @@ export const metadata: Metadata = {
   description: "Admin control plane for Radar sources, playbooks, approvals, replay, sessions, settings, and audit.",
 };
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const session = await getAuthSession();
+
+  if (!session) {
+    redirect("/auth/sign-in?next=/app");
+  }
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AdminShell>{children}</AdminShell>
+        <AdminShell authEmail={session.email}>{children}</AdminShell>
       </body>
     </html>
   );

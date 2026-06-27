@@ -10,13 +10,16 @@ import {
   Gauge,
   History,
   Layers3,
+  LogOut,
   PlayCircle,
   PlugZap,
   Settings,
   UploadCloud,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -25,10 +28,12 @@ type AdminNavItem = {
   href: string;
   label: string;
   icon: ComponentType<{ className?: string }>;
+  activePaths?: string[];
 };
 
 const primaryNav: AdminNavItem[] = [
   { href: "/app", label: "Overview", icon: Gauge },
+  { href: "/app/users", label: "Users", icon: Users },
   { href: "/app/sources", label: "Sources", icon: FileSearch },
   { href: "/app/uploads", label: "Uploads", icon: UploadCloud },
   { href: "/app/connectors", label: "Connectors", icon: PlugZap },
@@ -37,7 +42,7 @@ const primaryNav: AdminNavItem[] = [
   { href: "/app/testing", label: "Testing & Replay", icon: PlayCircle },
   { href: "/app/knowledge-gaps", label: "Knowledge Gaps", icon: Layers3 },
   { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/app/sessions", label: "Sessions", icon: Activity },
+  { href: "/app/sessions", label: "Calls", icon: Activity, activePaths: ["/app/calls"] },
 ];
 
 const secondaryNav: AdminNavItem[] = [
@@ -45,8 +50,28 @@ const secondaryNav: AdminNavItem[] = [
   { href: "/app/audit-log", label: "Audit log", icon: History },
 ];
 
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({
+  children,
+  authEmail,
+}: {
+  children: ReactNode;
+  authEmail?: string;
+}) {
   const pathname = usePathname();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  async function signOut() {
+    setIsSigningOut(true);
+
+    try {
+      await fetch("/api/auth/sign-out", {
+        method: "POST",
+        cache: "no-store",
+      });
+    } finally {
+      window.location.assign("/auth/sign-in");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f6f8fb] text-zinc-950">
@@ -61,6 +86,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
               <div className="text-xs text-zinc-500">Knowledge Studio</div>
             </div>
           </Link>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700"
+            disabled={isSigningOut}
+            onClick={signOut}
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
         </div>
         <nav
           aria-label="Knowledge Studio sections"
@@ -96,9 +130,23 @@ export function AdminShell({ children }: { children: ReactNode }) {
             aria-label="Knowledge Studio settings"
             className="space-y-1 border-t border-zinc-200 pt-4"
           >
+            {authEmail ? (
+              <div className="px-3 pb-3 text-xs leading-5 text-zinc-500">
+                Signed in as <span className="font-medium text-zinc-700">{authEmail}</span>
+              </div>
+            ) : null}
             {secondaryNav.map((item) => (
               <AdminNavLink key={item.href} item={item} pathname={pathname} />
             ))}
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950 disabled:opacity-50"
+              disabled={isSigningOut}
+              onClick={signOut}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign out</span>
+            </button>
           </nav>
         </div>
       </aside>
@@ -123,7 +171,10 @@ function AdminNavLink({
 }) {
   const Icon = item.icon;
   const active =
-    item.href === "/app" ? pathname === "/app" || pathname === "/app/overview" : pathname.startsWith(item.href);
+    item.href === "/app"
+      ? pathname === "/app" || pathname === "/app/overview"
+      : pathname.startsWith(item.href) ||
+        Boolean(item.activePaths?.some((activePath) => pathname.startsWith(activePath)));
 
   return (
     <Link

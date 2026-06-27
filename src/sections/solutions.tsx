@@ -1,10 +1,9 @@
 import {
   GuidanceCard,
   RadarEmptyState,
-  RadarLivePanel,
   RadarStatusRow,
 } from "@/components/radar/radar-ui";
-import { Separator } from "@/components/ui/separator";
+import { RadarCallStack } from "@/components/radar/call-stack";
 import { BookOpenCheck, MessageSquareText, ShieldAlert } from "lucide-react";
 
 const solutionCards = [
@@ -42,22 +41,7 @@ const Solutions = () => {
           </h2>
         </div>
 
-        <div className="relative w-full overflow-y-clip">
-          <Separator className="absolute top-12 w-full" orientation="horizontal" />
-          <aside className="hidden lg:block">
-            <div className="absolute top-12 flex h-full w-full items-center justify-between px-72">
-              {[0, 1, 2, 3].map((item) => (
-                <div
-                  key={item}
-                  className="flex h-full flex-col items-center first:-ml-12 last:-mr-12"
-                >
-                  <div className="-mt-2 aspect-square h-4 w-4 rounded-full border border-input bg-white" />
-                  <Separator className="top-12 h-full" orientation="vertical" />
-                </div>
-              ))}
-            </div>
-          </aside>
-
+        <div className="relative w-full">
           <div className="mx-auto w-full max-w-7xl px-4 md:px-0">
             <div className="mt-14 grid w-full grid-cols-1 gap-8 py-8 md:mt-20 md:grid-cols-3 md:gap-20">
               {solutionCards.map((card) => {
@@ -79,8 +63,8 @@ const Solutions = () => {
             </div>
 
             <div className="mt-10 grid gap-4 rounded-3xl border border-input bg-white p-4 shadow-sm md:grid-cols-[1.05fr_0.95fr] md:p-6">
-              <div className="rounded-3xl bg-[#F6F6F6] p-4 md:p-6">
-                <RadarLivePanel />
+              <div className="rounded-3xl bg-[#F6F6F6] p-3 md:p-5">
+                <RadarCallStack className="min-h-[30rem]" />
               </div>
               <div className="flex flex-col gap-4">
                 <GuidanceCard

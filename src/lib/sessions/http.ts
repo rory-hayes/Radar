@@ -1,12 +1,71 @@
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 
-export const corsHeaders = {
-  "Access-Control-Allow-Origin": process.env.RADAR_EXTENSION_ORIGIN?.trim() || "*",
+const BASE_CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  "Access-Control-Allow-Credentials": "true",
   "Access-Control-Max-Age": "86400",
 };
+
+function configuredOrigins() {
+  const origins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.AUTH_URL,
+    ...(process.env.RADAR_EXTENSION_ORIGIN ?? "").split(","),
+  ];
+
+  return new Set(
+    origins
+      .flatMap((origin) => {
+        const trimmed = origin?.trim();
+        return trimmed ? [trimmed] : [];
+      })
+      .map((origin) => {
+        try {
+          return new URL(origin).origin;
+        } catch {
+          return origin;
+        }
+      }),
+  );
+}
+
+function isAllowedOrigin(origin: string) {
+  const allowedOrigins = configuredOrigins();
+
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  return process.env.NODE_ENV !== "production" && allowedOrigins.size === 0;
+}
+
+export function assertAllowedOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+
+  if (!origin || isAllowedOrigin(origin)) {
+    return;
+  }
+
+  throw new ApiError(
+    403,
+    "origin_not_allowed",
+    "This Radar API origin is not allowed. Configure RADAR_EXTENSION_ORIGIN for the installed extension.",
+  );
+}
+
+export function corsHeaders(request?: Request) {
+  const origin = request?.headers.get("origin");
+  const headers: Record<string, string> = { ...BASE_CORS_HEADERS };
+
+  if (origin && isAllowedOrigin(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+    headers.Vary = "Origin";
+  }
+
+  return headers;
+}
 
 export class ApiError extends Error {
   constructor(
@@ -19,20 +78,20 @@ export class ApiError extends Error {
   }
 }
 
-export function json(data: unknown, init?: ResponseInit) {
+export function json(data: unknown, init?: ResponseInit, request?: Request) {
   return NextResponse.json(data, {
     ...init,
     headers: {
-      ...corsHeaders,
+      ...corsHeaders(request),
       ...init?.headers,
     },
   });
 }
 
-export function optionsResponse() {
+export function optionsResponse(request?: Request) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders,
+    headers: corsHeaders(request),
   });
 }
 
@@ -40,9 +99,20 @@ export async function readJson<TSchema extends z.ZodTypeAny>(
   request: Request,
   schema: TSchema,
 ): Promise<z.output<TSchema>> {
-  const body = await request.json().catch(() => {
-    throw new ApiError(400, "invalid_json", "Request body must be valid JSON.");
+  assertAllowedOrigin(request);
+
+  const rawBody = await request.text().catch(() => {
+    throw new ApiError(400, "invalid_json", "Request body must be readable.");
   });
+  let body: unknown = {};
+
+  if (rawBody.trim()) {
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      throw new ApiError(400, "invalid_json", "Request body must be valid JSON.");
+    }
+  }
 
   const parsed = schema.safeParse(body ?? {});
   if (!parsed.success) {
@@ -57,7 +127,7 @@ export async function readJson<TSchema extends z.ZodTypeAny>(
   return parsed.data;
 }
 
-export function jsonError(error: unknown) {
+export function jsonError(error: unknown, request?: Request) {
   if (error instanceof ApiError) {
     return json(
       {
@@ -69,6 +139,7 @@ export function jsonError(error: unknown) {
         },
       },
       { status: error.status },
+      request,
     );
   }
 
@@ -81,6 +152,7 @@ export function jsonError(error: unknown) {
       },
     },
     { status: 500 },
+    request,
   );
 }
 

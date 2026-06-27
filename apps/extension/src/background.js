@@ -478,11 +478,18 @@ async function getJson(path) {
 }
 
 async function requestJson(path, init) {
-  const response = await fetch(`${radarState.apiBase}${path}`, init);
+  const response = await fetch(`${radarState.apiBase}${path}`, {
+    ...init,
+    credentials: "include"
+  });
   const payload = await response.json().catch(() => undefined);
 
   if (!response.ok || payload?.ok === false) {
-    const message = payload?.error?.message || `Radar API request failed with ${response.status}.`;
+    const message =
+      payload?.error?.message ||
+      (response.status === 401
+        ? "Sign in to Radar in this browser, then try the extension again."
+        : `Radar API request failed with ${response.status}.`);
     throw new Error(message);
   }
 

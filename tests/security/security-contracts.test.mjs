@@ -32,6 +32,69 @@ test("tenant role map includes production roles and bounded viewer permissions",
   assert.doesNotMatch(viewerBlock, /"audit:read"/);
 });
 
+test("local password auth still compares the submitted password", () => {
+  const session = read("src/lib/auth/session.ts");
+
+  assert.match(session, /LOCAL_AUTH_PASSWORD/);
+  assert.match(session, /mode:\s+"local"[\s\S]*password:\s+password\s+\|\|\s+LOCAL_AUTH_PASSWORD/);
+  assert.match(
+    session,
+    /\(runtime\.mode === "password" \|\| runtime\.mode === "local"\)[\s\S]*!safeEqual\(input\.password,\s*runtime\.password \?\? ""\)/,
+  );
+});
+
+test("session API parser lets optional body schemas use defaults", () => {
+  const http = read("src/lib/sessions/http.ts");
+
+  assert.match(http, /request\.text\(\)/);
+  assert.match(http, /if \(rawBody\.trim\(\)\)/);
+  assert.match(http, /let body: unknown = \{\}/);
+});
+
+test("V1 API CORS and auth boundaries stay explicit", () => {
+  const http = read("src/lib/sessions/http.ts");
+  const background = read("apps/extension/src/background.js");
+  const v1Routes = [
+    "src/app/api/v1/sessions/route.ts",
+    "src/app/api/v1/sessions/preflight/route.ts",
+    "src/app/api/v1/sessions/[id]/client-secrets/route.ts",
+    "src/app/api/v1/sessions/[id]/segments/route.ts",
+    "src/app/api/v1/sessions/[id]/events/route.ts",
+    "src/app/api/v1/sessions/[id]/end/route.ts",
+    "src/app/api/v1/cards/[id]/feedback/route.ts",
+  ];
+  const ownedSessionRoutes = v1Routes.filter((route) => route !== "src/app/api/v1/sessions/route.ts" && !route.endsWith("/preflight/route.ts"));
+
+  assert.doesNotMatch(http, /Access-Control-Allow-Origin["']:\s*process\.env\.RADAR_EXTENSION_ORIGIN\?\.trim\(\)\s*\|\|\s*["']\*["']/);
+  assert.match(http, /RADAR_EXTENSION_ORIGIN/);
+  assert.match(http, /Access-Control-Allow-Credentials/);
+  assert.match(http, /assertAllowedOrigin\(request\)/);
+
+  for (const route of v1Routes) {
+    assert.match(read(route), /requireApiAuth/);
+  }
+
+  for (const route of ownedSessionRoutes) {
+    assert.match(read(route), /assertSessionAccess/);
+  }
+
+  assert.match(read("src/app/api/v1/sessions/route.ts"), /createdByEmail:\s*auth\.email/);
+  assert.match(background, /credentials:\s*"include"/);
+});
+
+test("sign-in and realtime credential requests are rate limited", () => {
+  const signInRoute = read("src/app/api/auth/sign-in/route.ts");
+  const clientSecretRoute = read("src/app/api/v1/sessions/[id]/client-secrets/route.ts");
+  const rateLimit = read("src/lib/security/rate-limit.ts");
+
+  assert.match(rateLimit, /consumeRateLimit/);
+  assert.match(rateLimit, /__radarRateLimitStore/);
+  assert.match(signInRoute, /auth:sign-in/);
+  assert.match(signInRoute, /status:\s*429/);
+  assert.match(clientSecretRoute, /v1:realtime:client-secret/);
+  assert.match(clientSecretRoute, /Too many Realtime credential requests/);
+});
+
 test("security scanners pass the current source tree", () => {
   execFileSync(process.execPath, ["scripts/no-dummy-data-scan.mjs", "src"], {
     cwd: repoRoot,

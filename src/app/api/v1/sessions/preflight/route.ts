@@ -1,15 +1,17 @@
+import { requireApiAuth } from "@/lib/auth/api";
 import { realtimeServerState } from "@/lib/realtime/openai";
 import { json, jsonError, optionsResponse, readJson } from "@/lib/sessions/http";
 import { preflightRequestSchema } from "@/lib/sessions/validation";
 
 export const runtime = "nodejs";
 
-export function OPTIONS() {
-  return optionsResponse();
+export function OPTIONS(request: Request) {
+  return optionsResponse(request);
 }
 
 export async function POST(request: Request) {
   try {
+    await requireApiAuth();
     const body = await readJson(request, preflightRequestSchema);
     const realtime = realtimeServerState();
 
@@ -40,8 +42,8 @@ export async function POST(request: Request) {
       warnings: realtime.configured
         ? []
         : ["Server-side Realtime credentials are not configured, so live transcription credentials cannot be minted."],
-    });
+    }, undefined, request);
   } catch (error) {
-    return jsonError(error);
+    return jsonError(error, request);
   }
 }

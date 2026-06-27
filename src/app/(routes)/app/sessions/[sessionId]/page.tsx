@@ -14,9 +14,9 @@ export default async function SessionReviewPage({
     <AdminDetailSurface
       context={context}
       result={result}
-      title="Session review"
-      description="Review a completed session, cited guidance, feedback, gaps, and retention status."
-      recordLabel="session"
+      title="Call review"
+      description="Review a completed call, transcript segments, cited guidance, feedback, gaps, and retention status."
+      recordLabel="call"
     />
   );
 }

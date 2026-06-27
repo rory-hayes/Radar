@@ -76,7 +76,7 @@ export function RadarLogo({
           markClassName
         )}
       >
-        <Image src={logoIcon} alt="" width={24} height={27} priority />
+        <Image src={logoIcon} alt="" width={24} height={27} priority className="h-auto w-6" />
       </span>
       {!compact && (
         <span

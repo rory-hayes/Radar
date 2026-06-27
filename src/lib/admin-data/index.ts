@@ -9,6 +9,7 @@ export type AdminRole =
 export type AdminCapability =
   | "manageSources"
   | "manageConnectors"
+  | "manageUsers"
   | "managePlaybooks"
   | "approveGuidance"
   | "runReplay"
@@ -19,6 +20,7 @@ export type AdminCapability =
 
 export type AdminResource =
   | "overview"
+  | "users"
   | "sources"
   | "uploads"
   | "connectors"
@@ -75,6 +77,7 @@ export type AdminDataResult<T> =
 const capabilityDefaults: Record<AdminCapability, false> = {
   manageSources: false,
   manageConnectors: false,
+  manageUsers: false,
   managePlaybooks: false,
   approveGuidance: false,
   runReplay: false,
@@ -88,6 +91,7 @@ const capabilitiesByRole: Record<AdminRole, AdminCapability[]> = {
   owner: [
     "manageSources",
     "manageConnectors",
+    "manageUsers",
     "managePlaybooks",
     "approveGuidance",
     "runReplay",
@@ -99,6 +103,7 @@ const capabilitiesByRole: Record<AdminRole, AdminCapability[]> = {
   admin: [
     "manageSources",
     "manageConnectors",
+    "manageUsers",
     "managePlaybooks",
     "approveGuidance",
     "runReplay",
@@ -122,6 +127,7 @@ const capabilitiesByRole: Record<AdminRole, AdminCapability[]> = {
 
 const resourcePaths: Record<AdminResource, string> = {
   overview: "overview",
+  users: "users",
   sources: "sources",
   uploads: "uploads",
   connectors: "connectors",

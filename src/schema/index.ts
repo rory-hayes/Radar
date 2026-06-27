@@ -1,10 +1,26 @@
 import * as z from "zod";
 
-export const SignInSchema = z.object({
-  email: z.string().email({
-    message: "Email is required",
+export const WorkspaceInviteRoleSchema = z.enum([
+  "admin",
+  "knowledge_manager",
+  "approver",
+  "analyst",
+  "user",
+  "viewer",
+]);
+
+export const InviteUserSchema = z.object({
+  email: z.string().trim().email({
+    message: "Enter a valid email address",
   }),
-  password: z.string().min(1, {
-    message: "Password is required",
+  role: WorkspaceInviteRoleSchema.default("user"),
+});
+
+export const SignInSchema = z.object({
+  email: z.string().trim().email({
+    message: "Enter a valid email address",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters",
   }),
 });

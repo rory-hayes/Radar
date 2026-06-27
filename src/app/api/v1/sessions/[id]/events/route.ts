@@ -1,3 +1,4 @@
+import { requireApiAuth, assertSessionAccess } from "@/lib/auth/api";
 import { assertFound, corsHeaders, json, jsonError, optionsResponse, parseAfterCursor } from "@/lib/sessions/http";
 import { getSession, listEvents } from "@/lib/sessions/store";
 
@@ -7,14 +8,16 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export function OPTIONS() {
-  return optionsResponse();
+export function OPTIONS(request: Request) {
+  return optionsResponse(request);
 }
 
 export async function GET(request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiAuth();
     const { id } = await context.params;
     const session = assertFound(getSession(id), "session_not_found", "Radar session was not found.");
+    assertSessionAccess(session, auth);
     const after = parseAfterCursor(request.url);
     const events = listEvents(id, after);
     const cursor = events.at(-1)?.sequence ?? after;
@@ -26,7 +29,7 @@ export async function GET(request: Request, context: RouteContext) {
 
       return new Response(body, {
         headers: {
-          ...corsHeaders,
+          ...corsHeaders(request),
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-store",
           Connection: "keep-alive",
@@ -42,8 +45,8 @@ export async function GET(request: Request, context: RouteContext) {
       },
       events,
       cursor,
-    });
+    }, undefined, request);
   } catch (error) {
-    return jsonError(error);
+    return jsonError(error, request);
   }
 }

@@ -30,6 +30,7 @@ export type SessionConsent = {
 
 export type RadarSession = {
   id: string;
+  createdByEmail: string;
   workspaceId?: string;
   status: SessionStatus;
   createdAt: string;

@@ -7,7 +7,7 @@ This repo contains the V1 web app, Knowledge Studio admin shell, server API cont
 ## What Is Included
 
 - Landing/product surface rewritten from the Prodexa baseline for Radar.
-- Knowledge Studio routes under `/app` for sources, uploads, connectors, playbooks, approvals, testing/replay, knowledge gaps, analytics, sessions, settings, and audit.
+- Knowledge Studio routes under `/app` for users, sources, uploads, connectors, playbooks, approvals, testing/replay, knowledge gaps, analytics, sessions, settings, and audit.
 - API route contracts under `/api/v1` with `/v1/*` rewrites for the extension.
 - OpenAI Realtime client-secret server helper using `POST /v1/realtime/client_secrets`.
 - AI/RAG schemas and eval tests that require citations for Answer/Proof cards and route unsupported claims to Needs confirmation or Escalate states.
@@ -42,19 +42,36 @@ Required before real Realtime transcription:
 - `OPENAI_REALTIME_MODEL`
 - `OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS`
 - `OPENAI_SAFETY_IDENTIFIER` or `RADAR_OPENAI_SAFETY_IDENTIFIER`
+- `RADAR_EXTENSION_ORIGIN` set to the installed Chrome extension origin, for example `chrome-extension://<extension-id>`
+
+Required before production password sign-in:
+
+- `AUTH_SECRET`
+- `RADAR_AUTH_PASSWORD`
+- `RADAR_AUTH_ALLOWED_EMAILS` when access should be limited to specific emails
 
 Required before admin data leaves setup mode:
 
 - `RADAR_ADMIN_API_BASE_URL`
 - `RADAR_ADMIN_API_TOKEN`
+- `RADAR_ADMIN_ROLE` while local password auth is standing in for real membership auth
+
+Workspace user management expects the admin API to expose:
+
+- `GET /users` for workspace members and pending invites
+- `POST /users/invites` for owner/admin invitations with `{ "email": string, "role": string }`
 
 Do not configure `NEXT_PUBLIC_OPENAI_*` variables.
+
+## Workspace And User Onboarding
+
+Radar is workspace-first. Admins configure the shared workspace, approved knowledge, citation policy, escalation behavior, and invitations. Invited users complete personal onboarding for browser extension setup, permissions, call consent expectations, and card-state training. Users can surface gaps from calls, but production answers remain governed by centrally approved workspace knowledge.
 
 ## Chrome Extension
 
 Load the unpacked extension from `apps/extension` in `chrome://extensions`.
 
-The extension popup talks to the app API. It collects page context for preflight/session creation and requests short-lived Realtime credentials from the server. It does not embed an OpenAI API key.
+The extension popup talks to the app API. Sign in to the Radar web app in the same browser first, then set `RADAR_EXTENSION_ORIGIN` to the installed extension origin so the API can allow credentialed requests from that extension. It collects page context for preflight/session creation and requests short-lived Realtime credentials from the server. It does not embed an OpenAI API key.
 
 ## QA
 

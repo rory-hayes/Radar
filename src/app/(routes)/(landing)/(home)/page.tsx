@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Faq from "@/sections/faq";
 import Features from "@/sections/features";
 import Hero from "@/sections/hero";
+import HowItWorks from "@/sections/how-it-works";
 import Integrations from "@/sections/integrations";
 import Pricing from "@/sections/pricing";
 import Solutions from "@/sections/solutions";
@@ -50,6 +51,7 @@ const HomePage = () => {
         </div>
       </Hero>
       <Solutions />
+      <HowItWorks />
       <Features />
       <Integrations />
       <IntegrationsMobile />

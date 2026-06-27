@@ -27,6 +27,24 @@ export type AdminSurfaceDefinition = {
 };
 
 export const adminSurfaces = {
+  users: {
+    resource: "users",
+    title: "Users",
+    description:
+      "Invite teammates, assign workspace roles, and track each user's Radar onboarding state.",
+    primaryAction: {
+      label: "Invite user",
+      href: "/app/users",
+      capability: "manageUsers",
+    },
+    emptyTitle: "No users have been returned",
+    emptyDescription:
+      "Workspace members and pending invitations appear after the admin API returns real user records.",
+    configuredDescription:
+      "Workspace users from the admin API appear here with role, invite, and onboarding state.",
+    roleNote:
+      "Owners and admins can invite users and change roles; other roles can review access state only when permitted.",
+  },
   sources: {
     resource: "sources",
     title: "Sources",
@@ -168,21 +186,21 @@ export const adminSurfaces = {
   },
   sessions: {
     resource: "sessions",
-    title: "Sessions",
+    title: "Calls",
     description:
-      "Review completed customer conversation sessions, cited cards, feedback, and escalations.",
+      "Review customer conversation calls, transcript segments, cited cards, feedback, and escalations.",
     primaryAction: {
-      label: "Review sessions",
+      label: "Review calls",
       href: "/app/sessions",
       capability: "reviewSessions",
     },
-    emptyTitle: "No sessions are available",
+    emptyTitle: "No calls are available",
     emptyDescription:
-      "Completed sessions will appear after the extension and session ingestion APIs are connected.",
+      "Completed calls will appear after the extension and session ingestion APIs are connected.",
     configuredDescription:
-      "Session records from the admin API appear here with review and retention state.",
+      "Call records from the admin API appear here with review and retention state.",
     roleNote:
-      "Session review is role-gated and should preserve tenant, retention, and redaction controls.",
+      "Call review is role-gated and should preserve tenant, retention, and redaction controls.",
   },
   settings: {
     resource: "settings",
