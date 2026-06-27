@@ -42,6 +42,7 @@ Required before real Realtime transcription:
 - `OPENAI_REALTIME_MODEL`
 - `OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS`
 - `OPENAI_SAFETY_IDENTIFIER` or `RADAR_OPENAI_SAFETY_IDENTIFIER`
+- `OPENAI_EMBEDDING_MODEL` for source ingestion, currently expected to be a 1536-dimension embedding model such as `text-embedding-3-small`
 - `RADAR_EXTENSION_ORIGIN` set to the Radar Chrome extension origin, currently `chrome-extension://jhjclgndbjlnnagdnphjdojinaaodeon`
 
 Required before production password sign-in:
@@ -59,7 +60,11 @@ Required before workspace data leaves setup mode:
 - `RADAR_DEFAULT_WORKSPACE_ID`
 - `RADAR_ADMIN_ROLE` for the bootstrap admin emails listed in `RADAR_AUTH_ALLOWED_EMAILS`
 
-Workspace user management uses Supabase tables plus Supabase Auth email delivery for invites and reset links.
+Workspace user management uses Supabase tables plus Supabase Auth email delivery for invites and reset links. Branded invite and recovery templates live in `supabase/templates`; apply them to the hosted Supabase project with:
+
+- `pnpm run auth:email:configure`
+
+That script requires `SUPABASE_ACCESS_TOKEN` plus `SUPABASE_PROJECT_REF` or `SUPABASE_URL`. SMTP values are optional, but should be set before production email volume.
 
 Run migrations before production sessions:
 
@@ -67,6 +72,12 @@ Run migrations before production sessions:
 - `pnpm run db:seed`
 
 Do not configure `NEXT_PUBLIC_OPENAI_*` variables.
+
+## Knowledge Ingestion And RAG
+
+Admins and knowledge managers can upload text-based source material from `/app/uploads`. The server extracts text, calls OpenAI embeddings with the server-only API key, stores approved source chunks in Supabase `pgvector`, and records ingestion/audit state in Supabase.
+
+Final transcript segments run retrieval against approved workspace chunks. When approved evidence is found, Radar emits a cited Proof card. When retrieval cannot support the segment, Radar emits Needs confirmation instead of an unsupported Answer card.
 
 ## Workspace And User Onboarding
 

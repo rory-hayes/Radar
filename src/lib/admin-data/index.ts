@@ -2,6 +2,11 @@ import "server-only";
 
 import { getAuthSession } from "@/lib/auth/session";
 import { readEnv } from "@/lib/env";
+import {
+  getKnowledgeSource,
+  listKnowledgeSources,
+  listKnowledgeUploads,
+} from "@/lib/knowledge/store";
 import { getSupabaseRuntimeState, getSupabaseAdminClient, getDefaultWorkspaceId } from "@/lib/supabase/server";
 import {
   getWorkspaceId,
@@ -254,6 +259,10 @@ export async function getAdminCollection(
         return ready([await getOverviewRecord(adminContext)]);
       case "users":
         return toCollection(await listWorkspaceAccess(adminContext.workspaceId));
+      case "sources":
+        return toCollection(await listSourceRecords(adminContext.workspaceId));
+      case "uploads":
+        return toCollection(await listUploadRecords(adminContext.workspaceId));
       case "sessions":
         return toCollection(await listSessionRecords(adminContext.workspaceId));
       case "audit-log":
@@ -290,6 +299,25 @@ export async function getAdminRecord(
       message: "Connect Supabase server configuration before this record can load.",
       missingConfig: adminContext.missingConfig,
     };
+  }
+
+  if (resource === "sources") {
+    try {
+      const record = await getSourceRecord(id, adminContext.workspaceId);
+      if (!record) {
+        return {
+          state: "empty",
+          message: "This source record was not found.",
+        };
+      }
+
+      return ready(record);
+    } catch {
+      return {
+        state: "error",
+        message: "Supabase could not return this source record.",
+      };
+    }
   }
 
   if (resource !== "sessions") {
@@ -337,7 +365,7 @@ function toCollection(records: AdminRecord[]): AdminDataResult<AdminRecord[]> {
 
 async function getOverviewRecord(context: Extract<AdminContext, { state: "ready" }>) {
   const supabase = getSupabaseAdminClient();
-  const [members, sessions, audit] = await Promise.all([
+  const [members, sessions, audit, sources] = await Promise.all([
     supabase
       .from("radar_workspace_members")
       .select("id", { count: "exact", head: true })
@@ -350,6 +378,10 @@ async function getOverviewRecord(context: Extract<AdminContext, { state: "ready"
       .from("radar_audit_events")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", context.workspaceId),
+    supabase
+      .from("radar_sources")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", context.workspaceId),
   ]);
 
   return {
@@ -358,16 +390,20 @@ async function getOverviewRecord(context: Extract<AdminContext, { state: "ready"
     users: members.count ?? 0,
     sessions: sessions.count ?? 0,
     auditEvents: audit.count ?? 0,
+    sources: sources.count ?? 0,
     status: "connected",
   };
 }
 
 async function getAnalyticsRecord(workspaceId: string) {
   const supabase = getSupabaseAdminClient();
-  const [segments, cards, feedback] = await Promise.all([
+  const [segments, cards, feedback, sources, chunks, retrievals] = await Promise.all([
     supabase.from("radar_transcript_segments").select("id", { count: "exact", head: true }),
     supabase.from("radar_guidance_cards").select("id", { count: "exact", head: true }),
     supabase.from("radar_card_feedback").select("id", { count: "exact", head: true }),
+    supabase.from("radar_sources").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
+    supabase.from("radar_source_chunks").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
+    supabase.from("radar_retrieval_events").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
   ]);
 
   return {
@@ -376,6 +412,65 @@ async function getAnalyticsRecord(workspaceId: string) {
     transcriptSegments: segments.count ?? 0,
     guidanceCards: cards.count ?? 0,
     feedbackItems: feedback.count ?? 0,
+    approvedSources: sources.count ?? 0,
+    knowledgeChunks: chunks.count ?? 0,
+    retrievalEvents: retrievals.count ?? 0,
+  };
+}
+
+async function listSourceRecords(workspaceId: string) {
+  return (await listKnowledgeSources(workspaceId)).map((source) => ({
+    id: source.id,
+    title: source.title,
+    status: source.status,
+    sourceType: source.sourceType,
+    uri: source.uri,
+    ownerEmail: source.ownerEmail,
+    uploadedByEmail: source.uploadedByEmail,
+    approvedByEmail: source.approvedByEmail,
+    approvedAt: source.approvedAt,
+    chunkCount: source.chunkCount,
+    createdAt: source.createdAt,
+    updatedAt: source.updatedAt,
+  }));
+}
+
+async function listUploadRecords(workspaceId: string) {
+  return (await listKnowledgeUploads(workspaceId)).map((upload) => ({
+    id: upload.id,
+    title: upload.fileName ?? upload.sourceId ?? upload.id,
+    sourceId: upload.sourceId,
+    fileName: upload.fileName,
+    contentType: upload.contentType,
+    byteSize: upload.byteSize,
+    status: upload.status,
+    uploadedByEmail: upload.uploadedByEmail,
+    errorMessage: upload.errorMessage,
+    createdAt: upload.createdAt,
+    updatedAt: upload.updatedAt,
+  }));
+}
+
+async function getSourceRecord(id: string, workspaceId: string) {
+  const source = await getKnowledgeSource(id, workspaceId);
+
+  if (!source) {
+    return null;
+  }
+
+  return {
+    id: source.id,
+    title: source.title,
+    status: source.status,
+    sourceType: source.sourceType,
+    uri: source.uri,
+    ownerEmail: source.ownerEmail,
+    uploadedByEmail: source.uploadedByEmail,
+    approvedByEmail: source.approvedByEmail,
+    approvedAt: source.approvedAt,
+    chunkCount: source.chunkCount,
+    createdAt: source.createdAt,
+    updatedAt: source.updatedAt,
   };
 }
 

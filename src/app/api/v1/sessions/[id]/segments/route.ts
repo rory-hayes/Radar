@@ -1,7 +1,9 @@
 import { requireApiAuth, assertSessionAccess } from "@/lib/auth/api";
+import { buildGuidanceForSegment } from "@/lib/knowledge/store";
 import { assertFound, json, jsonError, optionsResponse, readJson } from "@/lib/sessions/http";
-import { addSegment, createLocalTestCard, getSession } from "@/lib/sessions/store";
+import { addCard, addSegment, createLocalTestCard, getSession } from "@/lib/sessions/store";
 import { segmentRequestSchema } from "@/lib/sessions/validation";
+import { getDefaultWorkspaceId } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -44,6 +46,16 @@ export async function POST(request: Request, context: RouteContext) {
       endedAtMs: body.endedAtMs,
     });
 
+    const guidanceCard = body.isFinal
+      ? await addCard(
+          await buildGuidanceForSegment({
+            workspaceId: session.workspaceId ?? getDefaultWorkspaceId(),
+            sessionId: id,
+            segment,
+          }),
+        )
+      : undefined;
+
     const localCard =
       body.localTest?.enabled === true && process.env.RADAR_ENABLE_LOCAL_TEST_HELPERS === "true"
         ? await createLocalTestCard(segment)
@@ -53,6 +65,9 @@ export async function POST(request: Request, context: RouteContext) {
       {
         ok: true,
         segment,
+        guidance: {
+          card: guidanceCard,
+        },
         localTest: {
           requested: body.localTest?.enabled === true,
           enabled: process.env.RADAR_ENABLE_LOCAL_TEST_HELPERS === "true",

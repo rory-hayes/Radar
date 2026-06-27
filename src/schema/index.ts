@@ -30,3 +30,11 @@ export const ForgotPasswordSchema = z.object({
     message: "Enter a valid email address",
   }),
 });
+
+export const KnowledgeSourceTypeSchema = z.enum([
+  "document",
+  "playbook",
+  "policy",
+  "faq",
+  "note",
+]);

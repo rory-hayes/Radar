@@ -69,13 +69,13 @@ export const adminSurfaces = {
     description:
       "Track source ingestion jobs and document uploads without exposing browser-side secrets.",
     primaryAction: {
-      label: "Configure storage",
-      href: "/app/settings",
+      label: "Upload source",
+      href: "/app/uploads",
       capability: "manageSources",
     },
-    emptyTitle: "Upload storage is not connected",
+    emptyTitle: "No uploads have been processed",
     emptyDescription:
-      "Configure the source storage pipeline before upload jobs can be created or reviewed.",
+      "Upload text-based source material to create approved, searchable knowledge chunks.",
     configuredDescription:
       "Upload jobs from Supabase appear here with status, owner, and processing state.",
     roleNote:
