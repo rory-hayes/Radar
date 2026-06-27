@@ -1,7 +1,7 @@
 # Radar V1 Next Steps
 
 1. Add authentication and tenant membership resolution.
-2. Replace in-memory session storage with tenant-isolated database tables.
+2. Build source ingestion, embedding, and retrieval pipelines on top of the Supabase workspace model.
 3. Enforce route-level tenant authorization and audit denied access.
 4. Build source ingestion for Google Drive, Confluence, Jira, Slack, CRM, and uploaded documents.
 5. Add embeddings/indexing with citation, permission, freshness, and approval metadata.
@@ -10,4 +10,3 @@
 8. Persist guidance cards, citations, feedback, knowledge gaps, and replay artifacts.
 9. Add admin workflows for approvals, freshness review, eval runs, and gap triage.
 10. Deploy a staging environment with rate limits, observability, audit persistence, and retention jobs.
-

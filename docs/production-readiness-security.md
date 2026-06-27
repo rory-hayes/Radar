@@ -18,9 +18,9 @@
 
 ## Required Production Work Before Pilot
 
-- Add persistent tenant, membership, audit, retention, deletion, and usage-ledger storage with database-level tenant isolation.
-- Add auth/SSO integration and bind authenticated users to active tenant memberships.
-- Add API route authorization checks for every tenant-scoped read/write.
+- Keep Supabase workspace/session persistence covered by migrations and release checks.
+- Add SSO integration and bind authenticated SSO users to active tenant memberships.
+- Continue API route authorization checks for every tenant-scoped read/write.
 - Add retention and deletion job implementations with dry-run reports, audit events, and restore verification.
 - Add OpenAI Realtime client-secret API routes that call `getOpenAIApiKey` only on the server.
 - Run `pnpm run qa:security` before every release candidate.
@@ -35,7 +35,7 @@
 
 ## Known Gaps
 
-- These files are scaffolding contracts, not a persistence layer.
-- Audit events currently require a real writer before production use.
+- Supabase persistence is wired for workspaces, members, invites, sessions, transcript segments, guidance cards, feedback, and audit events.
 - Retention and deletion contracts do not yet execute background jobs.
-- Real OpenAI Realtime, admin API, auth, database, and source-ingestion integrations still need production credentials and live-system verification.
+- Source ingestion, indexing, permissions, and retrieval still need production implementation.
+- Real OpenAI Realtime and extension capture still need full live browser verification.
