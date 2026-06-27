@@ -15,6 +15,7 @@
     "test": "node scripts/run-eval-tests.mjs && node --test tests/security/*.test.mjs",
     "qa:security": "node scripts/security-qa.mjs",
     "auth:email:configure": "node scripts/configure-supabase-auth-email.mjs",
+    "extension:package": "node scripts/package-extension.mjs",
     "db:migrate": "node scripts/db-migrate.mjs",
     "db:seed": "node scripts/db-seed-workspace.mjs"
   },

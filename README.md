@@ -89,6 +89,12 @@ Load the unpacked extension from `apps/extension` in `chrome://extensions`.
 
 The extension popup talks to the app API. Sign in to the Radar web app in the same browser first, then set `RADAR_EXTENSION_ORIGIN` to `chrome-extension://jhjclgndbjlnnagdnphjdojinaaodeon` so the API can allow credentialed requests from the unpacked extension. It collects page context for preflight/session creation and requests short-lived Realtime credentials from the server. It does not embed an OpenAI API key.
 
+For Chrome Web Store upload or handoff packaging:
+
+- `pnpm run extension:package`
+
+The generated ZIP is written to `.extension-build/radar-live-assist-extension.zip`.
+
 ## QA
 
 ```bash
