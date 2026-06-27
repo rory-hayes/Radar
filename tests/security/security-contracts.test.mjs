@@ -69,6 +69,9 @@ test("V1 API CORS and auth boundaries stay explicit", () => {
   assert.match(http, /RADAR_EXTENSION_ORIGIN/);
   assert.match(http, /Access-Control-Allow-Credentials/);
   assert.match(http, /assertAllowedOrigin\(request\)/);
+  assert.match(http, /function normalizeAllowedOrigin/);
+  assert.match(http, /parsed\.protocol === "http:" \|\| parsed\.protocol === "https:"/);
+  assert.match(http, /trimmed\.replace\(\/\\\/\+\$\/,\s*""\)/);
 
   for (const route of v1Routes) {
     assert.match(read(route), /requireApiAuth/);

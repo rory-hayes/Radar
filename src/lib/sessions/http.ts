@@ -8,6 +8,22 @@ const BASE_CORS_HEADERS = {
   "Access-Control-Max-Age": "86400",
 };
 
+function normalizeAllowedOrigin(origin: string) {
+  const trimmed = origin.trim();
+
+  try {
+    const parsed = new URL(trimmed);
+
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.origin;
+    }
+  } catch {
+    return trimmed;
+  }
+
+  return trimmed.replace(/\/+$/, "");
+}
+
 function configuredOrigins() {
   const origins = [
     process.env.NEXT_PUBLIC_APP_URL,
@@ -21,13 +37,7 @@ function configuredOrigins() {
         const trimmed = origin?.trim();
         return trimmed ? [trimmed] : [];
       })
-      .map((origin) => {
-        try {
-          return new URL(origin).origin;
-        } catch {
-          return origin;
-        }
-      }),
+      .map(normalizeAllowedOrigin),
   );
 }
 
