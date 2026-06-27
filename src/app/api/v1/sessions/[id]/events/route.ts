@@ -16,10 +16,10 @@ export async function GET(request: Request, context: RouteContext) {
   try {
     const auth = await requireApiAuth();
     const { id } = await context.params;
-    const session = assertFound(getSession(id), "session_not_found", "Radar session was not found.");
+    const session = assertFound(await getSession(id), "session_not_found", "Radar session was not found.");
     assertSessionAccess(session, auth);
     const after = parseAfterCursor(request.url);
-    const events = listEvents(id, after);
+    const events = await listEvents(id, after);
     const cursor = events.at(-1)?.sequence ?? after;
 
     if (request.headers.get("accept")?.includes("text/event-stream")) {

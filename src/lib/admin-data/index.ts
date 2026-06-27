@@ -1,9 +1,23 @@
+import "server-only";
+
+import { getAuthSession } from "@/lib/auth/session";
+import { getSupabaseRuntimeState, getSupabaseAdminClient, getDefaultWorkspaceId } from "@/lib/supabase/server";
+import {
+  getWorkspaceId,
+  getWorkspaceMemberByEmail,
+  listWorkspaceAccess,
+  normalizeEmail,
+  upsertWorkspaceMember,
+  type WorkspaceRole,
+} from "@/lib/workspace/store";
+
 export type AdminRole =
   | "owner"
   | "admin"
   | "knowledge_manager"
   | "approver"
   | "analyst"
+  | "user"
   | "viewer";
 
 export type AdminCapability =
@@ -42,6 +56,8 @@ export type AdminContext =
       capabilities: Record<AdminCapability, boolean>;
       apiBaseUrl: string;
       missingConfig: [];
+      workspaceId: string;
+      authEmail: string;
     }
   | {
       state: "not_configured";
@@ -122,23 +138,8 @@ const capabilitiesByRole: Record<AdminRole, AdminCapability[]> = {
   ],
   approver: ["approveGuidance", "runReplay", "reviewSessions", "viewAnalytics"],
   analyst: ["runReplay", "reviewSessions", "viewAnalytics", "viewAuditLog"],
+  user: ["reviewSessions"],
   viewer: ["reviewSessions", "viewAnalytics"],
-};
-
-const resourcePaths: Record<AdminResource, string> = {
-  overview: "overview",
-  users: "users",
-  sources: "sources",
-  uploads: "uploads",
-  connectors: "connectors",
-  playbooks: "playbooks",
-  approvals: "approvals",
-  "testing-replay": "testing-replay",
-  "knowledge-gaps": "knowledge-gaps",
-  analytics: "analytics",
-  sessions: "sessions",
-  settings: "settings",
-  "audit-log": "audit-log",
 };
 
 function capabilitiesFor(role: AdminRole): Record<AdminCapability, boolean> {
@@ -148,7 +149,7 @@ function capabilitiesFor(role: AdminRole): Record<AdminCapability, boolean> {
     Object.keys(capabilityDefaults).map((capability) => [
       capability,
       allowed.has(capability as AdminCapability),
-    ])
+    ]),
   ) as Record<AdminCapability, boolean>;
 }
 
@@ -160,6 +161,7 @@ function parseRole(value: string | undefined): AdminRole {
     "knowledge_manager",
     "approver",
     "analyst",
+    "user",
     "viewer",
   ];
 
@@ -170,15 +172,24 @@ function parseRole(value: string | undefined): AdminRole {
   return "viewer";
 }
 
+function allowedBootstrapEmails() {
+  return new Set(
+    (process.env.RADAR_AUTH_ALLOWED_EMAILS ?? "")
+      .split(",")
+      .map((email) => normalizeEmail(email))
+      .filter(Boolean),
+  );
+}
+
 export async function getAdminContext(): Promise<AdminContext> {
-  const apiBaseUrl = process.env.RADAR_ADMIN_API_BASE_URL?.trim();
-  const apiToken = process.env.RADAR_ADMIN_API_TOKEN?.trim();
+  const runtime = getSupabaseRuntimeState();
+  const auth = await getAuthSession();
   const missingConfig = [
-    !apiBaseUrl ? "RADAR_ADMIN_API_BASE_URL" : null,
-    !apiToken ? "RADAR_ADMIN_API_TOKEN" : null,
+    ...(runtime.state === "not_configured" ? runtime.missing : []),
+    !auth ? "radar_session" : null,
   ].filter(Boolean) as string[];
 
-  if (missingConfig.length > 0 || !apiBaseUrl) {
+  if (runtime.state === "not_configured" || !auth || missingConfig.length > 0) {
     return {
       state: "not_configured",
       role: null,
@@ -188,165 +199,323 @@ export async function getAdminContext(): Promise<AdminContext> {
     };
   }
 
-  const role = parseRole(process.env.RADAR_ADMIN_ROLE);
+  const workspaceId = getDefaultWorkspaceId();
+  const member = await getWorkspaceMemberByEmail(auth.email, workspaceId);
+  let role = member?.status === "disabled" ? "viewer" : member?.role;
+
+  if (!role && allowedBootstrapEmails().has(auth.email)) {
+    role = parseRole(process.env.RADAR_ADMIN_ROLE || "admin");
+    await upsertWorkspaceMember({
+      workspaceId,
+      email: auth.email,
+      role: role as WorkspaceRole,
+      status: "active",
+      onboardingState: "complete",
+      acceptedAt: new Date().toISOString(),
+    });
+  }
 
   return {
     state: "ready",
-    role,
-    capabilities: capabilitiesFor(role),
-    apiBaseUrl,
+    role: parseRole(role),
+    capabilities: capabilitiesFor(parseRole(role)),
+    apiBaseUrl: "supabase",
     missingConfig: [],
+    workspaceId,
+    authEmail: auth.email,
   };
 }
 
 export function can(
   context: AdminContext,
-  capability: AdminCapability
+  capability: AdminCapability,
 ): boolean {
   return context.capabilities[capability] === true;
 }
 
 export async function getAdminCollection(
   resource: AdminResource,
-  context?: AdminContext
+  context?: AdminContext,
 ): Promise<AdminDataResult<AdminRecord[]>> {
   const adminContext = context ?? (await getAdminContext());
 
   if (adminContext.state === "not_configured") {
     return {
       state: "not_configured",
-      message: "Connect the admin API and auth token before this data can load.",
+      message: "Connect Supabase server configuration before this data can load.",
       missingConfig: adminContext.missingConfig,
     };
   }
 
-  return requestAdminApi<AdminRecord[]>(
-    adminContext,
-    resourcePaths[resource],
-    "collection"
-  );
+  try {
+    switch (resource) {
+      case "overview":
+        return ready([await getOverviewRecord(adminContext)]);
+      case "users":
+        return toCollection(await listWorkspaceAccess(adminContext.workspaceId));
+      case "sessions":
+        return toCollection(await listSessionRecords(adminContext.workspaceId));
+      case "audit-log":
+        return toCollection(await listAuditRecords(adminContext.workspaceId));
+      case "settings":
+        return ready([await getSettingsRecord(adminContext)]);
+      case "analytics":
+        return ready([await getAnalyticsRecord(adminContext.workspaceId)]);
+      default:
+        return {
+          state: "empty",
+          message: "No records are connected for this workspace view yet.",
+        };
+    }
+  } catch {
+    return {
+      state: "error",
+      message: "Supabase could not return this workspace data.",
+    };
+  }
 }
 
 export async function getAdminRecord(
   resource: "sources" | "playbooks" | "sessions",
   id: string,
   context?: AdminContext,
-  childPath?: string
+  childPath?: string,
 ): Promise<AdminDataResult<AdminRecord>> {
   const adminContext = context ?? (await getAdminContext());
 
   if (adminContext.state === "not_configured") {
     return {
       state: "not_configured",
-      message: "Connect the admin API and auth token before this record can load.",
+      message: "Connect Supabase server configuration before this record can load.",
       missingConfig: adminContext.missingConfig,
     };
   }
 
-  const path = [resourcePaths[resource], encodeURIComponent(id), childPath]
-    .filter(Boolean)
-    .join("/");
-
-  return requestAdminApi<AdminRecord>(adminContext, path, "record");
-}
-
-async function requestAdminApi<T>(
-  context: Extract<AdminContext, { state: "ready" }>,
-  path: string,
-  expected: "collection" | "record"
-): Promise<AdminDataResult<T>> {
-  try {
-    const url = toAdminUrl(context.apiBaseUrl, path);
-    const response = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.RADAR_ADMIN_API_TOKEN}`,
-      },
-    });
-
-    if (response.status === 401 || response.status === 403) {
-      return {
-        state: "unauthorized",
-        message:
-          "The current admin credentials do not allow this Knowledge Studio view.",
-      };
-    }
-
-    if (response.status === 404) {
-      return {
-        state: "empty",
-        message:
-          expected === "collection"
-            ? "No records were returned for this view."
-            : "This record was not found.",
-      };
-    }
-
-    if (!response.ok) {
-      return {
-        state: "error",
-        message: `The admin API returned ${response.status}.`,
-      };
-    }
-
-    const payload = (await response.json()) as unknown;
-    const data = normalizePayload<T>(payload, expected);
-
-    if (isEmptyData(data, expected)) {
-      return {
-        state: "empty",
-        message:
-          expected === "collection"
-            ? "No records were returned for this view."
-            : "This record was not found.",
-      };
-    }
-
+  if (resource !== "sessions") {
     return {
-      state: "ready",
-      data,
+      state: "empty",
+      message: "This workspace record type is not connected yet.",
     };
+  }
+
+  try {
+    const record = await getSessionRecord(id, adminContext.workspaceId, childPath);
+    if (!record) {
+      return {
+        state: "empty",
+        message: "This call record was not found.",
+      };
+    }
+
+    return ready(record);
   } catch {
     return {
       state: "error",
-      message: "The admin API could not be reached from the server.",
+      message: "Supabase could not return this workspace record.",
     };
   }
 }
 
-function normalizePayload<T>(payload: unknown, expected: "collection" | "record"): T {
-  if (
-    payload &&
-    typeof payload === "object" &&
-    "data" in payload &&
-    (expected === "record" || Array.isArray((payload as { data?: unknown }).data))
-  ) {
-    return (payload as { data: T }).data;
-  }
-
-  if (
-    payload &&
-    typeof payload === "object" &&
-    "items" in payload &&
-    Array.isArray((payload as { items?: unknown }).items)
-  ) {
-    return (payload as { items: T }).items;
-  }
-
-  return payload as T;
+function ready<T>(data: T): AdminDataResult<T> {
+  return {
+    state: "ready",
+    data,
+  };
 }
 
-function isEmptyData(data: unknown, expected: "collection" | "record"): boolean {
-  if (expected === "collection") {
-    return !Array.isArray(data) || data.length === 0;
+function toCollection(records: AdminRecord[]): AdminDataResult<AdminRecord[]> {
+  if (records.length === 0) {
+    return {
+      state: "empty",
+      message: "No records have been created for this workspace yet.",
+    };
   }
 
-  return !data || typeof data !== "object" || Array.isArray(data);
+  return ready(records);
 }
 
-function toAdminUrl(baseUrl: string, path: string): string {
-  const base = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+async function getOverviewRecord(context: Extract<AdminContext, { state: "ready" }>) {
+  const supabase = getSupabaseAdminClient();
+  const [members, sessions, audit] = await Promise.all([
+    supabase
+      .from("radar_workspace_members")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", context.workspaceId),
+    supabase
+      .from("radar_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", context.workspaceId),
+    supabase
+      .from("radar_audit_events")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", context.workspaceId),
+  ]);
 
-  return new URL(path, base).toString();
+  return {
+    id: context.workspaceId,
+    workspaceId: context.workspaceId,
+    users: members.count ?? 0,
+    sessions: sessions.count ?? 0,
+    auditEvents: audit.count ?? 0,
+    status: "connected",
+  };
+}
+
+async function getAnalyticsRecord(workspaceId: string) {
+  const supabase = getSupabaseAdminClient();
+  const [segments, cards, feedback] = await Promise.all([
+    supabase.from("radar_transcript_segments").select("id", { count: "exact", head: true }),
+    supabase.from("radar_guidance_cards").select("id", { count: "exact", head: true }),
+    supabase.from("radar_card_feedback").select("id", { count: "exact", head: true }),
+  ]);
+
+  return {
+    id: workspaceId,
+    workspaceId,
+    transcriptSegments: segments.count ?? 0,
+    guidanceCards: cards.count ?? 0,
+    feedbackItems: feedback.count ?? 0,
+  };
+}
+
+async function getSettingsRecord(context: Extract<AdminContext, { state: "ready" }>) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_workspaces")
+    .select("*")
+    .eq("id", context.workspaceId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return {
+    id: context.workspaceId,
+    workspaceId: context.workspaceId,
+    name: (data as { name?: string } | null)?.name ?? "Radar",
+    onboardingState: (data as { onboarding_state?: string } | null)?.onboarding_state ?? "admin_setup",
+    authEmail: context.authEmail,
+    role: context.role,
+  };
+}
+
+async function listSessionRecords(workspaceId: string) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_sessions")
+    .select("id,status,created_by_email,created_at,updated_at,ended_at,tab,capture")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as AdminRecord[]).map((session) => ({
+    id: session.id,
+    title: toSessionTitle(session),
+    status: session.status,
+    createdByEmail: session.created_by_email,
+    createdAt: session.created_at,
+    updatedAt: session.updated_at,
+    endedAt: session.ended_at,
+    source: session.tab,
+    capture: session.capture,
+  }));
+}
+
+async function getSessionRecord(id: string, workspaceId: string, childPath?: string) {
+  const supabase = getSupabaseAdminClient();
+  const { data: session, error } = await supabase
+    .from("radar_sessions")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!session) {
+    return null;
+  }
+
+  const [segments, cards, feedback, events] = await Promise.all([
+    supabase
+      .from("radar_transcript_segments")
+      .select("*")
+      .eq("session_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("radar_guidance_cards")
+      .select("*")
+      .eq("session_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("radar_card_feedback")
+      .select("*")
+      .eq("session_id", id)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("radar_session_events")
+      .select("*")
+      .eq("session_id", id)
+      .order("sequence", { ascending: true }),
+  ]);
+
+  for (const result of [segments, cards, feedback, events]) {
+    if (result.error) {
+      throw result.error;
+    }
+  }
+
+  return {
+    ...(session as AdminRecord),
+    title: toSessionTitle(session as AdminRecord),
+    reviewPath: childPath,
+    segments: segments.data ?? [],
+    cards: cards.data ?? [],
+    feedback: feedback.data ?? [],
+    events: events.data ?? [],
+  };
+}
+
+async function listAuditRecords(workspaceId: string) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_audit_events")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as AdminRecord[]).map((event) => ({
+    id: event.id,
+    actorEmail: event.actor_email,
+    action: event.action,
+    targetType: event.target_type,
+    targetId: event.target_id,
+    metadata: event.metadata,
+    createdAt: event.created_at,
+  }));
+}
+
+function toSessionTitle(session: AdminRecord) {
+  const tab = session.tab as { title?: unknown; url?: unknown } | undefined;
+  if (typeof tab?.title === "string" && tab.title.trim()) {
+    return tab.title;
+  }
+
+  if (typeof tab?.url === "string" && tab.url.trim()) {
+    return tab.url;
+  }
+
+  return `Call ${String(session.id).slice(0, 8)}`;
 }

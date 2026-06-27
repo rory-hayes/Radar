@@ -84,7 +84,7 @@ export async function CallsPage() {
             <div className="mb-5">
               <h2 className="text-base font-semibold text-zinc-950">Call review queue</h2>
               <p className="mt-1 text-sm leading-6 text-zinc-600">
-                Real call records appear here once the admin API returns session data.
+                Real call records appear here once Supabase has session data.
               </p>
             </div>
             <CallQueue result={result} />

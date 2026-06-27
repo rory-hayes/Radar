@@ -1,6 +1,7 @@
+import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 import { Button } from "@/components/ui/button";
 import Hero from "@/sections/hero";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -20,18 +21,10 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h1>
           <p className="mt-4 text-base leading-7 text-black/65">
-            Password recovery is handled by your Radar workspace admin in this
-            build. Ask an admin to reset your account password, then return to
-            sign in.
+            Enter your workspace email and Supabase will send a reset link if
+            that account has Radar access.
           </p>
-          <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button asChild variant="outline">
-              <Link href="/auth/sign-in">
-                <ArrowLeft data-icon="inline-start" />
-                Back to sign in
-              </Link>
-            </Button>
-          </div>
+          <ForgotPasswordForm />
         </section>
       </Hero>
     </div>

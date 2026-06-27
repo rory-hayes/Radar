@@ -24,3 +24,9 @@ export const SignInSchema = z.object({
     message: "Password must be at least 8 characters",
   }),
 });
+
+export const ForgotPasswordSchema = z.object({
+  email: z.string().trim().email({
+    message: "Enter a valid email address",
+  }),
+});

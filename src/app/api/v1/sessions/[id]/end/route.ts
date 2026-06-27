@@ -18,9 +18,9 @@ export async function POST(request: Request, context: RouteContext) {
     const auth = await requireApiAuth();
     await readJson(request, endSessionRequestSchema);
     const { id } = await context.params;
-    const existingSession = assertFound(getSession(id), "session_not_found", "Radar session was not found.");
+    const existingSession = assertFound(await getSession(id), "session_not_found", "Radar session was not found.");
     assertSessionAccess(existingSession, auth);
-    const session = assertFound(setSessionStatus(id, "ended"), "session_not_found", "Radar session was not found.");
+    const session = assertFound(await setSessionStatus(id, "ended"), "session_not_found", "Radar session was not found.");
 
     return json({
       ok: true,

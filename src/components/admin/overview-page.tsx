@@ -123,7 +123,7 @@ export async function OverviewPage() {
 
               <div className="mt-5 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
                 {overview.state === "ready"
-                  ? "Overview data is loaded from the configured admin API."
+                  ? "Overview data is loaded from Supabase."
                   : overview.message}
               </div>
             </div>
@@ -285,7 +285,7 @@ function DashboardPolicyPanel({ context }: { context: AdminContext }) {
         <PolicyRow label="Answer cards need citations" state="Enforced" />
         <PolicyRow label="Unsupported claims escalate" state="Enforced" />
         <PolicyRow
-          label="Tenant admin API"
+          label="Supabase workspace data"
           state={context.state === "ready" ? "Connected" : "Setup required"}
         />
       </div>

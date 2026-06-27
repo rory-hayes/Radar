@@ -7,19 +7,19 @@ import { getAdminCollection, getAdminContext } from "@/lib/admin-data";
 
 const readinessItems = [
   {
-    label: "Admin API base URL",
-    envName: "RADAR_ADMIN_API_BASE_URL",
-    description: "Server-side endpoint used by Knowledge Studio pages.",
+    label: "Supabase URL",
+    envName: "SUPABASE_URL",
+    description: "Server-side Supabase project used by Knowledge Studio pages.",
   },
   {
-    label: "Admin API token",
-    envName: "RADAR_ADMIN_API_TOKEN",
-    description: "Server-only credential for tenant-scoped admin API requests.",
+    label: "Supabase secret key",
+    envName: "SUPABASE_SECRET_KEY",
+    description: "Server-only credential for tenant-scoped workspace data requests.",
   },
   {
-    label: "Admin role",
-    envName: "RADAR_ADMIN_ROLE",
-    description: "Temporary role mapping until real auth resolves memberships.",
+    label: "Workspace ID",
+    envName: "RADAR_DEFAULT_WORKSPACE_ID",
+    description: "Default workspace used for members, invites, sessions, and audit events.",
   },
 ];
 
@@ -76,11 +76,11 @@ export async function SettingsPage() {
           <section className="rounded-lg border border-zinc-200 bg-white p-5">
             <h2 className="text-base font-semibold text-zinc-950">Tenant settings</h2>
             <p className="mt-1 text-sm leading-6 text-zinc-600">
-              Real tenant settings will render here after the admin API returns records.
+              Real tenant settings render here from Supabase workspace records.
             </p>
             <div className="mt-5 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
               {result.state === "ready"
-                ? "Settings data loaded from the configured admin API."
+                ? "Settings data loaded from Supabase."
                 : result.message}
             </div>
           </section>

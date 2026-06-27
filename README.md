@@ -50,16 +50,21 @@ Required before production password sign-in:
 - `RADAR_AUTH_PASSWORD`
 - `RADAR_AUTH_ALLOWED_EMAILS` when access should be limited to specific emails
 
-Required before admin data leaves setup mode:
+Required before workspace data leaves setup mode:
 
-- `RADAR_ADMIN_API_BASE_URL`
-- `RADAR_ADMIN_API_TOKEN`
-- `RADAR_ADMIN_ROLE` while local password auth is standing in for real membership auth
+- `DATABASE_URL`
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `RADAR_DEFAULT_WORKSPACE_ID`
+- `RADAR_ADMIN_ROLE` for the bootstrap admin emails listed in `RADAR_AUTH_ALLOWED_EMAILS`
 
-Workspace user management expects the admin API to expose:
+Workspace user management uses Supabase tables plus Supabase Auth email delivery for invites and reset links.
 
-- `GET /users` for workspace members and pending invites
-- `POST /users/invites` for owner/admin invitations with `{ "email": string, "role": string }`
+Run migrations before production sessions:
+
+- `pnpm run db:migrate`
+- `pnpm run db:seed`
 
 Do not configure `NEXT_PUBLIC_OPENAI_*` variables.
 

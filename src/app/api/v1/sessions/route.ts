@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const body = await readJson(request, createSessionRequestSchema);
-    const session = createSession({
+    const session = await createSession({
       createdByEmail: auth.email,
       workspaceId: body.workspaceId,
       tab: body.tab,

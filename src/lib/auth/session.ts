@@ -2,13 +2,20 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
+import { getSupabaseAuthClient } from "@/lib/supabase/server";
+import {
+  getWorkspaceMemberByEmail,
+  normalizeEmail,
+  upsertWorkspaceMember,
+} from "@/lib/workspace/store";
+
 import { AUTH_COOKIE_NAME } from "./constants";
 export { AUTH_COOKIE_NAME } from "./constants";
 
 const SESSION_TTL_SECONDS = Number(process.env.RADAR_AUTH_SESSION_TTL_SECONDS ?? 60 * 60 * 8);
 const LOCAL_AUTH_PASSWORD = process.env.RADAR_LOCAL_AUTH_PASSWORD ?? "radar-access";
 
-type AuthMode = "password" | "local";
+type AuthMode = "password" | "local" | "supabase";
 
 export type AuthSession = {
   email: string;
@@ -162,6 +169,11 @@ async function readToken(token: string | undefined, secret: string) {
 }
 
 export async function authenticatePassword(input: { email: string; password: string }) {
+  const supabaseResult = await authenticateSupabasePassword(input);
+  if (supabaseResult.ok) {
+    return supabaseResult;
+  }
+
   const runtime = getAuthRuntime();
 
   if (runtime.state === "not_configured") {
@@ -203,6 +215,78 @@ export async function authenticatePassword(input: { email: string; password: str
     expiresAt: expiresAt.toISOString(),
     mode: runtime.mode,
   };
+
+  return {
+    ok: true as const,
+    session,
+    token: await createToken(session, runtime.secret),
+    maxAge: SESSION_TTL_SECONDS,
+  };
+}
+
+async function authenticateSupabasePassword(input: { email: string; password: string }) {
+  const supabase = getSupabaseAuthClient();
+  const email = normalizeEmail(input.email);
+
+  if (!supabase) {
+    return { ok: false as const };
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password: input.password,
+  });
+
+  if (error || !data.user) {
+    return { ok: false as const };
+  }
+
+  const member = await getWorkspaceMemberByEmail(email);
+  const allowedEmails = parseAllowedEmails(process.env.RADAR_AUTH_ALLOWED_EMAILS);
+
+  if (!member && !isAllowedEmail(email, allowedEmails)) {
+    return { ok: false as const };
+  }
+
+  if (member?.status === "disabled") {
+    return { ok: false as const };
+  }
+
+  if (member?.status === "invited") {
+    await upsertWorkspaceMember({
+      email,
+      role: member.role,
+      status: "active",
+      onboardingState: member.onboardingState,
+      acceptedAt: new Date().toISOString(),
+    });
+  }
+
+  if (!member && isAllowedEmail(email, allowedEmails)) {
+    await upsertWorkspaceMember({
+      email,
+      role: "admin",
+      status: "active",
+      onboardingState: "complete",
+      acceptedAt: new Date().toISOString(),
+    });
+  }
+
+  const issuedAt = new Date();
+  const expiresAt = new Date(issuedAt.getTime() + SESSION_TTL_SECONDS * 1000);
+  const session: AuthSession = {
+    email,
+    issuedAt: issuedAt.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    mode: "supabase",
+  };
+  const runtime = getAuthRuntime();
+
+  if (runtime.state === "not_configured") {
+    return {
+      ok: false as const,
+    };
+  }
 
   return {
     ok: true as const,

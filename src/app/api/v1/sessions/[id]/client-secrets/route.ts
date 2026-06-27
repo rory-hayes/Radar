@@ -30,11 +30,11 @@ export async function POST(request: Request, context: RouteContext) {
 
     await readJson(request, clientSecretRequestSchema);
     const { id } = await context.params;
-    const session = assertFound(getSession(id), "session_not_found", "Radar session was not found.");
+    const session = assertFound(await getSession(id), "session_not_found", "Radar session was not found.");
     assertSessionAccess(session, auth);
 
     const result = await mintRealtimeClientSecret();
-    addRealtimeEvent(id, {
+    await addRealtimeEvent(id, {
       state: result.state,
       model: result.model,
       expiresAt: result.state === "ready" ? result.expiresAt : undefined,

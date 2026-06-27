@@ -1,3 +1,7 @@
+import "server-only";
+
+import { getDefaultWorkspaceId, getSupabaseAdminClient } from "@/lib/supabase/server";
+
 import type {
   CardFeedback,
   GuidanceCard,
@@ -8,50 +12,59 @@ import type {
   TranscriptSegment,
 } from "./types";
 
-type Store = {
-  sessions: Map<string, RadarSession>;
-  segments: Map<string, TranscriptSegment[]>;
-  cards: Map<string, GuidanceCard>;
-  feedback: Map<string, CardFeedback[]>;
-  events: Map<string, SessionEvent[]>;
+type SessionRow = {
+  id: string;
+  workspace_id: string;
+  created_by_email: string;
+  status: SessionStatus;
+  tab: RadarSession["tab"] | null;
+  capture: RadarSession["capture"];
+  consent: RadarSession["consent"];
+  client: RadarSession["client"] | null;
+  ended_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
-declare global {
-  var __radarSessionStore: Store | undefined;
-}
+type SegmentRow = {
+  id: string;
+  session_id: string;
+  text: string;
+  source: TranscriptSegment["source"];
+  is_final: boolean;
+  started_at_ms: number | null;
+  ended_at_ms: number | null;
+  created_at: string;
+};
 
-const store: Store =
-  globalThis.__radarSessionStore ??
-  (globalThis.__radarSessionStore = {
-    sessions: new Map(),
-    segments: new Map(),
-    cards: new Map(),
-    feedback: new Map(),
-    events: new Map(),
-  });
+type CardRow = {
+  id: string;
+  session_id: string;
+  lane: GuidanceCard["lane"];
+  title: string;
+  body: string;
+  citations: GuidanceCitation[];
+  is_local_test: boolean;
+  created_at: string;
+};
 
-function now() {
-  return new Date().toISOString();
-}
+type FeedbackRow = {
+  id: string;
+  session_id: string;
+  card_id: string;
+  rating: CardFeedback["rating"];
+  note: string | null;
+  created_at: string;
+};
 
-function nextSequence(sessionId: string) {
-  return (store.events.get(sessionId)?.at(-1)?.sequence ?? 0) + 1;
-}
-
-function appendEvent(event: Omit<SessionEvent, "id" | "sequence" | "createdAt">) {
-  const createdAt = now();
-  const fullEvent = {
-    ...event,
-    id: crypto.randomUUID(),
-    sequence: nextSequence(event.sessionId),
-    createdAt,
-  } as SessionEvent;
-
-  const events = store.events.get(event.sessionId) ?? [];
-  events.push(fullEvent);
-  store.events.set(event.sessionId, events);
-  return fullEvent;
-}
+type EventRow = {
+  id: string;
+  session_id: string;
+  sequence: number;
+  type: SessionEvent["type"];
+  payload: SessionEvent["payload"];
+  created_at: string;
+};
 
 function publicSessionPayload(session: RadarSession) {
   return {
@@ -63,21 +76,149 @@ function publicSessionPayload(session: RadarSession) {
   };
 }
 
-export function createSession(input: Omit<RadarSession, "id" | "status" | "createdAt" | "updatedAt">) {
-  const createdAt = now();
-  const session: RadarSession = {
-    ...input,
-    id: crypto.randomUUID(),
-    status: "active",
-    createdAt,
-    updatedAt: createdAt,
+function toSession(row: SessionRow): RadarSession {
+  return {
+    id: row.id,
+    workspaceId: row.workspace_id,
+    createdByEmail: row.created_by_email,
+    status: row.status,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    endedAt: row.ended_at ?? undefined,
+    tab: row.tab ?? undefined,
+    capture: row.capture,
+    consent: row.consent,
+    client: row.client ?? undefined,
   };
+}
 
-  store.sessions.set(session.id, session);
-  store.segments.set(session.id, []);
-  store.feedback.set(session.id, []);
-  store.events.set(session.id, []);
-  appendEvent({
+function toSegment(row: SegmentRow): TranscriptSegment {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    text: row.text,
+    source: row.source,
+    isFinal: row.is_final,
+    startedAtMs: row.started_at_ms ?? undefined,
+    endedAtMs: row.ended_at_ms ?? undefined,
+    createdAt: row.created_at,
+  };
+}
+
+function toCard(row: CardRow): GuidanceCard {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    lane: row.lane,
+    title: row.title,
+    body: row.body,
+    citations: row.citations,
+    createdAt: row.created_at,
+    isLocalTest: row.is_local_test,
+  };
+}
+
+function toFeedback(row: FeedbackRow): CardFeedback {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    cardId: row.card_id,
+    rating: row.rating,
+    note: row.note ?? undefined,
+    createdAt: row.created_at,
+  };
+}
+
+function toEvent(row: EventRow): SessionEvent {
+  return {
+    id: row.id,
+    sessionId: row.session_id,
+    sequence: row.sequence,
+    type: row.type,
+    createdAt: row.created_at,
+    payload: row.payload,
+  } as SessionEvent;
+}
+
+async function ensureWorkspace(workspaceId: string) {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase
+    .from("radar_workspaces")
+    .upsert(
+      {
+        id: workspaceId,
+        name: workspaceId === "radar" ? "Radar" : workspaceId,
+      },
+      { onConflict: "id" },
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function nextSequence(sessionId: string) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_session_events")
+    .select("sequence")
+    .eq("session_id", sessionId)
+    .order("sequence", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data?.[0] as { sequence?: number } | undefined)?.sequence ?? 0) + 1;
+}
+
+async function appendEvent(event: Omit<SessionEvent, "id" | "sequence" | "createdAt">) {
+  const supabase = getSupabaseAdminClient();
+  const sequence = await nextSequence(event.sessionId);
+  const { data, error } = await supabase
+    .from("radar_session_events")
+    .insert({
+      session_id: event.sessionId,
+      sequence,
+      type: event.type,
+      payload: event.payload,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return toEvent(data as EventRow);
+}
+
+export async function createSession(input: Omit<RadarSession, "id" | "status" | "createdAt" | "updatedAt">) {
+  const supabase = getSupabaseAdminClient();
+  const workspaceId = input.workspaceId ?? getDefaultWorkspaceId();
+  await ensureWorkspace(workspaceId);
+
+  const { data, error } = await supabase
+    .from("radar_sessions")
+    .insert({
+      workspace_id: workspaceId,
+      created_by_email: input.createdByEmail,
+      status: "active",
+      tab: input.tab ?? null,
+      capture: input.capture,
+      consent: input.consent,
+      client: input.client ?? null,
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  const session = toSession(data as SessionRow);
+  await appendEvent({
     sessionId: session.id,
     type: "session.started",
     payload: publicSessionPayload(session),
@@ -86,45 +227,75 @@ export function createSession(input: Omit<RadarSession, "id" | "status" | "creat
   return session;
 }
 
-export function getSession(sessionId: string) {
-  return store.sessions.get(sessionId);
+export async function getSession(sessionId: string) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_sessions")
+    .select("*")
+    .eq("id", sessionId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ? toSession(data as SessionRow) : undefined;
 }
 
-export function setSessionStatus(sessionId: string, status: SessionStatus) {
-  const session = store.sessions.get(sessionId);
-  if (!session) {
+export async function setSessionStatus(sessionId: string, status: SessionStatus) {
+  const supabase = getSupabaseAdminClient();
+  const updates = {
+    status,
+    updated_at: new Date().toISOString(),
+    ...(status === "ended" ? { ended_at: new Date().toISOString() } : {}),
+  };
+
+  const { data, error } = await supabase
+    .from("radar_sessions")
+    .update(updates)
+    .eq("id", sessionId)
+    .select("*")
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
     return undefined;
   }
 
-  const updatedAt = now();
-  const nextSession: RadarSession = {
-    ...session,
-    status,
-    updatedAt,
-    endedAt: status === "ended" ? updatedAt : session.endedAt,
-  };
-
-  store.sessions.set(sessionId, nextSession);
-  appendEvent({
+  const session = toSession(data as SessionRow);
+  await appendEvent({
     sessionId,
     type: status === "paused" ? "session.paused" : status === "ended" ? "session.ended" : "session.resumed",
-    payload: publicSessionPayload(nextSession),
+    payload: publicSessionPayload(session),
   });
 
-  return nextSession;
+  return session;
 }
 
-export function addSegment(input: Omit<TranscriptSegment, "id" | "createdAt">) {
-  const segment: TranscriptSegment = {
-    ...input,
-    id: crypto.randomUUID(),
-    createdAt: now(),
-  };
+export async function addSegment(input: Omit<TranscriptSegment, "id" | "createdAt">) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_transcript_segments")
+    .insert({
+      session_id: input.sessionId,
+      text: input.text,
+      source: input.source,
+      is_final: input.isFinal,
+      started_at_ms: input.startedAtMs ?? null,
+      ended_at_ms: input.endedAtMs ?? null,
+    })
+    .select("*")
+    .single();
 
-  const segments = store.segments.get(input.sessionId) ?? [];
-  segments.push(segment);
-  store.segments.set(input.sessionId, segments);
-  appendEvent({
+  if (error) {
+    throw error;
+  }
+
+  const segment = toSegment(data as SegmentRow);
+  await appendEvent({
     sessionId: input.sessionId,
     type: "segment.created",
     payload: segment,
@@ -133,19 +304,31 @@ export function addSegment(input: Omit<TranscriptSegment, "id" | "createdAt">) {
   return segment;
 }
 
-export function addCard(card: Omit<GuidanceCard, "id" | "createdAt">) {
+export async function addCard(card: Omit<GuidanceCard, "id" | "createdAt">) {
   if ((card.lane === "answer" || card.lane === "proof") && card.citations.length === 0) {
     throw new Error("Answer and Proof cards require citations.");
   }
 
-  const guidanceCard: GuidanceCard = {
-    ...card,
-    id: crypto.randomUUID(),
-    createdAt: now(),
-  };
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_guidance_cards")
+    .insert({
+      session_id: card.sessionId,
+      lane: card.lane,
+      title: card.title,
+      body: card.body,
+      citations: card.citations,
+      is_local_test: card.isLocalTest,
+    })
+    .select("*")
+    .single();
 
-  store.cards.set(guidanceCard.id, guidanceCard);
-  appendEvent({
+  if (error) {
+    throw error;
+  }
+
+  const guidanceCard = toCard(data as CardRow);
+  await appendEvent({
     sessionId: guidanceCard.sessionId,
     type: "card.created",
     payload: guidanceCard,
@@ -154,22 +337,40 @@ export function addCard(card: Omit<GuidanceCard, "id" | "createdAt">) {
   return guidanceCard;
 }
 
-export function addFeedback(input: Omit<CardFeedback, "id" | "createdAt">) {
-  const card = store.cards.get(input.cardId);
-  if (!card || card.sessionId !== input.sessionId) {
+export async function addFeedback(input: Omit<CardFeedback, "id" | "createdAt">) {
+  const supabase = getSupabaseAdminClient();
+  const { data: card, error: cardError } = await supabase
+    .from("radar_guidance_cards")
+    .select("id,session_id")
+    .eq("id", input.cardId)
+    .eq("session_id", input.sessionId)
+    .maybeSingle();
+
+  if (cardError) {
+    throw cardError;
+  }
+
+  if (!card) {
     return undefined;
   }
 
-  const feedback: CardFeedback = {
-    ...input,
-    id: crypto.randomUUID(),
-    createdAt: now(),
-  };
+  const { data, error } = await supabase
+    .from("radar_card_feedback")
+    .insert({
+      session_id: input.sessionId,
+      card_id: input.cardId,
+      rating: input.rating,
+      note: input.note ?? null,
+    })
+    .select("*")
+    .single();
 
-  const feedbackRows = store.feedback.get(input.sessionId) ?? [];
-  feedbackRows.push(feedback);
-  store.feedback.set(input.sessionId, feedbackRows);
-  appendEvent({
+  if (error) {
+    throw error;
+  }
+
+  const feedback = toFeedback(data as FeedbackRow);
+  await appendEvent({
     sessionId: input.sessionId,
     type: "feedback.created",
     payload: feedback,
@@ -178,7 +379,7 @@ export function addFeedback(input: Omit<CardFeedback, "id" | "createdAt">) {
   return feedback;
 }
 
-export function addRealtimeEvent(
+export async function addRealtimeEvent(
   sessionId: string,
   payload: Extract<
     SessionEvent,
@@ -192,11 +393,23 @@ export function addRealtimeEvent(
   });
 }
 
-export function listEvents(sessionId: string, afterSequence = 0) {
-  return (store.events.get(sessionId) ?? []).filter((event) => event.sequence > afterSequence);
+export async function listEvents(sessionId: string, afterSequence = 0) {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("radar_session_events")
+    .select("*")
+    .eq("session_id", sessionId)
+    .gt("sequence", afterSequence)
+    .order("sequence", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as EventRow[]).map(toEvent);
 }
 
-export function createLocalTestCard(segment: TranscriptSegment) {
+export async function createLocalTestCard(segment: TranscriptSegment) {
   const citations: GuidanceCitation[] = [
     {
       segmentId: segment.id,

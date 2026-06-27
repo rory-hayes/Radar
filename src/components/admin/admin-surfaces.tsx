@@ -39,9 +39,9 @@ export const adminSurfaces = {
     },
     emptyTitle: "No users have been returned",
     emptyDescription:
-      "Workspace members and pending invitations appear after the admin API returns real user records.",
+      "Workspace members and pending invitations appear after the Supabase returns real user records.",
     configuredDescription:
-      "Workspace users from the admin API appear here with role, invite, and onboarding state.",
+      "Workspace users from Supabase appear here with role, invite, and onboarding state.",
     roleNote:
       "Owners and admins can invite users and change roles; other roles can review access state only when permitted.",
   },
@@ -59,7 +59,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Connect storage, docs, or a ticketing source before Radar can retrieve cited guidance.",
     configuredDescription:
-      "Connected source records from the admin API appear here with their review and freshness state.",
+      "Connected source records from Supabase appear here with their review and freshness state.",
     roleNote:
       "Knowledge managers and admins can add or retire sources after auth is configured.",
   },
@@ -77,7 +77,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Configure the source storage pipeline before upload jobs can be created or reviewed.",
     configuredDescription:
-      "Upload jobs from the admin API appear here with status, owner, and processing state.",
+      "Upload jobs from Supabase appear here with status, owner, and processing state.",
     roleNote:
       "Only source managers and admins should start ingestion jobs or retry failed uploads.",
   },
@@ -95,7 +95,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Connectors need tenant-scoped credentials and approval before they can sync records.",
     configuredDescription:
-      "Connector records from the admin API appear here with sync and authorization state.",
+      "Connector records from Supabase appear here with sync and authorization state.",
     roleNote:
       "Connector setup is limited to admins and knowledge managers with credential access.",
   },
@@ -113,7 +113,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Create approved playbooks after source retrieval and approval workflows are connected.",
     configuredDescription:
-      "Playbook records from the admin API appear here with lifecycle and approval state.",
+      "Playbook records from Supabase appear here with lifecycle and approval state.",
     roleNote:
       "Playbook editing should be limited to knowledge managers and admins.",
   },
@@ -131,7 +131,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Changes will appear after source ingestion, playbook edits, or gap resolutions are submitted.",
     configuredDescription:
-      "Approval records from the admin API appear here with reviewer and decision state.",
+      "Approval records from Supabase appear here with reviewer and decision state.",
     roleNote:
       "Approvers can accept or reject changes; viewers can only inspect decision history.",
   },
@@ -149,7 +149,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Reviewed sessions and evaluation gates must be connected before replay runs can start.",
     configuredDescription:
-      "Replay runs from the admin API appear here with status and evaluation outcomes.",
+      "Replay runs from Supabase appear here with status and evaluation outcomes.",
     roleNote:
       "Replay controls are available to reviewers, analysts, knowledge managers, and admins.",
   },
@@ -167,7 +167,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Gap records will appear after live sessions emit needs-confirmation or escalation events.",
     configuredDescription:
-      "Gap records from the admin API appear here with assignment and resolution state.",
+      "Gap records from Supabase appear here with assignment and resolution state.",
     roleNote:
       "Knowledge managers can assign gaps; analysts can review trend patterns without scoring people.",
   },
@@ -180,7 +180,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Usage ledger, retrieval events, and evaluation results must be connected before charts render.",
     configuredDescription:
-      "Verified analytics from the admin API appear here only after real events are available.",
+      "Verified analytics from Supabase appear here only after real events are available.",
     roleNote:
       "Analytics are role-gated and should report system behavior, not individual teammate rankings.",
   },
@@ -198,7 +198,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Completed calls will appear after the extension and session ingestion APIs are connected.",
     configuredDescription:
-      "Call records from the admin API appear here with review and retention state.",
+      "Call records from Supabase appear here with review and retention state.",
     roleNote:
       "Call review is role-gated and should preserve tenant, retention, and redaction controls.",
   },
@@ -206,7 +206,7 @@ export const adminSurfaces = {
     resource: "settings",
     title: "Settings",
     description:
-      "Configure tenant, role, retention, ingestion, and admin API readiness for Knowledge Studio.",
+      "Configure tenant, role, retention, ingestion, and Supabase readiness for Knowledge Studio.",
     primaryAction: {
       label: "Open audit log",
       href: "/app/audit-log",
@@ -214,9 +214,9 @@ export const adminSurfaces = {
     },
     emptyTitle: "Settings are not connected",
     emptyDescription:
-      "Connect the admin API before tenant settings can be read or changed from this app.",
+      "Connect Supabase before tenant settings can be read or changed from this app.",
     configuredDescription:
-      "Tenant settings from the admin API appear here with permission-aware controls.",
+      "Tenant settings from Supabase appear here with permission-aware controls.",
     roleNote:
       "Only admins should change tenant settings, retention policy, or credential-backed integrations.",
   },
@@ -234,7 +234,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Audit events will appear after the tenant audit writer is connected to this interface.",
     configuredDescription:
-      "Audit records from the admin API appear here with actor, action, target, and timestamp.",
+      "Audit records from Supabase appear here with actor, action, target, and timestamp.",
     roleNote:
       "Audit visibility is reserved for admins and analysts with compliance responsibilities.",
   },
@@ -343,7 +343,7 @@ export function AdminDetailSurface({
           <AdminStatePanel
             result={result}
             emptyTitle={`No ${recordLabel} record was found`}
-            emptyDescription={`The ${recordLabel} detail view will render after the admin API returns a real record.`}
+            emptyDescription={`The ${recordLabel} detail view will render after the Supabase returns a real record.`}
           />
           {result.state === "ready" ? <AdminRecordDetails record={result.data} /> : null}
         </section>

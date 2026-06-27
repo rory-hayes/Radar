@@ -18,10 +18,10 @@ export async function POST(request: Request, context: RouteContext) {
     const auth = await requireApiAuth();
     const body = await readJson(request, feedbackRequestSchema);
     const { id } = await context.params;
-    const session = assertFound(getSession(body.sessionId), "session_not_found", "Radar session was not found.");
+    const session = assertFound(await getSession(body.sessionId), "session_not_found", "Radar session was not found.");
     assertSessionAccess(session, auth);
     const feedback = assertFound(
-      addFeedback({
+      await addFeedback({
         sessionId: body.sessionId,
         cardId: id,
         rating: body.rating,

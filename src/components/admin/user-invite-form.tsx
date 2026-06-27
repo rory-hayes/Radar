@@ -129,9 +129,9 @@ export function UserInviteForm({
       {!configured ? (
         <Alert className="mt-4 border-amber-200 bg-amber-50 text-amber-950">
           <AlertCircle />
-          <AlertTitle>Admin API required</AlertTitle>
+          <AlertTitle>Supabase required</AlertTitle>
           <AlertDescription>
-            Connect RADAR_ADMIN_API_BASE_URL and RADAR_ADMIN_API_TOKEN before invites can be sent.
+            Connect Supabase server configuration before invites can be sent.
           </AlertDescription>
         </Alert>
       ) : null}

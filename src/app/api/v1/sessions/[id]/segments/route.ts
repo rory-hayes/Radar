@@ -18,7 +18,7 @@ export async function POST(request: Request, context: RouteContext) {
     const auth = await requireApiAuth();
     const body = await readJson(request, segmentRequestSchema);
     const { id } = await context.params;
-    const session = assertFound(getSession(id), "session_not_found", "Radar session was not found.");
+    const session = assertFound(await getSession(id), "session_not_found", "Radar session was not found.");
     assertSessionAccess(session, auth);
 
     if (session.status === "ended") {
@@ -35,7 +35,7 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    const segment = addSegment({
+    const segment = await addSegment({
       sessionId: id,
       text: body.text,
       source: body.source,
@@ -46,7 +46,7 @@ export async function POST(request: Request, context: RouteContext) {
 
     const localCard =
       body.localTest?.enabled === true && process.env.RADAR_ENABLE_LOCAL_TEST_HELPERS === "true"
-        ? createLocalTestCard(segment)
+        ? await createLocalTestCard(segment)
         : undefined;
 
     return json(
