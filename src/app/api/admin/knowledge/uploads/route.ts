@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         ok: false,
         error: {
           code: "not_configured",
-          message: "Sign in and connect Supabase before uploading knowledge.",
+          message: "Sign in and connect workspace data before uploading knowledge.",
           missing: context.missingConfig,
         },
       },

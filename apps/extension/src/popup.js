@@ -65,7 +65,7 @@ async function runAction(type) {
 }
 
 function render(state) {
-  apiBaseInput.value = state.apiBase || "http://localhost:3000";
+  apiBaseInput.value = state.apiBase || "https://radar-eight-nu.vercel.app";
   activeTabInput.checked = state.capture?.activeTab !== false;
   microphoneInput.checked = Boolean(state.capture?.microphone);
 

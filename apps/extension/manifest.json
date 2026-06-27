@@ -21,5 +21,9 @@
     }
   ],
   "permissions": ["activeTab", "offscreen", "scripting", "storage", "tabCapture", "tabs"],
-  "host_permissions": ["https://api.openai.com/*", "http://localhost:3000/*", "https://*/v1/*", "https://*/api/v1/*"]
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://radar-eight-nu.vercel.app/*",
+    "http://localhost:3000/*"
+  ]
 }

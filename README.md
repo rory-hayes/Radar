@@ -32,9 +32,10 @@ export PATH="/Users/rory/.cache/codex-runtimes/codex-primary-runtime/dependencie
 
 ## Environment
 
-Required for local UI:
+Required for local UI and auth links:
 
 - `NEXT_PUBLIC_APP_URL`
+- `RADAR_APP_URL` or `AUTH_URL` for invite/reset links. In production this should be the public Radar URL, not `localhost`.
 
 Required before real Realtime transcription:
 
@@ -64,7 +65,7 @@ Workspace user management uses Supabase tables plus Supabase Auth email delivery
 
 - `pnpm run auth:email:configure`
 
-That script requires `SUPABASE_ACCESS_TOKEN` plus `SUPABASE_PROJECT_REF` or `SUPABASE_URL`. SMTP values are optional, but should be set before production email volume.
+That script requires `SUPABASE_ACCESS_TOKEN` plus `SUPABASE_PROJECT_REF` or `SUPABASE_URL`. SMTP values are optional for template updates, but custom SMTP is required if the sender should appear as Radar instead of the default Supabase Auth sender.
 
 Run migrations before production sessions:
 

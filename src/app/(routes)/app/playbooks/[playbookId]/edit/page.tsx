@@ -1,5 +1,6 @@
 import { AdminEditSurface } from "@/components/admin/admin-surfaces";
 import { getAdminContext, getAdminRecord } from "@/lib/admin-data";
+import { redirect } from "next/navigation";
 
 export default async function PlaybookEditPage({
   params,
@@ -7,6 +8,11 @@ export default async function PlaybookEditPage({
   params: Promise<{ playbookId: string }>;
 }) {
   const { playbookId } = await params;
+
+  if (playbookId === "new") {
+    redirect("/app/uploads?type=playbook");
+  }
+
   const context = await getAdminContext();
   const result = await getAdminRecord("playbooks", playbookId, context);
 

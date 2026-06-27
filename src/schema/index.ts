@@ -31,6 +31,12 @@ export const ForgotPasswordSchema = z.object({
   }),
 });
 
+export const AcceptInviteSchema = z.object({
+  accessToken: z.string().trim().min(20, {
+    message: "Invite token is required",
+  }),
+});
+
 export const KnowledgeSourceTypeSchema = z.enum([
   "document",
   "playbook",

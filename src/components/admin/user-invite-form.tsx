@@ -129,9 +129,9 @@ export function UserInviteForm({
       {!configured ? (
         <Alert className="mt-4 border-amber-200 bg-amber-50 text-amber-950">
           <AlertCircle />
-          <AlertTitle>Supabase required</AlertTitle>
+          <AlertTitle>Workspace data required</AlertTitle>
           <AlertDescription>
-            Connect Supabase server configuration before invites can be sent.
+            Connect the workspace database before invites can be sent.
           </AlertDescription>
         </Alert>
       ) : null}

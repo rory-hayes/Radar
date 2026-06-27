@@ -114,7 +114,7 @@ function WorkspaceUsersTable({ result }: { result: AdminDataResult<AdminRecord[]
           <div>
             <CardTitle>Workspace access</CardTitle>
             <CardDescription>
-              Real members and pending invites appear here from Supabase.
+              Real members and pending invites appear here from the shared workspace.
             </CardDescription>
           </div>
           <Badge variant="outline">Central workspace</Badge>
@@ -134,7 +134,7 @@ function WorkspaceUsersTable({ result }: { result: AdminDataResult<AdminRecord[]
 function UsersState({ result }: { result: Exclude<AdminDataResult<AdminRecord[]>, { state: "ready" }> }) {
   const destructive = result.state === "error" || result.state === "unauthorized";
   const title = {
-    not_configured: "Supabase not connected",
+    not_configured: "Workspace data not connected",
     unauthorized: "Unauthorized",
     error: "Unable to load users",
     empty: "No users returned",
@@ -166,7 +166,7 @@ function UserTable({ records }: { records: AdminRecord[] }) {
         <Users />
         <AlertTitle>No workspace users returned</AlertTitle>
         <AlertDescription>
-          Supabase responded successfully but did not include member or invite records.
+          The workspace responded successfully but did not include member or invite records.
         </AlertDescription>
       </Alert>
     );

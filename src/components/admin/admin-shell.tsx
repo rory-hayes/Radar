@@ -3,18 +3,12 @@
 import {
   Activity,
   BarChart3,
-  BookOpenCheck,
-  ClipboardCheck,
   FileClock,
   FileSearch,
   Gauge,
-  History,
-  Layers3,
   LogOut,
-  PlayCircle,
   PlugZap,
   Settings,
-  UploadCloud,
   Users,
 } from "lucide-react";
 import Link from "next/link";
@@ -33,21 +27,30 @@ type AdminNavItem = {
 
 const primaryNav: AdminNavItem[] = [
   { href: "/app", label: "Overview", icon: Gauge },
-  { href: "/app/users", label: "Users", icon: Users },
-  { href: "/app/sources", label: "Sources", icon: FileSearch },
-  { href: "/app/uploads", label: "Uploads", icon: UploadCloud },
+  {
+    href: "/app/sources",
+    label: "Knowledge",
+    icon: FileSearch,
+    activePaths: [
+      "/app/uploads",
+      "/app/playbooks",
+      "/app/approvals",
+      "/app/knowledge-gaps",
+    ],
+  },
   { href: "/app/connectors", label: "Connectors", icon: PlugZap },
-  { href: "/app/playbooks", label: "Playbooks", icon: BookOpenCheck },
-  { href: "/app/approvals", label: "Approvals", icon: ClipboardCheck },
-  { href: "/app/testing", label: "Testing & Replay", icon: PlayCircle },
-  { href: "/app/knowledge-gaps", label: "Knowledge Gaps", icon: Layers3 },
+  { href: "/app/users", label: "Users", icon: Users },
+  {
+    href: "/app/sessions",
+    label: "Calls",
+    icon: Activity,
+    activePaths: ["/app/calls", "/app/testing"],
+  },
   { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/app/sessions", label: "Calls", icon: Activity, activePaths: ["/app/calls"] },
 ];
 
 const secondaryNav: AdminNavItem[] = [
-  { href: "/app/settings", label: "Settings", icon: Settings },
-  { href: "/app/audit-log", label: "Audit log", icon: History },
+  { href: "/app/settings", label: "Settings", icon: Settings, activePaths: ["/app/audit-log"] },
 ];
 
 export function AdminShell({

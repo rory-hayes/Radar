@@ -252,30 +252,87 @@ async function authenticateSupabasePassword(input: { email: string; password: st
     return { ok: false as const };
   }
 
-  const member = await getWorkspaceMemberByEmail(email);
-  const allowedEmails = parseAllowedEmails(readEnv(process.env.RADAR_AUTH_ALLOWED_EMAILS));
+  const sessionResult = await createSupabaseRadarSession(email);
 
-  if (!member && !isAllowedEmail(email, allowedEmails)) {
+  if (!sessionResult.ok) {
     return { ok: false as const };
   }
 
+  return sessionResult;
+}
+
+export async function authenticateSupabaseAccessToken(accessToken: string) {
+  const supabase = getSupabaseAuthClient();
+
+  if (!supabase) {
+    return {
+      ok: false as const,
+      status: 503,
+      code: "supabase_not_configured",
+      message: "Supabase Auth is not configured for invite acceptance.",
+    };
+  }
+
+  const { data, error } = await supabase.auth.getUser(accessToken);
+  const email = normalizeEmail(data.user?.email ?? "");
+
+  if (error || !email) {
+    return {
+      ok: false as const,
+      status: 401,
+      code: "invalid_invite",
+      message: "This invite link is invalid or expired. Ask your workspace admin for a new invite.",
+    };
+  }
+
+  return createSupabaseRadarSession(email, {
+    invalidCode: "invalid_invite",
+    invalidMessage: "This invite is not connected to a Radar workspace member.",
+  });
+}
+
+async function createSupabaseRadarSession(
+  email: string,
+  options?: {
+    invalidCode?: string;
+    invalidMessage?: string;
+  },
+) {
+  const normalizedEmail = normalizeEmail(email);
+  const member = await getWorkspaceMemberByEmail(normalizedEmail);
+  const allowedEmails = parseAllowedEmails(readEnv(process.env.RADAR_AUTH_ALLOWED_EMAILS));
+
+  if (!member && !isAllowedEmail(normalizedEmail, allowedEmails)) {
+    return {
+      ok: false as const,
+      status: 401,
+      code: options?.invalidCode ?? "invalid_credentials",
+      message: options?.invalidMessage ?? "Email or password did not match.",
+    };
+  }
+
   if (member?.status === "disabled") {
-    return { ok: false as const };
+    return {
+      ok: false as const,
+      status: 403,
+      code: "workspace_access_disabled",
+      message: "This workspace access has been disabled.",
+    };
   }
 
   if (member?.status === "invited") {
     await upsertWorkspaceMember({
-      email,
+      email: normalizedEmail,
       role: member.role,
       status: "active",
-      onboardingState: member.onboardingState,
+      onboardingState: "extension_setup",
       acceptedAt: new Date().toISOString(),
     });
   }
 
-  if (!member && isAllowedEmail(email, allowedEmails)) {
+  if (!member && isAllowedEmail(normalizedEmail, allowedEmails)) {
     await upsertWorkspaceMember({
-      email,
+      email: normalizedEmail,
       role: "admin",
       status: "active",
       onboardingState: "complete",
@@ -286,7 +343,7 @@ async function authenticateSupabasePassword(input: { email: string; password: st
   const issuedAt = new Date();
   const expiresAt = new Date(issuedAt.getTime() + SESSION_TTL_SECONDS * 1000);
   const session: AuthSession = {
-    email,
+    email: normalizedEmail,
     issuedAt: issuedAt.toISOString(),
     expiresAt: expiresAt.toISOString(),
     mode: "supabase",
@@ -296,6 +353,9 @@ async function authenticateSupabasePassword(input: { email: string; password: st
   if (runtime.state === "not_configured") {
     return {
       ok: false as const,
+      status: 503,
+      code: "auth_not_configured",
+      message: "Radar session signing is not configured.",
     };
   }
 

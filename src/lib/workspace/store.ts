@@ -270,7 +270,7 @@ export async function sendPasswordResetEmail(email: string) {
   const supabase = getSupabaseAdminClient();
   const appUrl = getAppUrl();
   const { error } = await supabase.auth.resetPasswordForEmail(normalizeEmail(email), {
-    redirectTo: `${appUrl}/auth/sign-in`,
+    redirectTo: `${appUrl}/auth/sign-in?from=recovery`,
   });
 
   if (error) {
@@ -312,7 +312,7 @@ async function sendSupabaseInviteEmail(input: {
   const supabase = getSupabaseAdminClient();
   const appUrl = getAppUrl();
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(input.email, {
-    redirectTo: `${appUrl}/auth/sign-in`,
+    redirectTo: `${appUrl}/auth/accept-invite`,
     data: {
       workspace_id: input.workspaceId,
       workspace_role: input.role,

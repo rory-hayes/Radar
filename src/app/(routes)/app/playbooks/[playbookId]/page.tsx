@@ -17,8 +17,6 @@ export default async function PlaybookDetailPage({
       title="Playbook detail"
       description="Review a playbook record, lifecycle state, source backing, and approval readiness."
       recordLabel="playbook"
-      editHref={`/app/playbooks/${encodeURIComponent(playbookId)}/edit`}
-      editCapability="managePlaybooks"
     />
   );
 }

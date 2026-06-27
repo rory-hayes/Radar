@@ -39,9 +39,9 @@ export const adminSurfaces = {
     },
     emptyTitle: "No users have been returned",
     emptyDescription:
-      "Workspace members and pending invitations appear after the Supabase returns real user records.",
+      "Workspace members and pending invitations appear after the workspace returns real user records.",
     configuredDescription:
-      "Workspace users from Supabase appear here with role, invite, and onboarding state.",
+      "Workspace users appear here with role, invite, and onboarding state.",
     roleNote:
       "Owners and admins can invite users and change roles; other roles can review access state only when permitted.",
   },
@@ -59,7 +59,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Connect storage, docs, or a ticketing source before Radar can retrieve cited guidance.",
     configuredDescription:
-      "Connected source records from Supabase appear here with their review and freshness state.",
+      "Connected source records appear here with their review and freshness state.",
     roleNote:
       "Knowledge managers and admins can add or retire sources after auth is configured.",
   },
@@ -77,7 +77,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Upload text-based source material to create approved, searchable knowledge chunks.",
     configuredDescription:
-      "Upload jobs from Supabase appear here with status, owner, and processing state.",
+      "Upload jobs appear here with status, owner, and processing state.",
     roleNote:
       "Only source managers and admins should start ingestion jobs or retry failed uploads.",
   },
@@ -85,17 +85,17 @@ export const adminSurfaces = {
     resource: "connectors",
     title: "Connectors",
     description:
-      "Connect and monitor external systems used for source discovery and citation refresh.",
+      "Choose where Radar should pull approved customer-facing knowledge from.",
     primaryAction: {
       label: "Add connector",
-      href: "/app/settings",
+      href: "/app/connectors?new=1",
       capability: "manageConnectors",
     },
     emptyTitle: "No connectors are configured",
     emptyDescription:
       "Connectors need tenant-scoped credentials and approval before they can sync records.",
     configuredDescription:
-      "Connector records from Supabase appear here with sync and authorization state.",
+      "Connector records appear here with sync and authorization state.",
     roleNote:
       "Connector setup is limited to admins and knowledge managers with credential access.",
   },
@@ -103,19 +103,19 @@ export const adminSurfaces = {
     resource: "playbooks",
     title: "Playbooks",
     description:
-      "Create and review approved guidance patterns that Radar can cite in live assistance.",
+      "Approved call guidance uploaded as knowledge sources that Radar can cite in live assistance.",
     primaryAction: {
       label: "Create playbook",
-      href: "/app/playbooks/new/edit",
+      href: "/app/uploads?type=playbook",
       capability: "managePlaybooks",
     },
     emptyTitle: "No playbooks are published",
     emptyDescription:
-      "Create approved playbooks after source retrieval and approval workflows are connected.",
+      "Upload a playbook document or paste playbook text to make it available for cited guidance.",
     configuredDescription:
-      "Playbook records from Supabase appear here with lifecycle and approval state.",
+      "Approved playbook source records appear here with owner, chunk count, and approval state.",
     roleNote:
-      "Playbook editing should be limited to knowledge managers and admins.",
+      "Playbooks use the same approval and citation rules as other workspace knowledge.",
   },
   approvals: {
     resource: "approvals",
@@ -131,7 +131,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Changes will appear after source ingestion, playbook edits, or gap resolutions are submitted.",
     configuredDescription:
-      "Approval records from Supabase appear here with reviewer and decision state.",
+      "Approval records appear here with reviewer and decision state.",
     roleNote:
       "Approvers can accept or reject changes; viewers can only inspect decision history.",
   },
@@ -149,7 +149,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Reviewed sessions and evaluation gates must be connected before replay runs can start.",
     configuredDescription:
-      "Replay runs from Supabase appear here with status and evaluation outcomes.",
+      "Replay runs appear here with status and evaluation outcomes.",
     roleNote:
       "Replay controls are available to reviewers, analysts, knowledge managers, and admins.",
   },
@@ -167,7 +167,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Gap records will appear after live sessions emit needs-confirmation or escalation events.",
     configuredDescription:
-      "Gap records from Supabase appear here with assignment and resolution state.",
+      "Gap records appear here with assignment and resolution state.",
     roleNote:
       "Knowledge managers can assign gaps; analysts can review trend patterns without scoring people.",
   },
@@ -180,7 +180,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Usage ledger, retrieval events, and evaluation results must be connected before charts render.",
     configuredDescription:
-      "Verified analytics from Supabase appear here only after real events are available.",
+      "Verified analytics appear here only after real events are available.",
     roleNote:
       "Analytics are role-gated and should report system behavior, not individual teammate rankings.",
   },
@@ -198,7 +198,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Completed calls will appear after the extension and session ingestion APIs are connected.",
     configuredDescription:
-      "Call records from Supabase appear here with review and retention state.",
+      "Call records appear here with review and retention state.",
     roleNote:
       "Call review is role-gated and should preserve tenant, retention, and redaction controls.",
   },
@@ -206,7 +206,7 @@ export const adminSurfaces = {
     resource: "settings",
     title: "Settings",
     description:
-      "Configure tenant, role, retention, ingestion, and Supabase readiness for Knowledge Studio.",
+      "Configure workspace readiness, access, retention, and Radar deployment settings.",
     primaryAction: {
       label: "Open audit log",
       href: "/app/audit-log",
@@ -214,9 +214,9 @@ export const adminSurfaces = {
     },
     emptyTitle: "Settings are not connected",
     emptyDescription:
-      "Connect Supabase before tenant settings can be read or changed from this app.",
+      "Connect workspace data before tenant settings can be read or changed from this app.",
     configuredDescription:
-      "Tenant settings from Supabase appear here with permission-aware controls.",
+      "Tenant settings appear here with permission-aware controls.",
     roleNote:
       "Only admins should change tenant settings, retention policy, or credential-backed integrations.",
   },
@@ -234,7 +234,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Audit events will appear after the tenant audit writer is connected to this interface.",
     configuredDescription:
-      "Audit records from Supabase appear here with actor, action, target, and timestamp.",
+      "Audit records appear here with actor, action, target, and timestamp.",
     roleNote:
       "Audit visibility is reserved for admins and analysts with compliance responsibilities.",
   },
@@ -343,7 +343,7 @@ export function AdminDetailSurface({
           <AdminStatePanel
             result={result}
             emptyTitle={`No ${recordLabel} record was found`}
-            emptyDescription={`The ${recordLabel} detail view will render after the Supabase returns a real record.`}
+            emptyDescription={`The ${recordLabel} detail view will render after the workspace returns a real record.`}
           />
           {result.state === "ready" ? <AdminRecordDetails record={result.data} /> : null}
         </section>

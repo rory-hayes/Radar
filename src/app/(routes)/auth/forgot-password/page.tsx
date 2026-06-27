@@ -21,8 +21,8 @@ export default function ForgotPasswordPage() {
             Reset your password
           </h1>
           <p className="mt-4 text-base leading-7 text-black/65">
-            Enter your workspace email and Supabase will send a reset link if
-            that account has Radar access.
+            Enter your workspace email and Radar will send a reset link if that
+            account has access.
           </p>
           <ForgotPasswordForm />
         </section>

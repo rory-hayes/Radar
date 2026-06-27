@@ -7,19 +7,19 @@ import { getAdminCollection, getAdminContext } from "@/lib/admin-data";
 
 const readinessItems = [
   {
-    label: "Supabase URL",
+    label: "Workspace data",
     envName: "SUPABASE_URL",
-    description: "Server-side Supabase project used by Knowledge Studio pages.",
+    description: "Members, sources, calls, and analytics are connected to the workspace database.",
   },
   {
-    label: "Supabase secret key",
+    label: "Secure server access",
     envName: "SUPABASE_SECRET_KEY",
-    description: "Server-only credential for tenant-scoped workspace data requests.",
+    description: "Server-only credentials are present and are not exposed to the browser or extension.",
   },
   {
-    label: "Workspace ID",
+    label: "Default workspace",
     envName: "RADAR_DEFAULT_WORKSPACE_ID",
-    description: "Default workspace used for members, invites, sessions, and audit events.",
+    description: "Invites, uploaded sources, and extension sessions resolve to the shared workspace.",
   },
 ];
 
@@ -37,9 +37,9 @@ export async function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">
           <section className="rounded-lg border border-zinc-200 bg-white p-5">
-            <h2 className="text-base font-semibold text-zinc-950">Environment readiness</h2>
+            <h2 className="text-base font-semibold text-zinc-950">Workspace readiness</h2>
             <p className="mt-1 text-sm leading-6 text-zinc-600">
-              These values are read on the server and are never required in browser code.
+              These checks confirm the production flow is connected without showing secrets to admins.
             </p>
             <div className="mt-5 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
               {readinessItems.map((item) => {
@@ -53,10 +53,9 @@ export async function SettingsPage() {
                     key={item.envName}
                     className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
                   >
-                    <div>
-                      <div className="text-sm font-semibold text-zinc-950">{item.label}</div>
-                      <div className="mt-1 text-sm leading-6 text-zinc-600">{item.description}</div>
-                      <code className="mt-2 block text-xs text-zinc-500">{item.envName}</code>
+                      <div>
+                        <div className="text-sm font-semibold text-zinc-950">{item.label}</div>
+                        <div className="mt-1 text-sm leading-6 text-zinc-600">{item.description}</div>
                     </div>
                     <span
                       className={
@@ -74,14 +73,23 @@ export async function SettingsPage() {
           </section>
 
           <section className="rounded-lg border border-zinc-200 bg-white p-5">
-            <h2 className="text-base font-semibold text-zinc-950">Tenant settings</h2>
+            <h2 className="text-base font-semibold text-zinc-950">Email and invite delivery</h2>
             <p className="mt-1 text-sm leading-6 text-zinc-600">
-              Real tenant settings render here from Supabase workspace records.
+              Radar invite and recovery templates are in the repo. Sender branding is controlled by
+              the email provider configured for auth delivery.
             </p>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+                <div className="font-semibold text-zinc-950">Invite link</div>
+                <p className="mt-1">New invites open Radar onboarding through /auth/accept-invite.</p>
+              </div>
+              <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+                <div className="font-semibold text-zinc-950">Sender name</div>
+                <p className="mt-1">Use custom SMTP to send from Radar instead of the default auth sender.</p>
+              </div>
+            </div>
             <div className="mt-5 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
-              {result.state === "ready"
-                ? "Settings data loaded from Supabase."
-                : result.message}
+              {result.state === "ready" ? "Workspace settings are connected." : result.message}
             </div>
           </section>
         </div>

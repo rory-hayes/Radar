@@ -263,6 +263,8 @@ export async function getAdminCollection(
         return toCollection(await listSourceRecords(adminContext.workspaceId));
       case "uploads":
         return toCollection(await listUploadRecords(adminContext.workspaceId));
+      case "playbooks":
+        return toCollection(await listPlaybookRecords(adminContext.workspaceId));
       case "sessions":
         return toCollection(await listSessionRecords(adminContext.workspaceId));
       case "audit-log":
@@ -301,13 +303,16 @@ export async function getAdminRecord(
     };
   }
 
-  if (resource === "sources") {
+  if (resource === "sources" || resource === "playbooks") {
     try {
       const record = await getSourceRecord(id, adminContext.workspaceId);
-      if (!record) {
+      if (!record || (resource === "playbooks" && record.sourceType !== "playbook")) {
         return {
           state: "empty",
-          message: "This source record was not found.",
+          message:
+            resource === "playbooks"
+              ? "This playbook record was not found."
+              : "This source record was not found.",
         };
       }
 
@@ -318,13 +323,6 @@ export async function getAdminRecord(
         message: "Supabase could not return this source record.",
       };
     }
-  }
-
-  if (resource !== "sessions") {
-    return {
-      state: "empty",
-      message: "This workspace record type is not connected yet.",
-    };
   }
 
   try {
@@ -433,6 +431,25 @@ async function listSourceRecords(workspaceId: string) {
     createdAt: source.createdAt,
     updatedAt: source.updatedAt,
   }));
+}
+
+async function listPlaybookRecords(workspaceId: string) {
+  return (await listKnowledgeSources(workspaceId))
+    .filter((source) => source.sourceType === "playbook")
+    .map((source) => ({
+      id: source.id,
+      title: source.title,
+      status: source.status,
+      sourceType: source.sourceType,
+      uri: source.uri,
+      ownerEmail: source.ownerEmail,
+      uploadedByEmail: source.uploadedByEmail,
+      approvedByEmail: source.approvedByEmail,
+      approvedAt: source.approvedAt,
+      chunkCount: source.chunkCount,
+      createdAt: source.createdAt,
+      updatedAt: source.updatedAt,
+    }));
 }
 
 async function listUploadRecords(workspaceId: string) {

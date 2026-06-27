@@ -27,11 +27,17 @@ type UploadState =
 export function KnowledgeUploadForm({
   configured,
   canUpload,
+  initialSourceType,
 }: {
   configured: boolean;
   canUpload: boolean;
+  initialSourceType?: string;
 }) {
   const router = useRouter();
+  const defaultSourceType = sourceTypes.some((item) => item.value === initialSourceType)
+    ? initialSourceType
+    : "document";
+  const isPlaybook = defaultSourceType === "playbook";
   const [state, setState] = useState<UploadState>(null);
   const [isPending, setIsPending] = useState(false);
   const disabled = isPending || !configured || !canUpload;
@@ -91,18 +97,21 @@ export function KnowledgeUploadForm({
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-5">
       <div className="flex flex-col gap-2">
-        <h2 className="text-base font-semibold text-zinc-950">Upload approved knowledge</h2>
+        <h2 className="text-base font-semibold text-zinc-950">
+          {isPlaybook ? "Create playbook source" : "Upload approved knowledge"}
+        </h2>
         <p className="text-sm leading-6 text-zinc-600">
-          Upload text-based source material. Radar embeds it server-side, stores citations in
-          Supabase, and makes approved chunks available to live guidance.
+          {isPlaybook
+            ? "Paste or upload a playbook that Radar can retrieve and cite during live calls."
+            : "Upload text-based source material. Radar embeds it server-side and makes approved chunks available to live guidance."}
         </p>
       </div>
 
       {!configured ? (
         <Alert className="mt-4 border-amber-200 bg-amber-50 text-amber-950">
           <AlertCircle />
-          <AlertTitle>Supabase required</AlertTitle>
-          <AlertDescription>Connect Supabase before sources can be ingested.</AlertDescription>
+          <AlertTitle>Workspace data required</AlertTitle>
+          <AlertDescription>Connect the workspace database before sources can be ingested.</AlertDescription>
         </Alert>
       ) : null}
 
@@ -143,7 +152,7 @@ export function KnowledgeUploadForm({
               name="sourceType"
               disabled={disabled}
               className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-zinc-950 shadow-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              defaultValue="document"
+              defaultValue={defaultSourceType}
             >
               {sourceTypes.map((item) => (
                 <option key={item.value} value={item.value}>

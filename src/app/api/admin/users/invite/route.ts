@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         ok: false,
         error: {
           code: "supabase_not_configured",
-          message: "Connect Supabase before inviting users.",
+          message: "Connect workspace data before inviting users.",
           missing: context.missingConfig,
         },
       },
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
         ok: false,
         error: {
           code: "invite_failed",
-          message: error instanceof Error ? error.message : "Supabase could not send the invite.",
+          message: error instanceof Error ? error.message : "Radar could not send the invite.",
         },
       },
       { status: 502 },

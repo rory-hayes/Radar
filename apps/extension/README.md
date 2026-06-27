@@ -4,7 +4,9 @@ This is a static Manifest V3 extension for the V1 live-assist shell.
 
 Load it from `chrome://extensions` with **Developer mode** enabled, then choose **Load unpacked** and select `apps/extension`.
 
-The popup defaults to `http://localhost:3000`. It calls Radar server endpoints only; it does not store or embed an OpenAI API key. Realtime browser credentials are requested from `POST /v1/sessions/{id}/client-secrets` after a server-side session exists.
+The popup defaults to `https://radar-eight-nu.vercel.app`. Change the field to `http://localhost:3000` when testing a local dev server. It calls Radar server endpoints only; it does not store or embed an OpenAI API key. Realtime browser credentials are requested from `POST /v1/sessions/{id}/client-secrets` after a server-side session exists.
+
+The manifest key pins the unpacked extension ID to `jhjclgndbjlnnagdnphjdojinaaodeon`; the server must allow `RADAR_EXTENSION_ORIGIN=chrome-extension://jhjclgndbjlnnagdnphjdojinaaodeon`.
 
 Capture status:
 

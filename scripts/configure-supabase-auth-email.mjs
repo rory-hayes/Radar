@@ -14,20 +14,33 @@ const projectRef =
   projectRefFromUrl(readEnv(process.env.SUPABASE_URL) ?? readEnv(process.env.NEXT_PUBLIC_SUPABASE_URL));
 
 if (!accessToken || !projectRef) {
-  console.log("Supabase auth email config skipped: SUPABASE_ACCESS_TOKEN and project ref are required.");
+  const missing = [
+    accessToken ? null : "SUPABASE_ACCESS_TOKEN",
+    projectRef ? null : "SUPABASE_PROJECT_REF or SUPABASE_URL",
+  ].filter(Boolean);
+  console.log(`Supabase auth email config skipped: missing ${missing.join(", ")}.`);
   process.exit(0);
 }
 
 const inviteTemplate = await readFile(path.join(repoRoot, "supabase", "templates", "invite.html"), "utf8");
 const recoveryTemplate = await readFile(path.join(repoRoot, "supabase", "templates", "recovery.html"), "utf8");
-const siteUrl = readEnv(process.env.AUTH_URL) ?? readEnv(process.env.NEXT_PUBLIC_APP_URL) ?? "https://radar-eight-nu.vercel.app";
+const siteUrl =
+  readEnv(process.env.RADAR_APP_URL) ??
+  readEnv(process.env.NEXT_PUBLIC_APP_URL) ??
+  readEnv(process.env.AUTH_URL) ??
+  "https://radar-eight-nu.vercel.app";
 const payload = {
   site_url: siteUrl,
-  mailer_subjects_invite: "You have been invited to Radar",
+  mailer_subjects_invite: "Your Radar workspace invite",
   mailer_templates_invite_content: inviteTemplate,
   mailer_subjects_recovery: "Reset your Radar password",
   mailer_templates_recovery_content: recoveryTemplate,
-  uri_allow_list: [siteUrl, `${siteUrl}/auth/sign-in`].join(","),
+  uri_allow_list: [
+    siteUrl,
+    `${siteUrl}/auth/sign-in`,
+    `${siteUrl}/auth/sign-in?from=recovery`,
+    `${siteUrl}/auth/accept-invite`,
+  ].join(","),
   ...smtpPayload(),
 };
 

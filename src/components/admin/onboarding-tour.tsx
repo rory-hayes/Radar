@@ -89,22 +89,22 @@ const tourStepsByAudience = {
       outcome: "Users join the shared workspace instead of creating unmanaged personal knowledge.",
     },
     {
-      title: "Set up the browser extension",
-      description:
-        "The user enables the Chrome extension, reviews microphone and browser permissions, and confirms when Radar may appear.",
-      icon: MonitorCheck,
-      tone: "emerald",
-      rows: ["Extension", "Permissions", "Consent"],
-      outcome: "Radar remains hidden until a supported customer conversation begins.",
-    },
-    {
       title: "Learn the card states before live calls",
       description:
         "Users learn that cited cards can be used, Needs confirmation cards need caution, and unsupported claims should escalate.",
       icon: FileWarning,
-      tone: "amber",
+      tone: "emerald",
       rows: ["Cited", "Confirm", "Escalate"],
       outcome: "Users know what to trust, what to check, and what to route back to the team.",
+    },
+    {
+      title: "Install the Chrome extension",
+      description:
+        "Enable Radar Live Assist in Chrome, pin it to the toolbar, and start it only after call consent is clear.",
+      icon: MonitorCheck,
+      tone: "amber",
+      rows: ["Install", "Pin", "Start"],
+      outcome: "After a call ends, the session appears in Calls and rolls into analytics.",
     },
   ],
 } satisfies Record<TourAudience, TourStep[]>;
