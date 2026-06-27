@@ -104,7 +104,7 @@ const MIN_TEXT_LENGTH = 40;
 const CHUNK_SIZE = 1_600;
 const CHUNK_OVERLAP = 180;
 const DEFAULT_MATCH_LIMIT = 4;
-const DEFAULT_MIN_SIMILARITY = 0.68;
+const DEFAULT_MIN_SIMILARITY = 0.55;
 
 export function maxKnowledgeUploadBytes() {
   return MAX_UPLOAD_BYTES;
