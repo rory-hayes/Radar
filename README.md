@@ -42,7 +42,7 @@ Required before real Realtime transcription:
 - `OPENAI_REALTIME_MODEL`
 - `OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS`
 - `OPENAI_SAFETY_IDENTIFIER` or `RADAR_OPENAI_SAFETY_IDENTIFIER`
-- `RADAR_EXTENSION_ORIGIN` set to the installed Chrome extension origin, for example `chrome-extension://<extension-id>`
+- `RADAR_EXTENSION_ORIGIN` set to the Radar Chrome extension origin, currently `chrome-extension://jhjclgndbjlnnagdnphjdojinaaodeon`
 
 Required before production password sign-in:
 
@@ -76,7 +76,7 @@ Radar is workspace-first. Admins configure the shared workspace, approved knowle
 
 Load the unpacked extension from `apps/extension` in `chrome://extensions`.
 
-The extension popup talks to the app API. Sign in to the Radar web app in the same browser first, then set `RADAR_EXTENSION_ORIGIN` to the installed extension origin so the API can allow credentialed requests from that extension. It collects page context for preflight/session creation and requests short-lived Realtime credentials from the server. It does not embed an OpenAI API key.
+The extension popup talks to the app API. Sign in to the Radar web app in the same browser first, then set `RADAR_EXTENSION_ORIGIN` to `chrome-extension://jhjclgndbjlnnagdnphjdojinaaodeon` so the API can allow credentialed requests from the unpacked extension. It collects page context for preflight/session creation and requests short-lived Realtime credentials from the server. It does not embed an OpenAI API key.
 
 ## QA
 

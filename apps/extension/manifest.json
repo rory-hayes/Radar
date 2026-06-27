@@ -3,6 +3,7 @@
   "name": "Radar Live Assist",
   "description": "Visible live-call capture indicator and slim guidance drawer for Radar V1.",
   "version": "0.1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApyRJ/QrlcToiv3MMBmBo10kj5dnCAR+oZHpfFm+5tyPDKcn/lCo43obmLLLcSyNAZ8LyAHoAlsCzAioEh8dGUs+YsnJ0ONtdgFffZg3ZTzRDts3Nu8xACFvXLYx+w2JPXSOylywk9XQrQb104xZEd+q1AcKogmhXi2VOO2t4+vOcFgOFK/Wc1Woo80hVE+tE6lTU44XfaD+BuXx1BYOtR6NqDihK4cuKj4XJUNhCoA9ZwmX5toBtiTBUiDdjh+jrO/XoXvSpRzgfaPK3pZZwQ3SGNG3QCEgMUdgIjIP581JNtDeldt0UPN7sgZhKwODqEdKjbWWVlIf276z8+IoZYQIDAQAB",
   "action": {
     "default_title": "Radar",
     "default_popup": "src/popup.html"
