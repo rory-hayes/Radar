@@ -86,7 +86,7 @@ export function AdminShell({
             </div>
             <div>
               <div className="text-sm font-semibold">Radar</div>
-              <div className="text-xs text-zinc-500">Knowledge Studio</div>
+              <div className="text-xs text-zinc-500">Workspace</div>
             </div>
           </Link>
           <button
@@ -100,7 +100,7 @@ export function AdminShell({
           </button>
         </div>
         <nav
-          aria-label="Knowledge Studio sections"
+          aria-label="Radar workspace sections"
           className="flex gap-2 overflow-x-auto px-4 pb-4"
         >
           {[...primaryNav, ...secondaryNav].map((item) => (
@@ -117,21 +117,21 @@ export function AdminShell({
             </div>
             <div>
               <div className="text-base font-semibold">Radar</div>
-              <div className="text-sm text-zinc-500">Knowledge Studio</div>
+              <div className="text-sm text-zinc-500">Workspace</div>
             </div>
           </Link>
         </div>
 
         <div className="flex flex-1 flex-col justify-between overflow-y-auto px-4 py-5">
-          <nav aria-label="Knowledge Studio sections" className="space-y-1">
+          <nav aria-label="Radar workspace sections" className="flex flex-col gap-1">
             {primaryNav.map((item) => (
               <AdminNavLink key={item.href} item={item} pathname={pathname} />
             ))}
           </nav>
 
           <nav
-            aria-label="Knowledge Studio settings"
-            className="space-y-1 border-t border-zinc-200 pt-4"
+            aria-label="Radar workspace settings"
+            className="flex flex-col gap-1 border-t border-zinc-200 pt-4"
           >
             {authEmail ? (
               <div className="px-3 pb-3 text-xs leading-5 text-zinc-500">

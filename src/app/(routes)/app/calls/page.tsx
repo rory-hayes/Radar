@@ -1,3 +1,5 @@
-import { CallsPage } from "@/components/admin/calls-page";
+import { redirect } from "next/navigation";
 
-export default CallsPage;
+export default function CallsRedirectPage() {
+  redirect("/app/sessions");
+}

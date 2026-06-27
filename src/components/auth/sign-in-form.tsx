@@ -1,7 +1,5 @@
 "use client";
 
-import logoIcon from "@/assets/icons/logo-icon.svg";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
@@ -74,20 +72,9 @@ const SignInForm = () => {
   };
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-sm flex-col items-center justify-center">
-      <div className="inline-flex h-20 aspect-square items-center justify-center rounded-xl border bg-white shadow-md">
-        <Image width={32} height={36} src={logoIcon} alt="Logo icon" className="h-auto w-8" />
-      </div>
-
-      <div className="mt-6 flex w-full flex-col items-center text-center">
-        <h2 className="text-3xl font-medium text-black">Welcome back!</h2>
-        <p className="mt-2 text-base leading-6 text-black/70">
-          Sign in with your Radar workspace email and password.
-        </p>
-      </div>
-
+    <div className="flex w-full max-w-md flex-col">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 flex w-full flex-col gap-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col gap-5">
           {error ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />

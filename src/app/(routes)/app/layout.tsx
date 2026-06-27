@@ -18,8 +18,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Radar Knowledge Studio",
-  description: "Admin control plane for Radar sources, playbooks, approvals, replay, sessions, settings, and audit.",
+  title: "Radar Workspace",
+  description: "Workspace setup, approved knowledge, user invites, call review, and analytics for Radar.",
 };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {

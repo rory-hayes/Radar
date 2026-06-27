@@ -1,5 +1,5 @@
 import { AcceptInviteClient } from "@/components/auth/accept-invite-client";
-import Hero from "@/sections/hero";
+import { AuthShell } from "@/components/auth/auth-shell";
 
 export const metadata = {
   title: "Accept Invite | Radar",
@@ -8,10 +8,11 @@ export const metadata = {
 
 export default function AcceptInvitePage() {
   return (
-    <div>
-      <Hero>
-        <AcceptInviteClient />
-      </Hero>
-    </div>
+    <AuthShell
+      title="Join your Radar workspace"
+      description="Accept the invite, complete personal setup, then install the Chrome extension before your first customer conversation."
+    >
+      <AcceptInviteClient />
+    </AuthShell>
   );
 }

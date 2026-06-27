@@ -29,17 +29,18 @@ const siteUrl =
   readEnv(process.env.NEXT_PUBLIC_APP_URL) ??
   readEnv(process.env.AUTH_URL) ??
   "https://radar-eight-nu.vercel.app";
+const normalizedSiteUrl = siteUrl.replace(/\/+$/, "");
 const payload = {
-  site_url: siteUrl,
-  mailer_subjects_invite: "Your Radar workspace invite",
+  site_url: normalizedSiteUrl,
+  mailer_subjects_invite: "Join your Radar workspace",
   mailer_templates_invite_content: inviteTemplate,
   mailer_subjects_recovery: "Reset your Radar password",
   mailer_templates_recovery_content: recoveryTemplate,
   uri_allow_list: [
-    siteUrl,
-    `${siteUrl}/auth/sign-in`,
-    `${siteUrl}/auth/sign-in?from=recovery`,
-    `${siteUrl}/auth/accept-invite`,
+    normalizedSiteUrl,
+    `${normalizedSiteUrl}/auth/sign-in`,
+    `${normalizedSiteUrl}/auth/sign-in?from=recovery`,
+    `${normalizedSiteUrl}/auth/accept-invite`,
   ].join(","),
   ...smtpPayload(),
 };

@@ -66,7 +66,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form className="mt-8 flex w-full flex-col gap-4" onSubmit={submit}>
+    <form className="flex w-full max-w-md flex-col gap-4" onSubmit={submit}>
       {status ? (
         <Alert variant={status.tone === "error" ? "destructive" : "default"}>
           {status.tone === "error" ? <AlertCircle /> : <CheckCircle2 />}

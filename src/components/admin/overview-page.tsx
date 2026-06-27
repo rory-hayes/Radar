@@ -2,11 +2,8 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
-  CheckCircle2,
-  Database,
   Download,
   PlugZap,
-  Radio,
   UploadCloud,
   Users,
   type LucideIcon,
@@ -15,7 +12,6 @@ import {
 import { AdminPageHeader } from "@/components/admin/admin-surfaces";
 import { RadarOnboardingTour } from "@/components/admin/onboarding-tour";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,209 +27,147 @@ type OverviewPageProps = {
 
 const setupSteps = [
   {
-    title: "Add approved knowledge",
-    body: "Upload a policy, FAQ, or playbook Radar can cite in live calls.",
+    stage: "Knowledge",
+    title: "Add workspace knowledge",
+    body: "Upload policies, FAQs, and playbooks that Radar can cite.",
     href: "/app/uploads",
     action: "Upload",
     icon: UploadCloud,
   },
   {
+    stage: "Connectors",
     title: "Connect source systems",
-    body: "Plan Google Drive, Confluence, Notion, CRM, and support data syncs.",
+    body: "Prepare Drive, Confluence, Notion, CRM, and support syncs.",
     href: "/app/connectors",
     action: "Connect",
     icon: PlugZap,
   },
   {
+    stage: "Users",
     title: "Invite users",
-    body: "Bring teammates into the same workspace and personal setup flow.",
+    body: "Bring teammates into this workspace and their setup flow.",
     href: "/app/users",
     action: "Invite",
     icon: Users,
   },
   {
-    title: "Install the extension",
-    body: "Use Radar from Chrome during customer conversations, then review calls here.",
-    href: "/app/sessions",
-    action: "Review calls",
+    stage: "Extension",
+    title: "Install Radar for calls",
+    body: "Users run the Chrome extension during approved conversations.",
+    href: "/app?onboarding=user",
+    action: "Start setup",
     icon: Download,
   },
 ];
 
+const coreFlow = [
+  "Admin creates the workspace",
+  "Knowledge is uploaded or connected",
+  "Users accept invites and install Radar",
+  "Ended calls feed review and analytics",
+];
+
 export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {}) {
   const context = await getAdminContext();
-  const [overview, analytics, sessions] = await Promise.all([
+  const [overview, sessions] = await Promise.all([
     getAdminCollection("overview", context),
-    getAdminCollection("analytics", context),
     getAdminCollection("sessions", context),
   ]);
   const overviewRecord = firstRecord(overview);
-  const analyticsRecord = firstRecord(analytics);
   const recentCalls = sessions.state === "ready" ? sessions.data.slice(0, 4) : [];
   const role = context.state === "ready" ? context.role : null;
   const forceUserOnboarding = onboardingAudience === "user";
   const showAdminOnboarding =
     !forceUserOnboarding && Boolean(role && ["owner", "admin", "knowledge_manager"].includes(role));
   const showUserOnboarding = forceUserOnboarding || role === "user";
+  const readiness = {
+    sources: numberValue(overviewRecord?.sources),
+    users: numberValue(overviewRecord?.users),
+    calls: numberValue(overviewRecord?.sessions),
+  };
+  const nextStep = getNextStep(readiness, context.state);
 
   return (
     <>
       <AdminPageHeader
-        title="Radar Dashboard"
-        description="A simple workspace view for knowledge readiness, user setup, extension capture, and call review."
+        title="Overview"
+        description="The core Radar flow: admin sets up the workspace, users run the extension, ended calls become review and analytics."
       >
         <RadarOnboardingTour audience="admin" autoOpen={showAdminOnboarding} />
         <RadarOnboardingTour audience="user" autoOpen={showUserOnboarding} />
       </AdminPageHeader>
 
-      <div className="flex flex-col gap-4">
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard
-            icon={Database}
-            label="Approved sources"
-            value={numberValue(overviewRecord?.sources)}
-            href="/app/sources"
-          />
-          <MetricCard
-            icon={Users}
-            label="Workspace users"
-            value={numberValue(overviewRecord?.users)}
-            href="/app/users"
-          />
-          <MetricCard
-            icon={Radio}
-            label="Calls captured"
-            value={numberValue(overviewRecord?.sessions)}
-            href="/app/sessions"
-          />
-          <MetricCard
-            icon={BarChart3}
-            label="Guidance cards"
-            value={numberValue(analyticsRecord?.guidanceCards)}
-            href="/app/analytics"
-          />
-        </section>
-
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="flex flex-col gap-4">
           <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-2">
-              <div className="flex items-start justify-between gap-4">
+            <CardHeader className="gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <CardTitle className="text-xl">Core setup</CardTitle>
+                  <CardTitle className="text-xl">Next step</CardTitle>
                   <CardDescription className="mt-2 leading-6">
-                    Admins prepare the shared workspace, then users install Radar and review calls.
+                    Keep setup focused on the shortest path to a real call.
                   </CardDescription>
                 </div>
-                <Badge variant="outline">Workspace flow</Badge>
+                <Badge variant="secondary">{nextStep.stage}</Badge>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-3">
-                {setupSteps.map((step, index) => (
-                  <SetupStep key={step.title} step={step} index={index} />
-                ))}
-              </div>
+              <Link
+                href={nextStep.href}
+                className="group flex flex-col gap-4 rounded-lg border border-zinc-200 p-4 transition hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+                    <nextStep.icon />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-zinc-950">{nextStep.title}</h2>
+                    <p className="mt-1 text-sm leading-6 text-zinc-600">{nextStep.body}</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950">
+                  {nextStep.action}
+                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                </span>
+              </Link>
             </CardContent>
           </Card>
 
           <Card className="rounded-lg shadow-sm">
             <CardHeader className="gap-2">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <CardTitle className="text-xl">Recent calls</CardTitle>
-                  <CardDescription className="mt-2 leading-6">
-                    Calls started from the Chrome extension appear here after they are ended.
-                  </CardDescription>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/app/sessions">View all</Link>
-                </Button>
-              </div>
+              <CardTitle className="text-xl">Recent calls</CardTitle>
+              <CardDescription className="leading-6">
+                Calls appear here after a user starts Radar in Chrome and ends the session.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <RecentCalls records={recentCalls} sessionsState={sessions.state} />
             </CardContent>
           </Card>
-        </section>
+        </div>
 
-        <Card className="rounded-lg shadow-sm">
-          <CardHeader className="gap-2">
-            <CardTitle className="text-xl">What happens next</CardTitle>
-            <CardDescription className="leading-6">
-              Radar stays quiet until a user starts the Chrome extension during a customer
-              conversation. After the call ends, transcripts, cards, and citation coverage roll
-              into Calls and Analytics.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-3">
-            <FlowPoint title="1. Admin adds knowledge" body="Upload or connect approved sources." />
-            <FlowPoint title="2. User runs Radar" body="The extension starts capture only after consent." />
-            <FlowPoint title="3. Team reviews outcomes" body="Ended calls feed review and analytics." />
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-4">
+          <Card className="rounded-lg shadow-sm">
+            <CardHeader className="gap-2">
+              <CardTitle className="text-xl">Core flow</CardTitle>
+              <CardDescription className="leading-6">
+                Everything else should support this path.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {coreFlow.map((step, index) => (
+                <div key={step} className="flex items-center gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-zinc-950 text-xs font-semibold text-white">
+                    {index + 1}
+                  </span>
+                  <span className="text-sm font-medium text-zinc-700">{step}</span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  href,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: number;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-300 hover:shadow-md"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
-          <Icon />
-        </div>
-        <ArrowRight className="size-4 text-zinc-400" />
-      </div>
-      <div className="mt-5 text-3xl font-semibold tracking-normal text-zinc-950">
-        {value.toLocaleString()}
-      </div>
-      <div className="mt-1 text-sm font-medium text-zinc-600">{label}</div>
-    </Link>
-  );
-}
-
-function SetupStep({
-  step,
-  index,
-}: {
-  step: (typeof setupSteps)[number];
-  index: number;
-}) {
-  const Icon = step.icon;
-
-  return (
-    <Link
-      href={step.href}
-      className="group flex items-center gap-4 rounded-lg border border-zinc-200 p-4 transition hover:bg-zinc-50"
-    >
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-800">
-        <Icon />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-zinc-500">{index + 1}</span>
-          <h2 className="text-sm font-semibold text-zinc-950">{step.title}</h2>
-        </div>
-        <p className="mt-1 text-sm leading-5 text-zinc-600">{step.body}</p>
-      </div>
-      <span className="hidden text-sm font-medium text-zinc-950 group-hover:text-primary sm:inline">
-        {step.action}
-      </span>
-    </Link>
   );
 }
 
@@ -247,7 +181,7 @@ function RecentCalls({
   if (sessionsState !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
-        No call records are available yet. Start and end a Radar extension session to create one.
+        Connect the workspace database to load ended Radar calls.
       </div>
     );
   }
@@ -255,7 +189,8 @@ function RecentCalls({
   if (records.length === 0) {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
-        No calls captured yet. Once a user ends a Radar session, it will appear here.
+        No calls captured yet. Sign in to Radar in Chrome, start the extension during a call, then
+        end the session.
       </div>
     );
   }
@@ -277,7 +212,9 @@ function RecentCalls({
               <div className="truncate text-sm font-semibold text-zinc-950">{title}</div>
               <div className="mt-1 text-xs text-zinc-500">{status ? `Status: ${status}` : "Review call"}</div>
             </div>
-            <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+            <span className="inline-flex h-8 items-center justify-center rounded-md border border-zinc-200 px-3 text-xs font-semibold text-zinc-700">
+              Review
+            </span>
           </Link>
         );
       })}
@@ -285,13 +222,41 @@ function RecentCalls({
   );
 }
 
-function FlowPoint({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-      <h3 className="text-sm font-semibold text-zinc-950">{title}</h3>
-      <p className="mt-1 text-sm leading-5 text-zinc-600">{body}</p>
-    </div>
-  );
+function getNextStep(
+  readiness: { sources: number; users: number; calls: number },
+  contextState: string,
+) {
+  if (contextState !== "ready") {
+    return {
+      stage: "Workspace",
+      title: "Connect workspace data",
+      body: "Radar needs the workspace database before users, sources, calls, and analytics can load.",
+      href: "/app/settings",
+      action: "Review settings",
+      icon: BarChart3,
+    };
+  }
+
+  if (readiness.sources === 0) {
+    return setupSteps[0];
+  }
+
+  if (readiness.users <= 1) {
+    return setupSteps[2];
+  }
+
+  if (readiness.calls === 0) {
+    return setupSteps[3];
+  }
+
+  return {
+    stage: "Review",
+    title: "Review call analytics",
+    body: "Use ended calls to inspect citation coverage, confirmation moments, and escalations.",
+    href: "/app/analytics",
+    action: "Open analytics",
+    icon: BarChart3,
+  };
 }
 
 function firstRecord(result: Awaited<ReturnType<typeof getAdminCollection>>) {

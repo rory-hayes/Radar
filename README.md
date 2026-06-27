@@ -2,12 +2,12 @@
 
 Radar is a hidden-until-needed real-time knowledge copilot for complex B2B technical customer conversations.
 
-This repo contains the V1 web app, Knowledge Studio admin shell, server API contracts, AI/RAG guardrails, security checks, and a static Chrome extension overlay shell. The browser never receives a long-lived OpenAI API key; live transcription clients must request short-lived Realtime credentials from the server.
+This repo contains the V1 web app, workspace admin shell, server API contracts, AI/RAG guardrails, security checks, and a static Chrome extension overlay shell. The browser never receives a long-lived OpenAI API key; live transcription clients must request short-lived Realtime credentials from the server.
 
 ## What Is Included
 
 - Landing/product surface rewritten from the Prodexa baseline for Radar.
-- Knowledge Studio routes under `/app` for users, sources, uploads, connectors, playbooks, approvals, testing/replay, knowledge gaps, analytics, sessions, settings, and audit.
+- Focused workspace routes under `/app` for overview, knowledge, connectors, users, calls, analytics, uploads, and settings. Older secondary URLs redirect back into those core areas.
 - API route contracts under `/api/v1` with `/v1/*` rewrites for the extension.
 - OpenAI Realtime client-secret server helper using `POST /v1/realtime/client_secrets`.
 - AI/RAG schemas and eval tests that require citations for Answer/Proof cards and route unsupported claims to Needs confirmation or Escalate states.
@@ -65,7 +65,7 @@ Workspace user management uses Supabase tables plus Supabase Auth email delivery
 
 - `pnpm run auth:email:configure`
 
-That script requires `SUPABASE_ACCESS_TOKEN` plus `SUPABASE_PROJECT_REF` or `SUPABASE_URL`. SMTP values are optional for template updates, but custom SMTP is required if the sender should appear as Radar instead of the default Supabase Auth sender.
+That script requires `SUPABASE_ACCESS_TOKEN` plus `SUPABASE_PROJECT_REF` or `SUPABASE_URL`. SMTP values are optional for template updates, but custom SMTP is required if the sender should appear as Radar instead of the default Supabase Auth sender in recipients' inboxes.
 
 Run migrations before production sessions:
 

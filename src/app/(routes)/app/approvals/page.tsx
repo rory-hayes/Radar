@@ -1,18 +1,5 @@
-import {
-  AdminCollectionSurface,
-  adminSurfaces,
-} from "@/components/admin/admin-surfaces";
-import { getAdminCollection, getAdminContext } from "@/lib/admin-data";
+import { redirect } from "next/navigation";
 
-export default async function ApprovalsPage() {
-  const context = await getAdminContext();
-  const result = await getAdminCollection("approvals", context);
-
-  return (
-    <AdminCollectionSurface
-      context={context}
-      definition={adminSurfaces.approvals}
-      result={result}
-    />
-  );
+export default function ApprovalsRedirectPage() {
+  redirect("/app/sources");
 }

@@ -64,8 +64,8 @@ export function AcceptInviteClient() {
   }, [router]);
 
   return (
-    <section className="mx-auto flex w-full max-w-md flex-col items-center justify-center rounded-3xl border border-input bg-white/90 p-8 text-center shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-zinc-950 text-white">
+    <section className="flex w-full max-w-md flex-col items-center justify-center text-center">
+      <div className="flex size-14 items-center justify-center rounded-lg bg-zinc-950 text-white">
         {state.status === "loading" ? (
           <Loader2 className="animate-spin" />
         ) : state.status === "success" ? (
@@ -74,9 +74,9 @@ export function AcceptInviteClient() {
           <AlertCircle />
         )}
       </div>
-      <h1 className="mt-6 text-3xl font-semibold tracking-normal text-black">
+      <h2 className="mt-6 text-2xl font-semibold tracking-normal text-black">
         {state.status === "error" ? "Invite link needs attention" : "Joining Radar"}
-      </h1>
+      </h2>
       <p className="mt-4 text-base leading-7 text-black/65">
         Radar is connecting you to the shared workspace before opening your setup flow.
       </p>

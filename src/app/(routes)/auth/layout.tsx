@@ -1,12 +1,11 @@
 export const metadata = {
   title: "Sign In | Radar",
   description:
-    "Sign in to Radar to configure Knowledge Studio, approved sources, and live guidance.",
+    "Sign in to Radar to manage workspace knowledge, users, calls, and analytics.",
 };
 
 import "../../globals.css";
 import localFont from "next/font/local";
-import Navigation from "@/sections/navigation";
 
 const geistSans = localFont({
   src: "../../fonts/GeistVF.woff",
@@ -29,10 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased select-none`}
       >
-        <div className="min-h-screen">
-          <Navigation />
-          {children}
-        </div>
+        {children}
       </body>
     </html>
   );
