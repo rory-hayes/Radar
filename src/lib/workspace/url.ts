@@ -1,12 +1,15 @@
+import { readEnv } from "@/lib/env";
+
 export function getAppUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.AUTH_URL?.trim();
+  const configuredUrl = readEnv(process.env.NEXT_PUBLIC_APP_URL) || readEnv(process.env.AUTH_URL);
 
   if (configuredUrl) {
     return configuredUrl.replace(/\/$/, "");
   }
 
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
+  const vercelUrl = readEnv(process.env.VERCEL_URL);
+  if (vercelUrl) {
+    return `https://${vercelUrl}`.replace(/\/$/, "");
   }
 
   return "http://localhost:3000";

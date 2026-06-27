@@ -2,6 +2,8 @@ import "server-only";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { readEnv } from "@/lib/env";
+
 export type SupabaseRuntimeState =
   | {
       state: "ready";
@@ -15,15 +17,15 @@ export type SupabaseRuntimeState =
     };
 
 function supabaseUrl() {
-  return process.env.SUPABASE_URL?.trim() || process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  return readEnv(process.env.SUPABASE_URL) || readEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
 }
 
 function supabaseSecretKey() {
-  return process.env.SUPABASE_SECRET_KEY?.trim();
+  return readEnv(process.env.SUPABASE_SECRET_KEY);
 }
 
 function supabasePublishableKey() {
-  return process.env.SUPABASE_PUBLISHABLE_KEY?.trim() || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  return readEnv(process.env.SUPABASE_PUBLISHABLE_KEY) || readEnv(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
 }
 
 export function getSupabaseRuntimeState(): SupabaseRuntimeState {
@@ -81,5 +83,5 @@ export function getSupabaseAuthClient(): SupabaseClient | null {
 }
 
 export function getDefaultWorkspaceId() {
-  return process.env.RADAR_DEFAULT_WORKSPACE_ID?.trim() || "radar";
+  return readEnv(process.env.RADAR_DEFAULT_WORKSPACE_ID) || "radar";
 }

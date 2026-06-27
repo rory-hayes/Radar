@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getAuthSession } from "@/lib/auth/session";
+import { readEnv } from "@/lib/env";
 import { getSupabaseRuntimeState, getSupabaseAdminClient, getDefaultWorkspaceId } from "@/lib/supabase/server";
 import {
   getWorkspaceId,
@@ -174,7 +175,7 @@ function parseRole(value: string | undefined): AdminRole {
 
 function allowedBootstrapEmails() {
   return new Set(
-    (process.env.RADAR_AUTH_ALLOWED_EMAILS ?? "")
+    (readEnv(process.env.RADAR_AUTH_ALLOWED_EMAILS) ?? "")
       .split(",")
       .map((email) => normalizeEmail(email))
       .filter(Boolean),
@@ -204,7 +205,7 @@ export async function getAdminContext(): Promise<AdminContext> {
   let role = member?.status === "disabled" ? "viewer" : member?.role;
 
   if (!role && allowedBootstrapEmails().has(auth.email)) {
-    role = parseRole(process.env.RADAR_ADMIN_ROLE || "admin");
+    role = parseRole(readEnv(process.env.RADAR_ADMIN_ROLE) || "admin");
     await upsertWorkspaceMember({
       workspaceId,
       email: auth.email,

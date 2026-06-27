@@ -79,9 +79,17 @@ async function loadLocalEnv() {
     }
 
     const key = trimmed.slice(0, equalsIndex);
-    const value = trimmed.slice(equalsIndex + 1);
-    if (!process.env[key]) {
+    const value = normalizeEnvValue(trimmed.slice(equalsIndex + 1));
+    if (value && !process.env[key]) {
       process.env[key] = value;
     }
   }
+}
+
+function normalizeEnvValue(value) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "\"\"" || trimmed === "''") {
+    return undefined;
+  }
+  return trimmed;
 }

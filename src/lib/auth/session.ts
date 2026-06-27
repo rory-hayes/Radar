@@ -3,6 +3,7 @@ import "server-only";
 import { cookies } from "next/headers";
 
 import { getSupabaseAuthClient } from "@/lib/supabase/server";
+import { readEnv } from "@/lib/env";
 import {
   getWorkspaceMemberByEmail,
   normalizeEmail,
@@ -12,8 +13,9 @@ import {
 import { AUTH_COOKIE_NAME } from "./constants";
 export { AUTH_COOKIE_NAME } from "./constants";
 
-const SESSION_TTL_SECONDS = Number(process.env.RADAR_AUTH_SESSION_TTL_SECONDS ?? 60 * 60 * 8);
-const LOCAL_AUTH_PASSWORD = process.env.RADAR_LOCAL_AUTH_PASSWORD ?? "radar-access";
+const DEFAULT_SESSION_TTL_SECONDS = 60 * 60 * 8;
+const SESSION_TTL_SECONDS = parseSessionTtl(readEnv(process.env.RADAR_AUTH_SESSION_TTL_SECONDS));
+const LOCAL_AUTH_PASSWORD = readEnv(process.env.RADAR_LOCAL_AUTH_PASSWORD) ?? "radar-access";
 
 type AuthMode = "password" | "local" | "supabase";
 
@@ -43,14 +45,23 @@ declare global {
 
 const encoder = new TextEncoder();
 
+function parseSessionTtl(value: string | undefined) {
+  if (!value?.trim()) {
+    return DEFAULT_SESSION_TTL_SECONDS;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_SESSION_TTL_SECONDS;
+}
+
 function getLocalSecret() {
   globalThis.__radarLocalAuthSecret ??= crypto.randomUUID();
   return globalThis.__radarLocalAuthSecret;
 }
 
 function getAuthRuntime(): AuthRuntime {
-  const secret = process.env.AUTH_SECRET || process.env.RADAR_AUTH_SECRET;
-  const password = process.env.RADAR_AUTH_PASSWORD;
+  const secret = readEnv(process.env.AUTH_SECRET) || readEnv(process.env.RADAR_AUTH_SECRET);
+  const password = readEnv(process.env.RADAR_AUTH_PASSWORD);
   const localMode = process.env.NODE_ENV !== "production";
 
   if (password && secret) {
@@ -59,7 +70,7 @@ function getAuthRuntime(): AuthRuntime {
       mode: "password",
       secret,
       password,
-      allowedEmails: parseAllowedEmails(process.env.RADAR_AUTH_ALLOWED_EMAILS),
+      allowedEmails: parseAllowedEmails(readEnv(process.env.RADAR_AUTH_ALLOWED_EMAILS)),
     };
   }
 
@@ -129,7 +140,7 @@ function isAllowedEmail(email: string, allowedEmails: Set<string>) {
 }
 
 function authCookieOptions(maxAge?: number) {
-  const supportsExtensionRequests = Boolean(process.env.RADAR_EXTENSION_ORIGIN?.trim());
+  const supportsExtensionRequests = Boolean(readEnv(process.env.RADAR_EXTENSION_ORIGIN));
   const sameSite = supportsExtensionRequests ? "none" : "lax";
 
   return {
@@ -242,7 +253,7 @@ async function authenticateSupabasePassword(input: { email: string; password: st
   }
 
   const member = await getWorkspaceMemberByEmail(email);
-  const allowedEmails = parseAllowedEmails(process.env.RADAR_AUTH_ALLOWED_EMAILS);
+  const allowedEmails = parseAllowedEmails(readEnv(process.env.RADAR_AUTH_ALLOWED_EMAILS));
 
   if (!member && !isAllowedEmail(email, allowedEmails)) {
     return { ok: false as const };

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { readEnv } from "@/lib/env";
+
 export type ServerSecretName = "OPENAI_API_KEY";
 
 const PUBLIC_ENV_PREFIX = "NEXT_PUBLIC_";
@@ -8,7 +10,7 @@ export function getRequiredServerSecret(
   name: ServerSecretName,
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  const value = env[name];
+  const value = readEnv(env[name]);
 
   if (!value || value.trim().length === 0) {
     throw new Error(`${name} is not configured`);
@@ -21,7 +23,7 @@ export function hasConfiguredServerSecret(
   name: ServerSecretName,
   env: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  return Boolean(env[name]?.trim());
+  return Boolean(readEnv(env[name]));
 }
 
 export function getOpenAIApiKey(env: NodeJS.ProcessEnv = process.env): string {
