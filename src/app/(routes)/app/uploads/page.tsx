@@ -5,6 +5,8 @@ import {
 import { KnowledgeUploadForm } from "@/components/admin/knowledge-upload-form";
 import { can, getAdminCollection, getAdminContext } from "@/lib/admin-data";
 
+export const dynamic = "force-dynamic";
+
 type UploadsPageProps = {
   searchParams: Promise<{
     type?: string;

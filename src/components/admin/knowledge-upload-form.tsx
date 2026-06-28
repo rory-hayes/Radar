@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AlertCircle, CheckCircle2, Loader2, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
@@ -21,6 +22,14 @@ type UploadState =
       tone: "success" | "error";
       title: string;
       message: string;
+      primaryAction?: {
+        label: string;
+        href: string;
+      };
+      secondaryAction?: {
+        label: string;
+        href: string;
+      };
     }
   | null;
 
@@ -62,7 +71,12 @@ export function KnowledgeUploadForm({
       const payload = (await response.json().catch(() => null)) as
         | {
             ok?: boolean;
-            source?: { title?: string; chunkCount?: number };
+            source?: {
+              id?: string;
+              title?: string;
+              sourceType?: string;
+              chunkCount?: number;
+            };
             error?: { message?: string };
           }
         | null;
@@ -76,10 +90,38 @@ export function KnowledgeUploadForm({
         return;
       }
 
+      const source = payload.source;
+      const sourceTitle = source?.title ?? (isPlaybook ? "Playbook" : "Source");
+      const sourceHref =
+        source?.id && source.sourceType === "playbook"
+          ? `/app/playbooks/${encodeURIComponent(source.id)}`
+          : source?.id
+            ? `/app/sources/${encodeURIComponent(source.id)}`
+            : undefined;
+
       setState({
         tone: "success",
-        title: "Source ingested",
-        message: `${payload.source?.title ?? "Source"} is approved with ${payload.source?.chunkCount ?? 0} searchable chunks.`,
+        title: source?.sourceType === "playbook" ? "Playbook ready" : "Source ingested",
+        message:
+          source?.sourceType === "playbook"
+            ? `${sourceTitle} is approved and searchable for live-call guidance.`
+            : `${sourceTitle} is approved with ${source?.chunkCount ?? 0} searchable chunks.`,
+        primaryAction: sourceHref
+          ? {
+              label: source?.sourceType === "playbook" ? "Open playbook" : "Open source",
+              href: sourceHref,
+            }
+          : undefined,
+        secondaryAction:
+          source?.sourceType === "playbook"
+            ? {
+                label: "Create another",
+                href: "/app/uploads?type=playbook",
+              }
+            : {
+                label: "View knowledge",
+                href: "/app/sources",
+              },
       });
       form.reset();
       router.refresh();
@@ -136,6 +178,20 @@ export function KnowledgeUploadForm({
           {state.tone === "success" ? <CheckCircle2 /> : <AlertCircle />}
           <AlertTitle>{state.title}</AlertTitle>
           <AlertDescription>{state.message}</AlertDescription>
+          {state.tone === "success" && (state.primaryAction || state.secondaryAction) ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {state.primaryAction ? (
+                <Button asChild size="sm" variant="default">
+                  <Link href={state.primaryAction.href}>{state.primaryAction.label}</Link>
+                </Button>
+              ) : null}
+              {state.secondaryAction ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link href={state.secondaryAction.href}>{state.secondaryAction.label}</Link>
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </Alert>
       ) : null}
 

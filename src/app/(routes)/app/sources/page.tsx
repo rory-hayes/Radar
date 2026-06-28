@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { getAdminCollection, getAdminContext, type AdminDataResult, type AdminRecord } from "@/lib/admin-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function SourcesPage() {
   const context = await getAdminContext();
   const result = await getAdminCollection("sources", context);

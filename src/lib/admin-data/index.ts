@@ -398,21 +398,70 @@ async function getOverviewRecord(context: Extract<AdminContext, { state: "ready"
 
 async function getAnalyticsRecord(workspaceId: string) {
   const supabase = getSupabaseAdminClient();
-  const [segments, cards, feedback, sources, chunks, retrievals] = await Promise.all([
-    supabase.from("radar_transcript_segments").select("id", { count: "exact", head: true }),
-    supabase.from("radar_guidance_cards").select("id", { count: "exact", head: true }),
-    supabase.from("radar_card_feedback").select("id", { count: "exact", head: true }),
+  const [sessions, sources, chunks, retrievals] = await Promise.all([
+    supabase
+      .from("radar_sessions")
+      .select("id,status")
+      .eq("workspace_id", workspaceId),
     supabase.from("radar_sources").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
     supabase.from("radar_source_chunks").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
     supabase.from("radar_retrieval_events").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
   ]);
+  const sessionRows = ((sessions.data ?? []) as AdminRecord[]).filter((session) => typeof session.id === "string");
+  const sessionIds = sessionRows.map((session) => String(session.id));
+  const [segments, cards, feedback] =
+    sessionIds.length > 0
+      ? await Promise.all([
+          supabase
+            .from("radar_transcript_segments")
+            .select("id,session_id")
+            .in("session_id", sessionIds),
+          supabase
+            .from("radar_guidance_cards")
+            .select("id,session_id,lane,citations")
+            .in("session_id", sessionIds),
+          supabase.from("radar_card_feedback").select("id,session_id").in("session_id", sessionIds),
+        ])
+      : [
+          { data: [], count: 0, error: null },
+          { data: [], count: 0, error: null },
+          { data: [], count: 0, error: null },
+        ];
+
+  for (const result of [sessions, sources, chunks, retrievals, segments, cards, feedback]) {
+    if (result.error) {
+      throw result.error;
+    }
+  }
+
+  const cardRows = (cards.data ?? []) as AdminRecord[];
+  const endedSessions = sessionRows.filter((session) => session.status === "ended").length;
+  const activeSessions = sessionRows.filter((session) => session.status === "active").length;
+  const pausedSessions = sessionRows.filter((session) => session.status === "paused").length;
+  const answerCards = cardRows.filter((card) => card.lane === "answer").length;
+  const proofCards = cardRows.filter((card) => card.lane === "proof").length;
+  const citedAnswerCards = cardRows.filter(
+    (card) =>
+      (card.lane === "answer" || card.lane === "proof") &&
+      Array.isArray(card.citations) &&
+      card.citations.length > 0,
+  ).length;
 
   return {
     id: workspaceId,
     workspaceId,
-    transcriptSegments: segments.count ?? 0,
-    guidanceCards: cards.count ?? 0,
-    feedbackItems: feedback.count ?? 0,
+    sessions: sessionRows.length,
+    endedSessions,
+    activeSessions,
+    pausedSessions,
+    transcriptSegments: (segments.data ?? []).length,
+    guidanceCards: cardRows.length,
+    answerCards,
+    proofCards,
+    citedAnswerCards,
+    needsConfirmationCards: cardRows.filter((card) => card.lane === "needs_confirmation").length,
+    escalationCards: cardRows.filter((card) => card.lane === "escalate").length,
+    feedbackItems: (feedback.data ?? []).length,
     approvedSources: sources.count ?? 0,
     knowledgeChunks: chunks.count ?? 0,
     retrievalEvents: retrievals.count ?? 0,
