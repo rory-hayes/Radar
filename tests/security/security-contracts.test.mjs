@@ -123,6 +123,43 @@ test("extension keeps operator-selected API base and renders error state", () =>
   assert.match(popupJs, /nextState\s*=\s*error\.state/);
 });
 
+test("extension package download stays authenticated and excludes secrets", () => {
+  const route = read("src/app/api/extension/package/route.ts");
+  const packageBuilder = read("src/lib/extension/package.ts");
+  const nextConfig = read("next.config.ts");
+  const onboarding = read("src/components/admin/onboarding-tour.tsx");
+  const overview = read("src/components/admin/overview-page.tsx");
+  const expectedFiles = [
+    "manifest.json",
+    "README.md",
+    "src/background.js",
+    "src/content.css",
+    "src/content.js",
+    "src/offscreen.html",
+    "src/offscreen.js",
+    "src/popup.css",
+    "src/popup.html",
+    "src/popup.js",
+  ];
+
+  assert.match(route, /requireApiAuth/);
+  assert.match(route, /Content-Disposition/);
+  assert.match(route, /application\/zip/);
+  assert.match(packageBuilder, /import "server-only";/);
+  assert.match(nextConfig, /outputFileTracingIncludes/);
+  assert.match(nextConfig, /\/api\/extension\/package/);
+  assert.match(nextConfig, /\.\/apps\/extension\/\*\*\/\*/);
+
+  for (const file of expectedFiles) {
+    assert.match(packageBuilder, new RegExp(file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  assert.doesNotMatch(packageBuilder, /\.env/);
+  assert.doesNotMatch(packageBuilder, /OPENAI_API_KEY/);
+  assert.match(onboarding, /\/api\/extension\/package/);
+  assert.match(overview, /\/api\/extension\/package/);
+});
+
 test("escaped Supabase invite and recovery hashes are rescued consistently", () => {
   const helper = read("src/lib/auth/supabase-hash.ts");
   const home = read("src/app/(routes)/(landing)/(home)/page.tsx");

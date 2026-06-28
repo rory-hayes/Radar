@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BadgeCheck,
   BookOpenCheck,
+  Download,
   FileWarning,
   MonitorCheck,
   ShieldCheck,
@@ -32,6 +33,10 @@ type TourStep = {
   tone: "sky" | "emerald" | "amber";
   rows: string[];
   outcome: string;
+  primaryAction?: {
+    label: string;
+    href: string;
+  };
 };
 
 const storageKeys = {
@@ -48,7 +53,7 @@ const audienceCopy = {
   },
 } satisfies Record<TourAudience, { buttonLabel: string }>;
 
-const tourStepsByAudience = {
+const tourStepsByAudience: Record<TourAudience, TourStep[]> = {
   admin: [
     {
       title: "Create the shared workspace",
@@ -105,9 +110,13 @@ const tourStepsByAudience = {
       tone: "amber",
       rows: ["Install", "Pin", "Start"],
       outcome: "After a call ends, the session appears in Calls and rolls into analytics.",
+      primaryAction: {
+        label: "Download extension",
+        href: "/api/extension/package",
+      },
     },
   ],
-} satisfies Record<TourAudience, TourStep[]>;
+};
 
 const toneStyles = {
   sky: {
@@ -237,10 +246,11 @@ export function RadarOnboardingTour({
               {step.outcome}
             </div>
 
-            <div className="mt-6 flex items-center justify-between gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 disabled={stepIndex === 0}
                 onClick={() => setStepIndex((current) => Math.max(0, current - 1))}
               >
@@ -248,13 +258,29 @@ export function RadarOnboardingTour({
                 Back
               </Button>
               {finalStep ? (
-                <Button type="button" onClick={markComplete}>
-                  Finish
-                  <BadgeCheck data-icon="inline-end" />
-                </Button>
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                  {step.primaryAction ? (
+                    <Button asChild className="w-full sm:w-auto">
+                      <a href={step.primaryAction.href}>
+                        <Download data-icon="inline-start" />
+                        {step.primaryAction.label}
+                      </a>
+                    </Button>
+                  ) : null}
+                  <Button
+                    type="button"
+                    variant={step.primaryAction ? "outline" : "default"}
+                    className="w-full sm:w-auto"
+                    onClick={markComplete}
+                  >
+                    Finish
+                    <BadgeCheck data-icon="inline-end" />
+                  </Button>
+                </div>
               ) : (
                 <Button
                   type="button"
+                  className="w-full sm:w-auto"
                   onClick={() => setStepIndex((current) => Math.min(steps.length - 1, current + 1))}
                 >
                   Next

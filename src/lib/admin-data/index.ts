@@ -65,6 +65,7 @@ export type AdminContext =
       missingConfig: [];
       workspaceId: string;
       authEmail: string;
+      onboardingState: string;
     }
   | {
       state: "not_configured";
@@ -230,6 +231,7 @@ export async function getAdminContext(): Promise<AdminContext> {
     missingConfig: [],
     workspaceId,
     authEmail: auth.email,
+    onboardingState: member?.onboardingState ?? "complete",
   };
 }
 

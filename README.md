@@ -91,7 +91,7 @@ Radar is workspace-first. Admins configure the shared workspace, approved knowle
 
 ## Chrome Extension
 
-Load the unpacked extension from `apps/extension` in `chrome://extensions`.
+Signed-in users can download the current extension package from the user onboarding flow or from `/api/extension/package`. Local development can also load the unpacked extension directly from `apps/extension` in `chrome://extensions`.
 
 The extension popup talks to the app API. Sign in to the Radar web app in the same browser first, then set `RADAR_EXTENSION_ORIGIN` to `chrome-extension://jhjclgndbjlnnagdnphjdojinaaodeon` so the API can allow credentialed requests from the unpacked extension. It collects page context for preflight/session creation and requests short-lived Realtime credentials from the server. It does not embed an OpenAI API key.
 

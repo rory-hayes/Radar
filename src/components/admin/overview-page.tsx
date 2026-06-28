@@ -5,6 +5,7 @@ import {
   BarChart3,
   Download,
   FileText,
+  MonitorCheck,
   PlugZap,
   ShieldCheck,
   UploadCloud,
@@ -75,9 +76,13 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
   const recentCalls = sessions.state === "ready" ? sessions.data.slice(0, 4) : [];
   const role = context.state === "ready" ? context.role : null;
   const forceUserOnboarding = onboardingAudience === "user";
-  const showAdminOnboarding =
-    !forceUserOnboarding && Boolean(role && ["owner", "admin", "knowledge_manager"].includes(role));
+  const adminRoles = ["owner", "admin", "knowledge_manager"];
+  const isAdminRole = Boolean(role && adminRoles.includes(role));
+  const showAdminOnboarding = !forceUserOnboarding && isAdminRole;
   const showUserOnboarding = forceUserOnboarding || role === "user";
+  const showExtensionSetup =
+    context.state === "ready" &&
+    (forceUserOnboarding || context.onboardingState === "extension_setup" || role === "user");
   const readiness = {
     sources: numberValue(overviewRecord?.sources),
     users: numberValue(overviewRecord?.users),
@@ -91,8 +96,10 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
         title="Dashboard"
         description="Workspace health, call outcomes, and the next action needed to get Radar into real customer conversations."
       >
-        <RadarOnboardingTour audience="admin" autoOpen={showAdminOnboarding} />
-        <RadarOnboardingTour audience="user" autoOpen={showUserOnboarding} />
+        {isAdminRole ? <RadarOnboardingTour audience="admin" autoOpen={showAdminOnboarding} /> : null}
+        {!isAdminRole || forceUserOnboarding ? (
+          <RadarOnboardingTour audience="user" autoOpen={showUserOnboarding} />
+        ) : null}
       </AdminPageHeader>
 
       <div className="grid gap-4">
@@ -120,6 +127,8 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
           </div>
         </section>
 
+        {showExtensionSetup ? <UserExtensionSetupPanel /> : null}
+
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
           <AnalyticsOverview record={analyticsRecord} state={analytics.state} />
           <Card className="rounded-lg shadow-sm">
@@ -136,6 +145,50 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
         </div>
       </div>
     </>
+  );
+}
+
+function UserExtensionSetupPanel() {
+  return (
+    <section
+      id="install-radar"
+      className="grid gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_18rem]"
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-white">
+          <MonitorCheck />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-emerald-950">Install Radar for your first call</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-emerald-900/80">
+            Download the Chrome extension, load it unpacked, then start Radar only after call consent
+            is clear. End the session when the call finishes so it appears in Calls and analytics.
+          </p>
+          <ol className="mt-4 grid gap-2 text-sm leading-6 text-emerald-950">
+            <li>1. Download and unzip the Radar extension package.</li>
+            <li>2. Open Chrome Extensions, enable Developer mode, then choose Load unpacked.</li>
+            <li>3. Select the unzipped Radar folder, pin Radar, and keep the API set to this app.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div className="flex flex-col justify-center gap-2">
+        <Link
+          href="/api/extension/package"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 text-sm font-semibold text-white transition hover:bg-emerald-900"
+        >
+          <Download className="size-4" />
+          Download extension
+        </Link>
+        <Link
+          href="/app/sessions"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-4 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-100"
+        >
+          Open calls
+          <ArrowRight className="size-4" />
+        </Link>
+      </div>
+    </section>
   );
 }
 

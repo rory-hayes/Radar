@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingIncludes: {
+    "/api/extension/package": ["./apps/extension/**/*"],
+  },
   async rewrites() {
     return [
       {
