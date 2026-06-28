@@ -31,6 +31,26 @@ export const ForgotPasswordSchema = z.object({
   }),
 });
 
+export const ResetPasswordSchema = z
+  .object({
+    accessToken: z.string().trim().min(20, {
+      message: "Recovery token is required",
+    }),
+    refreshToken: z.string().trim().min(10, {
+      message: "Recovery refresh token is required",
+    }),
+    password: z.string().min(8, {
+      message: "Password must be at least 8 characters",
+    }),
+    confirmPassword: z.string().min(8, {
+      message: "Confirm your new password",
+    }),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
+
 export const AcceptInviteSchema = z.object({
   accessToken: z.string().trim().min(20, {
     message: "Invite token is required",

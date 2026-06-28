@@ -18,14 +18,24 @@ import { RadarLogo } from "@/components/radar/radar-ui";
 
 const HomePage = () => {
   useEffect(() => {
+    if (rescueSupabaseAuthHash()) {
+      return;
+    }
+
     const lenis = new Lenis();
+    let frameId = 0;
 
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      frameId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    frameId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      lenis.destroy();
+    };
   }, []);
   return (
     <div>
@@ -63,3 +73,30 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
+function rescueSupabaseAuthHash() {
+  if (typeof window === "undefined" || !window.location.hash) {
+    return false;
+  }
+
+  const hash = window.location.hash;
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const accessToken = params.get("access_token");
+  const type = params.get("type");
+
+  if (!accessToken) {
+    return false;
+  }
+
+  if (type === "invite") {
+    window.location.replace(`/auth/accept-invite${hash}`);
+    return true;
+  }
+
+  if (type === "recovery") {
+    window.location.replace(`/auth/sign-in?from=recovery${hash}`);
+    return true;
+  }
+
+  return false;
+}
