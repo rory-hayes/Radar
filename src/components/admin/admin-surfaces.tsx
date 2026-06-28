@@ -257,7 +257,11 @@ export function AdminPageHeader({
         </h1>
         <p className="mt-2 text-base leading-7 text-zinc-600">{description}</p>
       </div>
-      {children ? <div className="flex flex-wrap gap-2">{children}</div> : null}
+      {children ? (
+        <div className="flex w-full flex-col gap-2 lg:w-auto lg:flex-row lg:flex-wrap">
+          {children}
+        </div>
+      ) : null}
     </header>
   );
 }

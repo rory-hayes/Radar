@@ -2,7 +2,6 @@
 
 import {
   Activity,
-  BarChart3,
   FileClock,
   FileSearch,
   Gauge,
@@ -26,7 +25,7 @@ type AdminNavItem = {
 };
 
 const primaryNav: AdminNavItem[] = [
-  { href: "/app", label: "Overview", icon: Gauge },
+  { href: "/app", label: "Dashboard", icon: Gauge, activePaths: ["/app/overview", "/app/analytics"] },
   {
     href: "/app/sources",
     label: "Knowledge",
@@ -46,7 +45,6 @@ const primaryNav: AdminNavItem[] = [
     icon: Activity,
     activePaths: ["/app/calls", "/app/testing"],
   },
-  { href: "/app/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 const secondaryNav: AdminNavItem[] = [
@@ -173,11 +171,11 @@ function AdminNavLink({
   compact?: boolean;
 }) {
   const Icon = item.icon;
+  const activePathMatch = Boolean(item.activePaths?.some((activePath) => pathname.startsWith(activePath)));
   const active =
     item.href === "/app"
-      ? pathname === "/app" || pathname === "/app/overview"
-      : pathname.startsWith(item.href) ||
-        Boolean(item.activePaths?.some((activePath) => pathname.startsWith(activePath)));
+      ? pathname === "/app" || activePathMatch
+      : pathname.startsWith(item.href) || activePathMatch;
 
   return (
     <Link

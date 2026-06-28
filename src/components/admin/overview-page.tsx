@@ -1,9 +1,12 @@
 import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowRight,
   BarChart3,
   Download,
+  FileText,
   PlugZap,
+  ShieldCheck,
   UploadCloud,
   Users,
   type LucideIcon,
@@ -60,20 +63,15 @@ const setupSteps = [
   },
 ];
 
-const coreFlow = [
-  "Admin creates the workspace",
-  "Knowledge is uploaded or connected",
-  "Users accept invites and install Radar",
-  "Ended calls feed review and analytics",
-];
-
 export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {}) {
   const context = await getAdminContext();
-  const [overview, sessions] = await Promise.all([
+  const [overview, sessions, analytics] = await Promise.all([
     getAdminCollection("overview", context),
     getAdminCollection("sessions", context),
+    getAdminCollection("analytics", context),
   ]);
   const overviewRecord = firstRecord(overview);
+  const analyticsRecord = firstRecord(analytics);
   const recentCalls = sessions.state === "ready" ? sessions.data.slice(0, 4) : [];
   const role = context.state === "ready" ? context.role : null;
   const forceUserOnboarding = onboardingAudience === "user";
@@ -90,49 +88,40 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
   return (
     <>
       <AdminPageHeader
-        title="Overview"
-        description="The core Radar flow: admin sets up the workspace, users run the extension, ended calls become review and analytics."
+        title="Dashboard"
+        description="Workspace health, call outcomes, and the next action needed to get Radar into real customer conversations."
       >
         <RadarOnboardingTour audience="admin" autoOpen={showAdminOnboarding} />
         <RadarOnboardingTour audience="user" autoOpen={showUserOnboarding} />
       </AdminPageHeader>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex flex-col gap-4">
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <CardTitle className="text-xl">Next step</CardTitle>
-                  <CardDescription className="mt-2 leading-6">
-                    Keep setup focused on the shortest path to a real call.
-                  </CardDescription>
-                </div>
-                <Badge variant="secondary">{nextStep.stage}</Badge>
+      <div className="grid gap-4">
+        <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+                <nextStep.icon />
               </div>
-            </CardHeader>
-            <CardContent>
-              <Link
-                href={nextStep.href}
-                className="group flex flex-col gap-4 rounded-lg border border-zinc-200 p-4 transition hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                    <nextStep.icon />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-semibold text-zinc-950">{nextStep.title}</h2>
-                    <p className="mt-1 text-sm leading-6 text-zinc-600">{nextStep.body}</p>
-                  </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-semibold text-zinc-950">{nextStep.title}</h2>
+                  <Badge variant="secondary">{nextStep.stage}</Badge>
                 </div>
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950">
-                  {nextStep.action}
-                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                </span>
-              </Link>
-            </CardContent>
-          </Card>
+                <p className="mt-1 max-w-3xl text-sm leading-6 text-zinc-600">{nextStep.body}</p>
+              </div>
+            </div>
+            <Link
+              href={nextStep.href}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-zinc-950 px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 lg:w-auto"
+            >
+              {nextStep.action}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        </section>
 
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
+          <AnalyticsOverview record={analyticsRecord} state={analytics.state} />
           <Card className="rounded-lg shadow-sm">
             <CardHeader className="gap-2">
               <CardTitle className="text-xl">Recent calls</CardTitle>
@@ -145,29 +134,118 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
             </CardContent>
           </Card>
         </div>
-
-        <div className="flex flex-col gap-4">
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-2">
-              <CardTitle className="text-xl">Core flow</CardTitle>
-              <CardDescription className="leading-6">
-                Everything else should support this path.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {coreFlow.map((step, index) => (
-                <div key={step} className="flex items-center gap-3">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-zinc-950 text-xs font-semibold text-white">
-                    {index + 1}
-                  </span>
-                  <span className="text-sm font-medium text-zinc-700">{step}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </>
+  );
+}
+
+function AnalyticsOverview({
+  record,
+  state,
+}: {
+  record: AdminRecord | undefined;
+  state: string;
+}) {
+  if (state !== "ready" || !record) {
+    return (
+      <Card className="rounded-lg shadow-sm">
+        <CardHeader className="gap-2">
+          <CardTitle className="text-xl">Call analytics</CardTitle>
+          <CardDescription className="leading-6">
+            Connect workspace data and end the first Radar call to populate analytics.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  const answerProofCards = numberValue(record.answerCards) + numberValue(record.proofCards);
+  const citedAnswerCards = numberValue(record.citedAnswerCards);
+  const citationCoverage =
+    answerProofCards > 0 ? `${Math.round((citedAnswerCards / answerProofCards) * 100)}%` : "No cards";
+  const confirmationSignals =
+    numberValue(record.needsConfirmationCards) + numberValue(record.escalationCards);
+  const unfinishedCalls = numberValue(record.activeSessions) + numberValue(record.pausedSessions);
+
+  return (
+    <Card className="rounded-lg shadow-sm">
+      <CardHeader className="gap-2">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <CardTitle className="text-xl">Call analytics</CardTitle>
+            <CardDescription className="mt-2 leading-6">
+              Evidence from ended calls, cited guidance, and confirmation or escalation moments.
+            </CardDescription>
+          </div>
+          <Link
+            href="/app/analytics"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950"
+          >
+            Open detail
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-hidden rounded-lg border border-zinc-200">
+          <div className="grid lg:grid-cols-2">
+            <AnalyticsSignal
+              label="Ended calls"
+              value={numberValue(record.endedSessions)}
+              detail={
+                unfinishedCalls > 0
+                  ? `${unfinishedCalls} active or paused sessions still need ending`
+                  : "Ready for review"
+              }
+              icon={BarChart3}
+            />
+            <AnalyticsSignal
+              label="Citation coverage"
+              value={citationCoverage}
+              detail={`${citedAnswerCards} cited answer/proof cards`}
+              icon={ShieldCheck}
+            />
+            <AnalyticsSignal
+              label="Confirmation queue"
+              value={confirmationSignals}
+              detail={`${numberValue(record.needsConfirmationCards)} needs confirmation / ${numberValue(record.escalationCards)} escalations`}
+              icon={AlertTriangle}
+            />
+            <AnalyticsSignal
+              label="Workspace knowledge"
+              value={numberValue(record.approvedSources)}
+              detail={`${numberValue(record.retrievalEvents)} retrieval events logged`}
+              icon={FileText}
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AnalyticsSignal({
+  label,
+  value,
+  detail,
+  icon: Icon,
+}: {
+  label: string;
+  value: number | string;
+  detail: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <div className="flex min-h-32 flex-col gap-4 border-b border-zinc-200 p-4 last:border-b-0 lg:flex-row lg:[&:nth-child(odd)]:border-r lg:[&:nth-last-child(-n+2)]:border-b-0">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+        <Icon />
+      </div>
+      <div>
+        <div className="text-sm font-medium text-zinc-600">{label}</div>
+        <div className="mt-2 text-2xl font-semibold text-zinc-950">{value}</div>
+        <p className="mt-2 text-sm leading-5 text-zinc-600">{detail}</p>
+      </div>
+    </div>
   );
 }
 
