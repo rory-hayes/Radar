@@ -88,7 +88,7 @@ export const adminSurfaces = {
       "Choose where Radar should pull approved customer-facing knowledge from.",
     primaryAction: {
       label: "Add connector",
-      href: "/app/connectors?new=1",
+      href: "/app/connectors#connector-request",
       capability: "manageConnectors",
     },
     emptyTitle: "No connectors are configured",

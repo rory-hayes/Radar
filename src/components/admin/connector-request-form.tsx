@@ -103,9 +103,12 @@ export function ConnectorRequestForm({
         </Alert>
       ) : null}
 
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-        Connector
+      <div className="flex flex-col gap-2">
+        <label htmlFor="connector-type" className="text-sm font-medium text-zinc-700">
+          Connector
+        </label>
         <select
+          id="connector-type"
           value={connectorType}
           onChange={(event) => setConnectorType(event.target.value as ConnectorType)}
           disabled={isPending}
@@ -117,40 +120,52 @@ export function ConnectorRequestForm({
             </option>
           ))}
         </select>
-      </label>
+      </div>
 
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-        Name
+      <div className="flex flex-col gap-2">
+        <label htmlFor="connector-display-name" className="text-sm font-medium text-zinc-700">
+          Name
+        </label>
         <Input
+          id="connector-display-name"
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           disabled={isPending}
           placeholder="Customer docs, product wiki, support KB"
         />
-      </label>
+      </div>
 
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-        Source location
+      <div className="flex flex-col gap-2">
+        <label htmlFor="connector-source-location" className="text-sm font-medium text-zinc-700">
+          Source location
+        </label>
         <Input
+          id="connector-source-location"
           value={sourceLocation}
           onChange={(event) => setSourceLocation(event.target.value)}
           disabled={isPending}
           placeholder="Folder URL, space key, workspace URL, or system name"
         />
-      </label>
+      </div>
 
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-        Notes
+      <div className="flex flex-col gap-2">
+        <label htmlFor="connector-notes" className="text-sm font-medium text-zinc-700">
+          Notes
+        </label>
         <Textarea
+          id="connector-notes"
           value={note}
           onChange={(event) => setNote(event.target.value)}
           disabled={isPending}
           placeholder="What should Radar sync, and who owns approval?"
           rows={4}
         />
-      </label>
+      </div>
 
-      <Button type="submit" disabled={isPending || displayName.trim().length < 2}>
+      <Button
+        type="submit"
+        disabled={isPending || displayName.trim().length < 2 || sourceLocation.trim().length < 2}
+      >
         {isPending ? <Loader2 data-icon="inline-start" className="animate-spin" /> : <Send data-icon="inline-start" />}
         Request connector
       </Button>

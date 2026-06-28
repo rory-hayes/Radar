@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { FileText, PlugZap, UploadCloud } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  FileText,
+  PlugZap,
+  UploadCloud,
+  type LucideIcon,
+} from "lucide-react";
 
 import { AdminPageHeader } from "@/components/admin/admin-surfaces";
 import { Button } from "@/components/ui/button";
@@ -25,13 +32,13 @@ export default async function SourcesPage() {
         description="The approved source base Radar can retrieve and cite during customer conversations."
       >
         <Button asChild>
-          <Link href="/app/uploads">
+          <Link href="#add-source">
             <UploadCloud data-icon="inline-start" />
-            Upload source
+            Add source
           </Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/app/connectors">
+          <Link href="/app/connectors#connector-request">
             <PlugZap data-icon="inline-start" />
             Connect tool
           </Link>
@@ -39,40 +46,113 @@ export default async function SourcesPage() {
       </AdminPageHeader>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <Card className="rounded-lg shadow-sm">
-          <CardHeader className="gap-2">
-            <CardTitle className="text-xl">Workspace knowledge</CardTitle>
-            <CardDescription className="leading-6">
-              Uploads and connected tools should all land here as approved, citable sources.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <KnowledgeList result={result} />
-          </CardContent>
-        </Card>
+        <div className="flex flex-col gap-4">
+          <AddSourcePanel />
+
+          <Card className="rounded-lg shadow-sm">
+            <CardHeader className="gap-2">
+              <CardTitle className="text-xl">Workspace knowledge</CardTitle>
+              <CardDescription className="leading-6">
+                Uploads and connected tools should all land here as approved, citable sources.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <KnowledgeList result={result} />
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="rounded-lg shadow-sm">
           <CardHeader className="gap-2">
-            <CardTitle className="text-xl">Best next source</CardTitle>
+            <CardTitle className="text-xl">Source rule</CardTitle>
             <CardDescription className="leading-6">
-              Start with one high-signal source before adding broad syncs.
+              Start narrow, approve the source, then expand sync scope only when the evidence is useful.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <SourcePath
-              title="Playbook or FAQ"
-              body="Fastest path to useful cited answers."
-              href="/app/uploads?type=playbook"
-            />
-            <SourcePath
-              title="Docs or wiki"
-              body="Connect the system of record when OAuth sync is ready."
-              href="/app/connectors"
-            />
+            <SourceRule label="Fastest first source" value="Paste a playbook, FAQ, or policy." />
+            <SourceRule label="Connector setup" value="Request the exact folder, space, or knowledge base first." />
+            <SourceRule label="Before live use" value="Radar should cite only approved source chunks." />
           </CardContent>
         </Card>
       </div>
     </>
+  );
+}
+
+const addSourceOptions = [
+  {
+    title: "Upload or paste source",
+    body: "Add a policy, FAQ, note, export, or text-based document through the production ingestion path.",
+    href: "/app/uploads",
+    action: "Upload source",
+    icon: UploadCloud,
+  },
+  {
+    title: "Create a playbook",
+    body: "Fastest path to useful live-call guidance when the team already has approved talk tracks.",
+    href: "/app/uploads?type=playbook",
+    action: "Create playbook",
+    icon: BookOpenCheck,
+  },
+  {
+    title: "Request a connector",
+    body: "Queue Google Drive, Confluence, Notion, CRM, or support knowledge for admin-scoped setup.",
+    href: "/app/connectors#connector-request",
+    action: "Request connector",
+    icon: PlugZap,
+  },
+] satisfies Array<{
+  title: string;
+  body: string;
+  href: string;
+  action: string;
+  icon: LucideIcon;
+}>;
+
+function AddSourcePanel() {
+  return (
+    <Card id="add-source" className="rounded-lg shadow-sm">
+      <CardHeader className="gap-2">
+        <CardTitle className="text-xl">Add source</CardTitle>
+        <CardDescription className="leading-6">
+          Choose the shortest path to approved knowledge. Connectors start as setup requests until
+          OAuth syncs and approval rules are wired.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3 md:grid-cols-3">
+        {addSourceOptions.map((option) => (
+          <AddSourceOption key={option.title} option={option} />
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function AddSourceOption({
+  option,
+}: {
+  option: (typeof addSourceOptions)[number];
+}) {
+  const Icon = option.icon;
+
+  return (
+    <Link
+      href={option.href}
+      className="group flex h-full flex-col justify-between rounded-lg border border-zinc-200 p-4 transition hover:bg-zinc-50"
+    >
+      <span>
+        <span className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
+          <Icon />
+        </span>
+        <span className="mt-4 block text-sm font-semibold text-zinc-950">{option.title}</span>
+        <span className="mt-2 block text-sm leading-6 text-zinc-600">{option.body}</span>
+      </span>
+      <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-zinc-950">
+        {option.action}
+        <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+      </span>
+    </Link>
   );
 }
 
@@ -129,12 +209,12 @@ function KnowledgeList({ result }: { result: AdminDataResult<AdminRecord[]> }) {
   );
 }
 
-function SourcePath({ title, body, href }: { title: string; body: string; href: string }) {
+function SourceRule({ label, value }: { label: string; value: string }) {
   return (
-    <Link href={href} className="rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50">
-      <h2 className="text-sm font-semibold text-zinc-950">{title}</h2>
-      <p className="mt-1 text-sm leading-5 text-zinc-600">{body}</p>
-    </Link>
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+      <h2 className="text-sm font-semibold text-zinc-950">{label}</h2>
+      <p className="mt-1 text-sm leading-5 text-zinc-600">{value}</p>
+    </div>
   );
 }
 
