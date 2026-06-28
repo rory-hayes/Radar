@@ -19,19 +19,23 @@ export default async function UploadsPage({ searchParams }: UploadsPageProps) {
   const result = await getAdminCollection("uploads", context);
   const configured = context.state === "ready";
   const canUpload = can(context, "manageSources");
+  const playbookMode = params.type === "playbook";
 
   return (
     <div className="space-y-4">
       <KnowledgeUploadForm
+        key={params.type ?? "document"}
         configured={configured}
         canUpload={canUpload}
         initialSourceType={params.type}
       />
-      <AdminCollectionSurface
-        context={context}
-        definition={adminSurfaces.uploads}
-        result={result}
-      />
+      {playbookMode ? null : (
+        <AdminCollectionSurface
+          context={context}
+          definition={adminSurfaces.uploads}
+          result={result}
+        />
+      )}
     </div>
   );
 }

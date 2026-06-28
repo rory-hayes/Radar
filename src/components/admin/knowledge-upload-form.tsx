@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, CheckCircle2, Loader2, UploadCloud } from "lucide-react";
+import { AlertCircle, BookOpenCheck, CheckCircle2, Loader2, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -16,6 +16,8 @@ const sourceTypes = [
   { value: "faq", label: "FAQ" },
   { value: "note", label: "Note" },
 ] as const;
+
+type SourceTypeValue = (typeof sourceTypes)[number]["value"];
 
 type UploadState =
   | {
@@ -43,10 +45,9 @@ export function KnowledgeUploadForm({
   initialSourceType?: string;
 }) {
   const router = useRouter();
-  const defaultSourceType = sourceTypes.some((item) => item.value === initialSourceType)
-    ? initialSourceType
-    : "document";
-  const isPlaybook = defaultSourceType === "playbook";
+  const defaultSourceType = resolveInitialSourceType(initialSourceType);
+  const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeValue>(defaultSourceType);
+  const isPlaybook = selectedSourceType === "playbook";
   const [state, setState] = useState<UploadState>(null);
   const [isPending, setIsPending] = useState(false);
   const disabled = isPending || !configured || !canUpload;
@@ -91,9 +92,10 @@ export function KnowledgeUploadForm({
       }
 
       const source = payload.source;
-      const sourceTitle = source?.title ?? (isPlaybook ? "Playbook" : "Source");
+      const createdPlaybook = source?.sourceType === "playbook";
+      const sourceTitle = source?.title ?? (createdPlaybook ? "Playbook" : "Source");
       const sourceHref =
-        source?.id && source.sourceType === "playbook"
+        source?.id && createdPlaybook
           ? `/app/playbooks/${encodeURIComponent(source.id)}`
           : source?.id
             ? `/app/sources/${encodeURIComponent(source.id)}`
@@ -101,29 +103,23 @@ export function KnowledgeUploadForm({
 
       setState({
         tone: "success",
-        title: source?.sourceType === "playbook" ? "Playbook ready" : "Source ingested",
-        message:
-          source?.sourceType === "playbook"
-            ? `${sourceTitle} is approved and searchable for live-call guidance.`
-            : `${sourceTitle} is approved with ${source?.chunkCount ?? 0} searchable chunks.`,
+        title: createdPlaybook ? "Playbook ready" : "Source ingested",
+        message: createdPlaybook
+          ? `${sourceTitle} is approved, searchable, and ready for cited live-call guidance.`
+          : `${sourceTitle} is approved with ${source?.chunkCount ?? 0} searchable chunks.`,
         primaryAction: sourceHref
           ? {
-              label: source?.sourceType === "playbook" ? "Open playbook" : "Open source",
+              label: createdPlaybook ? "Open playbook" : "Open source",
               href: sourceHref,
             }
           : undefined,
-        secondaryAction:
-          source?.sourceType === "playbook"
-            ? {
-                label: "Create another",
-                href: "/app/uploads?type=playbook",
-              }
-            : {
-                label: "View knowledge",
-                href: "/app/sources",
-              },
+        secondaryAction: {
+          label: "View knowledge",
+          href: "/app/sources",
+        },
       });
       form.reset();
+      setSelectedSourceType(defaultSourceType);
       router.refresh();
     } catch {
       setState({
@@ -140,11 +136,11 @@ export function KnowledgeUploadForm({
     <section className="rounded-lg border border-zinc-200 bg-white p-5">
       <div className="flex flex-col gap-2">
         <h2 className="text-base font-semibold text-zinc-950">
-          {isPlaybook ? "Create playbook source" : "Upload approved knowledge"}
+          {isPlaybook ? "Create playbook" : "Upload approved knowledge"}
         </h2>
         <p className="text-sm leading-6 text-zinc-600">
           {isPlaybook
-            ? "Paste or upload a playbook that Radar can retrieve and cite during live calls."
+            ? "Paste or upload an approved call playbook. Radar will make it searchable for cited live-call guidance."
             : "Upload text-based source material. Radar embeds it server-side and makes approved chunks available to live guidance."}
         </p>
       </div>
@@ -202,21 +198,35 @@ export function KnowledgeUploadForm({
             <Input name="title" required disabled={disabled} maxLength={180} />
           </label>
 
-          <label className="grid gap-2">
-            <span className="text-sm font-medium text-zinc-700">Source type</span>
-            <select
-              name="sourceType"
-              disabled={disabled}
-              className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-zinc-950 shadow-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              defaultValue={defaultSourceType}
-            >
-              {sourceTypes.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {defaultSourceType === "playbook" ? (
+            <div className="grid gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+              <span className="text-sm font-medium text-emerald-950">Source type</span>
+              <span className="inline-flex items-center gap-2 text-sm text-emerald-800">
+                <BookOpenCheck className="size-4" />
+                Playbook
+              </span>
+              <input type="hidden" name="sourceType" value="playbook" />
+            </div>
+          ) : (
+            <label className="grid gap-2">
+              <span className="text-sm font-medium text-zinc-700">Source type</span>
+              <select
+                name="sourceType"
+                disabled={disabled}
+                className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-zinc-950 shadow-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                value={selectedSourceType}
+                onChange={(event) =>
+                  setSelectedSourceType(resolveInitialSourceType(event.target.value))
+                }
+              >
+                {sourceTypes.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -239,11 +249,17 @@ export function KnowledgeUploadForm({
             disabled={disabled}
             accept=".txt,.md,.markdown,.csv,.json,.html,.xml,text/plain,text/markdown,text/csv,application/json,text/html,application/xml,text/xml"
           />
-          <span className="text-xs text-zinc-500">Text-based uploads up to 1 MB are supported.</span>
+          <span className="text-xs text-zinc-500">
+            {isPlaybook
+              ? "Text-based playbooks up to 1 MB are supported."
+              : "Text-based uploads up to 1 MB are supported."}
+          </span>
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-zinc-700">Or paste source text</span>
+          <span className="text-sm font-medium text-zinc-700">
+            {isPlaybook ? "Or paste playbook text" : "Or paste source text"}
+          </span>
           <textarea
             name="text"
             disabled={disabled}
@@ -255,12 +271,19 @@ export function KnowledgeUploadForm({
         <Button type="submit" disabled={disabled}>
           {isPending ? (
             <Loader2 data-icon="inline-start" className="animate-spin" />
+          ) : isPlaybook ? (
+            <BookOpenCheck data-icon="inline-start" />
           ) : (
             <UploadCloud data-icon="inline-start" />
           )}
-          Ingest source
+          {isPlaybook ? "Create playbook" : "Ingest source"}
         </Button>
       </form>
     </section>
   );
+}
+
+function resolveInitialSourceType(value: string | undefined): SourceTypeValue {
+  const match = sourceTypes.find((item) => item.value === value);
+  return match?.value ?? "document";
 }
