@@ -1,16 +1,13 @@
 import Link from "next/link";
 import {
-  AlertTriangle,
   ArrowRight,
   BarChart3,
+  BookOpenCheck,
   Download,
-  FileText,
   MonitorCheck,
   PlugZap,
-  ShieldCheck,
   UploadCloud,
   Users,
-  type LucideIcon,
 } from "lucide-react";
 
 import { AdminPageHeader } from "@/components/admin/admin-surfaces";
@@ -66,14 +63,16 @@ const setupSteps = [
 
 export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {}) {
   const context = await getAdminContext();
-  const [overview, sessions, analytics] = await Promise.all([
+  const [overview, sessions, analytics, sources] = await Promise.all([
     getAdminCollection("overview", context),
     getAdminCollection("sessions", context),
     getAdminCollection("analytics", context),
+    getAdminCollection("sources", context),
   ]);
   const overviewRecord = firstRecord(overview);
   const analyticsRecord = firstRecord(analytics);
   const recentCalls = sessions.state === "ready" ? sessions.data.slice(0, 4) : [];
+  const knowledgeSources = sources.state === "ready" ? sources.data.slice(0, 4) : [];
   const role = context.state === "ready" ? context.role : null;
   const forceUserOnboarding = onboardingAudience === "user";
   const adminRoles = ["owner", "admin", "knowledge_manager"];
@@ -130,16 +129,42 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
         {showExtensionSetup ? <UserExtensionSetupPanel /> : null}
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
-          <AnalyticsOverview record={analyticsRecord} state={analytics.state} />
+          <Card className="rounded-lg shadow-sm">
+            <CardHeader className="gap-2">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <CardTitle className="text-xl">Workspace knowledge</CardTitle>
+                  <CardDescription className="mt-2 leading-6">
+                    Approved sources Radar can retrieve and cite during customer conversations.
+                  </CardDescription>
+                </div>
+                <Link
+                  href="/app/sources"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950"
+                >
+                  View all
+                  <ArrowRight className="size-4" />
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <KnowledgeSummary records={knowledgeSources} sourcesState={sources.state} />
+            </CardContent>
+          </Card>
+
           <Card className="rounded-lg shadow-sm">
             <CardHeader className="gap-2">
               <CardTitle className="text-xl">Recent calls</CardTitle>
               <CardDescription className="leading-6">
-                Calls appear here after a user starts Radar in Chrome and ends the session.
+                Sessions from the Chrome extension, including active, paused, and ended calls.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <RecentCalls records={recentCalls} sessionsState={sessions.state} />
+              <RecentCalls
+                records={recentCalls}
+                sessionsState={sessions.state}
+                analyticsRecord={analyticsRecord}
+              />
             </CardContent>
           </Card>
         </div>
@@ -192,136 +217,49 @@ function UserExtensionSetupPanel() {
   );
 }
 
-function AnalyticsOverview({
-  record,
-  state,
-}: {
-  record: AdminRecord | undefined;
-  state: string;
-}) {
-  if (state !== "ready" || !record) {
-    return (
-      <Card className="rounded-lg shadow-sm">
-        <CardHeader className="gap-2">
-          <CardTitle className="text-xl">Call analytics</CardTitle>
-          <CardDescription className="leading-6">
-            Connect workspace data and end the first Radar call to populate analytics.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  const answerProofCards = numberValue(record.answerCards) + numberValue(record.proofCards);
-  const citedAnswerCards = numberValue(record.citedAnswerCards);
-  const citationCoverage =
-    answerProofCards > 0 ? `${Math.round((citedAnswerCards / answerProofCards) * 100)}%` : "No cards";
-  const confirmationSignals =
-    numberValue(record.needsConfirmationCards) + numberValue(record.escalationCards);
-  const unfinishedCalls = numberValue(record.activeSessions) + numberValue(record.pausedSessions);
-
-  return (
-    <Card className="rounded-lg shadow-sm">
-      <CardHeader className="gap-2">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <CardTitle className="text-xl">Call analytics</CardTitle>
-            <CardDescription className="mt-2 leading-6">
-              Evidence from ended calls, cited guidance, and confirmation or escalation moments.
-            </CardDescription>
-          </div>
-          <Link
-            href="/app/analytics"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950"
-          >
-            Open detail
-            <ArrowRight className="size-4" />
-          </Link>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-hidden rounded-lg border border-zinc-200">
-          <div className="grid lg:grid-cols-2">
-            <AnalyticsSignal
-              label="Ended calls"
-              value={numberValue(record.endedSessions)}
-              detail={
-                unfinishedCalls > 0
-                  ? `${unfinishedCalls} active or paused sessions still need ending`
-                  : "Ready for review"
-              }
-              icon={BarChart3}
-            />
-            <AnalyticsSignal
-              label="Citation coverage"
-              value={citationCoverage}
-              detail={`${citedAnswerCards} cited answer/proof cards`}
-              icon={ShieldCheck}
-            />
-            <AnalyticsSignal
-              label="Confirmation queue"
-              value={confirmationSignals}
-              detail={`${numberValue(record.needsConfirmationCards)} needs confirmation / ${numberValue(record.escalationCards)} escalations`}
-              icon={AlertTriangle}
-            />
-            <AnalyticsSignal
-              label="Workspace knowledge"
-              value={numberValue(record.approvedSources)}
-              detail={`${numberValue(record.retrievalEvents)} retrieval events logged`}
-              icon={FileText}
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AnalyticsSignal({
-  label,
-  value,
-  detail,
-  icon: Icon,
-}: {
-  label: string;
-  value: number | string;
-  detail: string;
-  icon: LucideIcon;
-}) {
-  return (
-    <div className="flex min-h-32 flex-col gap-4 border-b border-zinc-200 p-4 last:border-b-0 lg:flex-row lg:[&:nth-child(odd)]:border-r lg:[&:nth-last-child(-n+2)]:border-b-0">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
-        <Icon />
-      </div>
-      <div>
-        <div className="text-sm font-medium text-zinc-600">{label}</div>
-        <div className="mt-2 text-2xl font-semibold text-zinc-950">{value}</div>
-        <p className="mt-2 text-sm leading-5 text-zinc-600">{detail}</p>
-      </div>
-    </div>
-  );
-}
-
-function RecentCalls({
+function KnowledgeSummary({
   records,
-  sessionsState,
+  sourcesState,
 }: {
   records: AdminRecord[];
-  sessionsState: string;
+  sourcesState: string;
 }) {
-  if (sessionsState !== "ready") {
+  if (sourcesState !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
-        Connect the workspace database to load ended Radar calls.
+        Connect the workspace database before Radar can load approved knowledge sources.
       </div>
     );
   }
 
   if (records.length === 0) {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
-        No calls captured yet. Sign in to Radar in Chrome, start the extension during a call, then
-        end the session.
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+            <BookOpenCheck />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-950">Add the first approved source</h3>
+            <p className="mt-1 text-sm leading-6 text-zinc-600">
+              Upload a source or request a connector so Radar has evidence to cite before it answers.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link
+                href="/app/uploads"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-zinc-950 px-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              >
+                Upload source
+              </Link>
+              <Link
+                href="/app/connectors"
+                className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-200 px-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
+              >
+                Connect tool
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -330,27 +268,152 @@ function RecentCalls({
     <div className="overflow-hidden rounded-lg border border-zinc-200">
       {records.map((record) => {
         const id = displayValue(record.id);
-        const title = displayValue(record.title) || (id ? `Call ${id.slice(0, 8)}` : "Radar call");
+        const title = displayValue(record.title) || "Untitled source";
         const status = displayValue(record.status);
+        const sourceType = displayValue(record.sourceType);
+        const chunkCount = numberValue(record.chunkCount);
 
         return (
           <Link
             key={id || title}
-            href={id ? `/app/sessions/${encodeURIComponent(id)}` : "/app/sessions"}
+            href={id ? `/app/sources/${encodeURIComponent(id)}` : "/app/sources"}
             className="flex items-center justify-between gap-4 border-b border-zinc-200 p-4 last:border-b-0 hover:bg-zinc-50"
           >
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-zinc-950">{title}</div>
-              <div className="mt-1 text-xs text-zinc-500">{status ? `Status: ${status}` : "Review call"}</div>
+              <div className="mt-1 text-xs text-zinc-500">
+                {formatSourceType(sourceType)}
+                {status ? ` · ${formatStatus(status)}` : ""}
+                {chunkCount > 0 ? ` · ${chunkCount} chunks` : ""}
+              </div>
             </div>
-            <span className="inline-flex h-8 items-center justify-center rounded-md border border-zinc-200 px-3 text-xs font-semibold text-zinc-700">
-              Review
+            <span className="inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 px-3 text-xs font-semibold text-zinc-700">
+              Open
             </span>
           </Link>
         );
       })}
     </div>
   );
+}
+
+function RecentCalls({
+  records,
+  sessionsState,
+  analyticsRecord,
+}: {
+  records: AdminRecord[];
+  sessionsState: string;
+  analyticsRecord?: AdminRecord;
+}) {
+  if (sessionsState !== "ready") {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
+        Connect the workspace database to load Radar sessions from the Chrome extension.
+      </div>
+    );
+  }
+
+  const analyticsText = getAnalyticsText(analyticsRecord);
+
+  if (records.length === 0) {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
+        No sessions captured yet. Sign in to Radar in Chrome, start the extension during a call,
+        then end the session so the review is ready.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-3">
+      {analyticsText ? (
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-600">
+          {analyticsText}
+        </div>
+      ) : null}
+      <div className="overflow-hidden rounded-lg border border-zinc-200">
+        {records.map((record) => {
+          const id = displayValue(record.id);
+          const title = displayValue(record.title) || (id ? `Call ${id.slice(0, 8)}` : "Radar call");
+          const status = displayValue(record.status);
+          const statusLabel = formatStatus(status);
+          const isEnded = status === "ended";
+
+          return (
+            <Link
+              key={id || title}
+              href={id ? `/app/sessions/${encodeURIComponent(id)}` : "/app/sessions"}
+              className="flex items-center justify-between gap-4 border-b border-zinc-200 p-4 last:border-b-0 hover:bg-zinc-50"
+            >
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold text-zinc-950">{title}</div>
+                <div className="mt-1 text-xs text-zinc-500">
+                  {statusLabel ? `Status: ${statusLabel}` : "Review call"}
+                </div>
+              </div>
+              <span className="inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 px-3 text-xs font-semibold text-zinc-700">
+                {isEnded ? "Review" : "Open"}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function getAnalyticsText(record: AdminRecord | undefined) {
+  if (!record) {
+    return null;
+  }
+
+  const endedSessions = numberValue(record.endedSessions);
+  const unfinishedSessions = numberValue(record.activeSessions) + numberValue(record.pausedSessions);
+  const answerProofCards = numberValue(record.answerCards) + numberValue(record.proofCards);
+  const citedAnswerCards = numberValue(record.citedAnswerCards);
+
+  if (endedSessions === 0 && unfinishedSessions === 0) {
+    return "Analytics starts after the first Radar session is created.";
+  }
+
+  const parts = [`${endedSessions} ended ${endedSessions === 1 ? "call" : "calls"}`];
+
+  if (unfinishedSessions > 0) {
+    parts.push(`${unfinishedSessions} active or paused`);
+  }
+
+  if (answerProofCards > 0) {
+    parts.push(`${Math.round((citedAnswerCards / answerProofCards) * 100)}% cited answer/proof coverage`);
+  }
+
+  return parts.join(" · ");
+}
+
+function formatSourceType(value: string) {
+  const labels: Record<string, string> = {
+    document: "Document",
+    playbook: "Playbook",
+    policy: "Policy",
+    faq: "FAQ",
+    note: "Note",
+  };
+
+  return labels[value] ?? "Source";
+}
+
+function formatStatus(value: string) {
+  const labels: Record<string, string> = {
+    active: "Active",
+    paused: "Paused",
+    ended: "Ended",
+    approved: "Approved",
+    pending: "Pending",
+    rejected: "Rejected",
+    failed: "Failed",
+  };
+
+  return labels[value] ?? value;
 }
 
 function getNextStep(

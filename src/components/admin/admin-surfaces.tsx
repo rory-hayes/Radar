@@ -204,9 +204,9 @@ export const adminSurfaces = {
   },
   settings: {
     resource: "settings",
-    title: "Settings",
+    title: "Workspace settings",
     description:
-      "Configure workspace readiness, access, retention, and Radar deployment settings.",
+      "Manage workspace readiness, invite delivery, and the settings admins need before teams use Radar.",
     primaryAction: {
       label: "Open audit log",
       href: "/app/audit-log",
@@ -216,9 +216,9 @@ export const adminSurfaces = {
     emptyDescription:
       "Connect workspace data before tenant settings can be read or changed from this app.",
     configuredDescription:
-      "Tenant settings appear here with permission-aware controls.",
+      "Workspace settings appear here with permission-aware controls.",
     roleNote:
-      "Only admins should change tenant settings, retention policy, or credential-backed integrations.",
+      "Only admins should change workspace settings, retention policy, or credential-backed integrations.",
   },
   "audit-log": {
     resource: "audit-log",

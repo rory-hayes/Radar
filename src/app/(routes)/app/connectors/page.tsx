@@ -95,7 +95,7 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
         description="Request the tools where approved knowledge already lives. Sync stays off until source scope and ownership are clear."
       >
         <Button asChild>
-          <Link href="#connector-request">
+          <Link href="/app/connectors#connector-request">
             <PlugZap data-icon="inline-start" />
             Request connector
           </Link>

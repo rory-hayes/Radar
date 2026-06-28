@@ -588,8 +588,7 @@ async function listSessionRecords(workspaceId: string) {
     .from("radar_sessions")
     .select("id,status,created_by_email,created_at,updated_at,ended_at,tab,capture")
     .eq("workspace_id", workspaceId)
-    .eq("status", "ended")
-    .order("ended_at", { ascending: false, nullsFirst: false })
+    .order("updated_at", { ascending: false, nullsFirst: false })
     .limit(100);
 
   if (error) {

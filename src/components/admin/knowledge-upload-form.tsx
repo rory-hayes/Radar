@@ -101,6 +101,12 @@ export function KnowledgeUploadForm({
             ? `/app/sources/${encodeURIComponent(source.id)}`
             : undefined;
 
+      if (createdPlaybook && sourceHref) {
+        router.push(sourceHref);
+        router.refresh();
+        return;
+      }
+
       setState({
         tone: "success",
         title: createdPlaybook ? "Playbook ready" : "Source ready",
