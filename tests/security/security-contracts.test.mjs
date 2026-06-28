@@ -179,6 +179,9 @@ test("escaped Supabase invite and recovery hashes are rescued consistently", () 
 test("auth email configuration can enable a Radar SMTP sender", () => {
   const script = read("scripts/configure-supabase-auth-email.mjs");
 
+  assert.match(script, /confirmation\.html/);
+  assert.match(script, /mailer_subjects_confirmation/);
+  assert.match(script, /mailer_templates_confirmation_content/);
   assert.match(script, /external_email_enabled:\s*true/);
   assert.match(script, /smtp_sender_name:\s*senderName/);
   assert.match(script, /trimmed\.startsWith\("\\""\)/);

@@ -24,6 +24,10 @@ if (!accessToken || !projectRef) {
 
 const inviteTemplate = await readFile(path.join(repoRoot, "supabase", "templates", "invite.html"), "utf8");
 const recoveryTemplate = await readFile(path.join(repoRoot, "supabase", "templates", "recovery.html"), "utf8");
+const confirmationTemplate = await readFile(
+  path.join(repoRoot, "supabase", "templates", "confirmation.html"),
+  "utf8",
+);
 const siteUrl =
   readEnv(process.env.RADAR_APP_URL) ??
   readEnv(process.env.NEXT_PUBLIC_APP_URL) ??
@@ -36,6 +40,8 @@ const payload = {
   mailer_templates_invite_content: inviteTemplate,
   mailer_subjects_recovery: "Reset your Radar password",
   mailer_templates_recovery_content: recoveryTemplate,
+  mailer_subjects_confirmation: "Confirm your Radar account",
+  mailer_templates_confirmation_content: confirmationTemplate,
   uri_allow_list: [
     normalizedSiteUrl,
     `${normalizedSiteUrl}/auth/sign-in`,

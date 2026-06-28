@@ -1,18 +1,11 @@
 import {
   AlertCircle,
   CheckCircle2,
-  KeyRound,
   MonitorCheck,
-  ShieldCheck,
-  UserRoundCheck,
   Users,
 } from "lucide-react";
 
-import {
-  AdminContextPanel,
-  AdminPageHeader,
-  adminSurfaces,
-} from "@/components/admin/admin-surfaces";
+import { AdminPageHeader, adminSurfaces } from "@/components/admin/admin-surfaces";
 import { UserInviteForm } from "@/components/admin/user-invite-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -39,24 +32,6 @@ import {
   type AdminRecord,
 } from "@/lib/admin-data";
 
-const workspaceSteps = [
-  {
-    title: "Admin prepares workspace",
-    body: "Owners connect sources, define citation rules, configure escalation paths, and invite teammates.",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Users complete personal setup",
-    body: "Invited users install the browser extension, review call consent expectations, and learn card states.",
-    icon: MonitorCheck,
-  },
-  {
-    title: "Knowledge stays central",
-    body: "Users can surface gaps from calls, but approved answers still come from workspace-managed evidence.",
-    icon: KeyRound,
-  },
-];
-
 export async function UsersPage() {
   const context = await getAdminContext();
   const result = await getAdminCollection("users", context);
@@ -70,39 +45,15 @@ export async function UsersPage() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-4">
-          <WorkspaceModelPanel />
           <UserInviteForm configured={configured} canInvite={canInvite} />
           <WorkspaceUsersTable result={result} />
         </div>
 
         <div className="flex flex-col gap-4">
-          <AdminContextPanel context={context} />
-          <RolePolicyPanel />
+          <InviteFlowPanel />
         </div>
       </div>
     </>
-  );
-}
-
-function WorkspaceModelPanel() {
-  return (
-    <section className="grid gap-4 lg:grid-cols-3">
-      {workspaceSteps.map((step) => {
-        const Icon = step.icon;
-
-        return (
-          <Card key={step.title} className="shadow-sm">
-            <CardHeader>
-              <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                <Icon />
-              </div>
-              <CardTitle className="text-base">{step.title}</CardTitle>
-              <CardDescription className="leading-6">{step.body}</CardDescription>
-            </CardHeader>
-          </Card>
-        );
-      })}
-    </section>
   );
 }
 
@@ -249,26 +200,23 @@ function StatusBadge({ value }: { value: string }) {
   return <Badge variant="outline">{formatRole(value)}</Badge>;
 }
 
-function RolePolicyPanel() {
+function InviteFlowPanel() {
   return (
     <Card className="shadow-sm">
       <CardHeader>
         <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
-          <UserRoundCheck />
+          <MonitorCheck />
         </div>
-        <CardTitle className="text-base">Role model</CardTitle>
+        <CardTitle className="text-base">What invited users see</CardTitle>
         <CardDescription>
-          Admin onboarding configures the shared workspace. User onboarding gets each invited person
-          ready for calls.
+          Each invite opens the shared workspace and walks the user through the extension setup.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3 text-sm">
-          <PolicyRow label="Workspace setup" owner="Owner / Admin" />
-          <PolicyRow label="Knowledge management" owner="Knowledge manager" />
-          <PolicyRow label="Approval decisions" owner="Approver" />
-          <PolicyRow label="Live call usage" owner="User" />
-          <PolicyRow label="Analytics review" owner="Analyst / Viewer" />
+          <PolicyRow label="1. Accept invite" owner="Join workspace" />
+          <PolicyRow label="2. Learn card states" owner="Cited / confirm / escalate" />
+          <PolicyRow label="3. Install extension" owner="Ready for calls" />
         </div>
       </CardContent>
     </Card>

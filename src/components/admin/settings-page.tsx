@@ -1,5 +1,7 @@
 import { AdminPageHeader, adminSurfaces } from "@/components/admin/admin-surfaces";
 import { getAdminCollection, getAdminContext } from "@/lib/admin-data";
+import { readEnv } from "@/lib/env";
+import { getAppUrl } from "@/lib/workspace/url";
 
 const readinessItems = [
   {
@@ -25,6 +27,7 @@ export async function SettingsPage() {
   const definition = adminSurfaces.settings;
   const missingConfig: string[] =
     context.state === "not_configured" ? context.missingConfig : [];
+  const emailStatus = getEmailDeliveryStatus();
 
   return (
     <>
@@ -87,18 +90,13 @@ export async function SettingsPage() {
         <section className="rounded-lg border border-zinc-200 bg-white p-5">
           <h2 className="text-base font-semibold text-zinc-950">Email and invite delivery</h2>
           <p className="mt-1 text-sm leading-6 text-zinc-600">
-            Radar invite and recovery emails use branded templates. Sender branding is controlled
-            by the email provider configured for auth delivery.
+            Radar can use branded invite, recovery, and account confirmation templates. Inbox sender
+            branding changes only after hosted auth email settings and custom SMTP are connected.
           </p>
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
-              <div className="font-semibold text-zinc-950">Invite link</div>
-              <p className="mt-1">New invites open Radar onboarding through /auth/accept-invite.</p>
-            </div>
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
-              <div className="font-semibold text-zinc-950">Sender name</div>
-              <p className="mt-1">Use custom SMTP to send from Radar instead of the default provider sender.</p>
-            </div>
+          <div className="mt-5 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
+            {emailStatus.map((item) => (
+              <EmailStatusRow key={item.label} item={item} />
+            ))}
           </div>
           <div className="mt-5 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
             {result.state === "ready" ? "Workspace settings are connected." : result.message}
@@ -106,6 +104,68 @@ export async function SettingsPage() {
         </section>
       </div>
     </>
+  );
+}
+
+function getEmailDeliveryStatus() {
+  const appUrl = getAppUrl();
+  const hasHostedConfigAccess = Boolean(readEnv(process.env.SUPABASE_ACCESS_TOKEN));
+  const hasCustomSmtp = [
+    process.env.SUPABASE_AUTH_SMTP_HOST,
+    process.env.SUPABASE_AUTH_SMTP_PORT,
+    process.env.SUPABASE_AUTH_SMTP_USER,
+    process.env.SUPABASE_AUTH_SMTP_PASS,
+    process.env.SUPABASE_AUTH_SMTP_ADMIN_EMAIL,
+  ].every((value) => Boolean(readEnv(value)));
+
+  return [
+    {
+      label: "Invite destination",
+      detail: `${appUrl}/auth/accept-invite`,
+      state: "ready" as const,
+    },
+    {
+      label: "Hosted templates",
+      detail: hasHostedConfigAccess
+        ? "Ready to apply Radar invite, recovery, and confirmation templates."
+        : "Needs hosted auth configuration access before recipients see the Radar template.",
+      state: hasHostedConfigAccess ? ("ready" as const) : ("action" as const),
+    },
+    {
+      label: "Sender branding",
+      detail: hasCustomSmtp
+        ? "Custom SMTP is connected so inbox sender branding can use Radar."
+        : "Needs custom SMTP to replace the default auth provider sender in inboxes.",
+      state: hasCustomSmtp ? ("ready" as const) : ("action" as const),
+    },
+  ];
+}
+
+function EmailStatusRow({
+  item,
+}: {
+  item: {
+    label: string;
+    detail: string;
+    state: "ready" | "action";
+  };
+}) {
+  return (
+    <div className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <div className="text-sm font-semibold text-zinc-950">{item.label}</div>
+        <div className="mt-1 text-sm leading-6 text-zinc-600">{item.detail}</div>
+      </div>
+      <span
+        className={
+          item.state === "ready"
+            ? "text-sm font-medium text-emerald-700"
+            : "text-sm font-medium text-amber-700"
+        }
+      >
+        {item.state === "ready" ? "Ready" : "Action needed"}
+      </span>
+    </div>
   );
 }
 

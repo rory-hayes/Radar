@@ -1,0 +1,38 @@
+<div style="margin:0;background:#f6f8fb;padding:36px 0;font-family:Inter,Arial,sans-serif;color:#18181b;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+    <tr>
+      <td align="center" style="padding:0 16px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;border-collapse:collapse;border:1px solid #e4e4e7;background:#ffffff;">
+          <tr>
+            <td style="padding:30px 30px 10px;">
+              <div style="font-size:14px;font-weight:800;letter-spacing:.02em;color:#09090b;">Radar</div>
+              <h1 style="margin:18px 0 0;font-size:26px;line-height:1.2;color:#09090b;">Confirm your Radar account</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:12px 30px 0;font-size:15px;line-height:1.7;color:#52525b;">
+              <p style="margin:0;">Confirm <strong style="color:#27272a;">{{ .Email }}</strong> to finish setting up Radar.</p>
+              <p style="margin:18px 0 0;">After confirmation, you can join your workspace, review approved knowledge, and install Radar Live Assist for customer calls.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:26px 30px 14px;">
+              <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#09090b;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:13px 18px;border-radius:8px;">Confirm account</a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 30px 28px;font-size:12px;line-height:1.6;color:#71717a;">
+              If the button does not work, copy this secure link into your browser:<br />
+              <span style="word-break:break-all;color:#52525b;">{{ .ConfirmationURL }}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="border-top:1px solid #e4e4e7;padding:18px 30px 26px;font-size:13px;line-height:1.6;color:#71717a;">
+              If you did not create a Radar account, you can ignore this email.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>

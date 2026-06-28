@@ -62,7 +62,7 @@ Required before workspace data leaves setup mode:
 - `RADAR_DEFAULT_WORKSPACE_ID`
 - `RADAR_ADMIN_ROLE` for the bootstrap admin emails listed in `RADAR_AUTH_ALLOWED_EMAILS`
 
-Workspace user management uses Supabase tables plus Supabase Auth email delivery for invites and reset links. Branded invite and recovery templates live in `supabase/templates`; apply them to the hosted Supabase project with:
+Workspace user management uses Supabase tables plus Supabase Auth email delivery for invites, reset links, and account confirmation. Branded auth templates live in `supabase/templates`; apply them to the hosted Supabase project with:
 
 - `pnpm run auth:email:configure`
 
