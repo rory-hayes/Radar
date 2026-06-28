@@ -20,8 +20,8 @@ export const SignInSchema = z.object({
   email: z.string().trim().email({
     message: "Enter a valid email address",
   }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters",
+  password: z.string().min(1, {
+    message: "Enter your password",
   }),
 });
 

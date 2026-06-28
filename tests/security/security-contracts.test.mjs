@@ -113,6 +113,16 @@ test("extension end keeps a saved-call review path visible", () => {
   assert.match(popupCss, /\.review-link\[hidden\]/);
 });
 
+test("extension keeps operator-selected API base and renders error state", () => {
+  const background = read("apps/extension/src/background.js");
+  const popupJs = read("apps/extension/src/popup.js");
+
+  assert.doesNotMatch(background, /LEGACY_LOCAL_API_BASE/);
+  assert.doesNotMatch(background, /apiBase\s*===\s*["']http:\/\/localhost:3000["'][\s\S]*DEFAULT_API_BASE/);
+  assert.match(popupJs, /error\.state/);
+  assert.match(popupJs, /nextState\s*=\s*error\.state/);
+});
+
 test("security scanners pass the current source tree", () => {
   execFileSync(process.execPath, ["scripts/no-dummy-data-scan.mjs", "src"], {
     cwd: repoRoot,

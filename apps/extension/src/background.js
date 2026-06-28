@@ -1,5 +1,4 @@
 const DEFAULT_API_BASE = "https://radar-eight-nu.vercel.app";
-const LEGACY_LOCAL_API_BASE = "http://localhost:3000";
 const STATE_KEY = "radar.v1.state";
 
 const initialState = {
@@ -515,11 +514,6 @@ async function hydrateState() {
     ...initialState,
     ...(stored[STATE_KEY] || {})
   };
-
-  if (radarState.status === "idle" && radarState.apiBase === LEGACY_LOCAL_API_BASE) {
-    radarState.apiBase = DEFAULT_API_BASE;
-    await persistState(radarState);
-  }
 }
 
 async function setState(patch) {

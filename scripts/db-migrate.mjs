@@ -91,5 +91,11 @@ function normalizeEnvValue(value) {
   if (!trimmed || trimmed === "\"\"" || trimmed === "''") {
     return undefined;
   }
+  if (
+    (trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
   return trimmed;
 }

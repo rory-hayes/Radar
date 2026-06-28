@@ -55,6 +55,9 @@ async function runAction(type) {
 
     nextState = response.state;
   } catch (error) {
+    if (error?.state) {
+      nextState = error.state;
+    }
     notice.classList.add("error");
     notice.textContent = error instanceof Error ? error.message : "Radar extension action failed.";
   } finally {
@@ -173,7 +176,9 @@ function setBusy(busy) {
 function send(message) {
   return chrome.runtime.sendMessage(message).then((response) => {
     if (!response?.ok) {
-      throw new Error(response?.error || "Radar extension action failed.");
+      const error = new Error(response?.error || "Radar extension action failed.");
+      error.state = response?.state;
+      throw error;
     }
     return response;
   });
