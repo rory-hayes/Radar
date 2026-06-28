@@ -269,7 +269,7 @@ export async function authenticateSupabaseAccessToken(accessToken: string) {
       ok: false as const,
       status: 503,
       code: "supabase_not_configured",
-      message: "Supabase Auth is not configured for invite acceptance.",
+      message: "Invite acceptance is not configured for this environment.",
     };
   }
 

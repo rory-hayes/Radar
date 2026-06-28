@@ -44,34 +44,18 @@ export default async function SourcesPage() {
         </Button>
       </AdminPageHeader>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="flex flex-col gap-4">
-          <AddSourcePanel />
-
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-2">
-              <CardTitle className="text-xl">Workspace knowledge</CardTitle>
-              <CardDescription className="leading-6">
-                Uploads and connected tools should all land here as approved, citable sources.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <KnowledgeList result={result} />
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid gap-4">
+        <AddSourcePanel />
 
         <Card className="rounded-lg shadow-sm">
           <CardHeader className="gap-2">
-            <CardTitle className="text-xl">Source rule</CardTitle>
+            <CardTitle className="text-xl">Workspace knowledge</CardTitle>
             <CardDescription className="leading-6">
-              Start narrow, approve the source, then expand sync scope only when the evidence is useful.
+              Uploaded files, pasted playbooks, and connected tools all land here as approved, citable sources.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <SourceRule label="Fastest first source" value="Paste a playbook, FAQ, or policy." />
-            <SourceRule label="Connector setup" value="Request the exact folder, space, or knowledge base first." />
-            <SourceRule label="Before live use" value="Radar should cite only approved source chunks." />
+          <CardContent>
+            <KnowledgeList result={result} />
           </CardContent>
         </Card>
       </div>
@@ -206,15 +190,6 @@ function KnowledgeList({ result }: { result: AdminDataResult<AdminRecord[]> }) {
           </Link>
         );
       })}
-    </div>
-  );
-}
-
-function SourceRule({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-      <h2 className="text-sm font-semibold text-zinc-950">{label}</h2>
-      <p className="mt-1 text-sm leading-5 text-zinc-600">{value}</p>
     </div>
   );
 }

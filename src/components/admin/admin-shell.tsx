@@ -6,7 +6,6 @@ import {
   FileSearch,
   Gauge,
   LogOut,
-  PlugZap,
   Settings,
   Users,
 } from "lucide-react";
@@ -33,10 +32,10 @@ const primaryNav: AdminNavItem[] = [
     activePaths: [
       "/app/uploads",
       "/app/approvals",
+      "/app/connectors",
       "/app/knowledge-gaps",
     ],
   },
-  { href: "/app/connectors", label: "Connectors", icon: PlugZap },
   { href: "/app/users", label: "Users", icon: Users },
   {
     href: "/app/sessions",

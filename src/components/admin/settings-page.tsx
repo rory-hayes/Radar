@@ -5,12 +5,12 @@ import { getAppUrl } from "@/lib/workspace/url";
 
 const readinessItems = [
   {
-    label: "Workspace data",
+    label: "Workspace database",
     envName: "SUPABASE_URL",
     description: "Members, sources, calls, and analytics are connected to the workspace database.",
   },
   {
-    label: "Secure server access",
+    label: "Server data access",
     envName: "SUPABASE_SECRET_KEY",
     description: "Server-only credentials are present and are not exposed to the browser or extension.",
   },
@@ -91,7 +91,7 @@ export async function SettingsPage() {
           <h2 className="text-base font-semibold text-zinc-950">Email and invite delivery</h2>
           <p className="mt-1 text-sm leading-6 text-zinc-600">
             Radar can use branded invite, recovery, and account confirmation templates. Inbox sender
-            branding changes only after hosted auth email settings and custom SMTP are connected.
+            branding changes after hosted email settings and custom SMTP are connected.
           </p>
           <div className="mt-5 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
             {emailStatus.map((item) => (
@@ -128,7 +128,7 @@ function getEmailDeliveryStatus() {
       label: "Hosted templates",
       detail: hasHostedConfigAccess
         ? "Ready to apply Radar invite, recovery, and confirmation templates."
-        : "Needs hosted auth configuration access before recipients see the Radar template.",
+        : "Needs hosted email configuration access before recipients see the Radar template.",
       state: hasHostedConfigAccess ? ("ready" as const) : ("action" as const),
     },
     {

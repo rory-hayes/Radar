@@ -2,24 +2,19 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
-  BookOpenCheck,
+  CheckCircle2,
+  Circle,
   Download,
+  FileSearch,
   MonitorCheck,
-  PlugZap,
   UploadCloud,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 
 import { AdminPageHeader } from "@/components/admin/admin-surfaces";
 import { RadarOnboardingTour } from "@/components/admin/onboarding-tour";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   getAdminCollection,
   getAdminContext,
@@ -31,22 +26,23 @@ type OverviewPageProps = {
   onboardingAudience?: "admin" | "user";
 };
 
+type JourneyItem = {
+  title: string;
+  body: string;
+  href: string;
+  action: string;
+  icon: LucideIcon;
+  state: "done" | "next" | "waiting";
+};
+
 const setupSteps = [
   {
     stage: "Knowledge",
     title: "Add workspace knowledge",
-    body: "Upload policies, FAQs, and playbooks that Radar can cite.",
-    href: "/app/uploads",
-    action: "Upload",
+    body: "Upload or connect the first approved source so Radar has evidence to cite.",
+    href: "/app/sources#add-source",
+    action: "Add source",
     icon: UploadCloud,
-  },
-  {
-    stage: "Connectors",
-    title: "Connect source systems",
-    body: "Prepare Drive, Confluence, Notion, CRM, and support syncs.",
-    href: "/app/connectors",
-    action: "Connect",
-    icon: PlugZap,
   },
   {
     stage: "Users",
@@ -68,16 +64,14 @@ const setupSteps = [
 
 export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {}) {
   const context = await getAdminContext();
-  const [overview, sessions, analytics, sources] = await Promise.all([
+  const [overview, sessions, analytics] = await Promise.all([
     getAdminCollection("overview", context),
     getAdminCollection("sessions", context),
     getAdminCollection("analytics", context),
-    getAdminCollection("sources", context),
   ]);
   const overviewRecord = firstRecord(overview);
   const analyticsRecord = firstRecord(analytics);
   const recentCalls = sessions.state === "ready" ? sessions.data.slice(0, 4) : [];
-  const knowledgeSources = sources.state === "ready" ? sources.data.slice(0, 4) : [];
   const role = context.state === "ready" ? context.role : null;
   const forceUserOnboarding = onboardingAudience === "user";
   const adminRoles = ["owner", "admin", "knowledge_manager"];
@@ -93,12 +87,13 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
     calls: numberValue(overviewRecord?.sessions),
   };
   const nextStep = getNextStep(readiness, context.state);
+  const journey = getWorkspaceJourney(readiness, context.state);
 
   return (
     <>
       <AdminPageHeader
         title="Dashboard"
-        description="Workspace health, call outcomes, and the next action needed to get Radar into real customer conversations."
+        description="A simple path from approved knowledge to invited users, installed extension, and reviewed calls."
       >
         {isAdminRole ? <RadarOnboardingTour audience="admin" autoOpen={showAdminOnboarding} /> : null}
         {!isAdminRole || forceUserOnboarding ? (
@@ -108,7 +103,7 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
 
       <div className="grid gap-4">
         <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
               <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
                 <nextStep.icon />
@@ -131,49 +126,47 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
           </div>
         </section>
 
+        <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-950">Workspace path</h2>
+              <p className="mt-1 text-sm leading-6 text-zinc-600">
+                Keep setup focused on the few steps that make Radar useful in a real call.
+              </p>
+            </div>
+            <Badge variant="outline">{context.state === "ready" ? "Workspace connected" : "Setup needed"}</Badge>
+          </div>
+          <div className="mt-5 divide-y divide-zinc-200 rounded-lg border border-zinc-200">
+            {journey.map((item) => (
+              <JourneyRow key={item.title} item={item} />
+            ))}
+          </div>
+        </section>
+
         {showExtensionSetup ? <UserExtensionSetupPanel /> : null}
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-2">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <CardTitle className="text-xl">Workspace knowledge</CardTitle>
-                  <CardDescription className="mt-2 leading-6">
-                    Approved sources Radar can retrieve and cite during customer conversations.
-                  </CardDescription>
-                </div>
-                <Link
-                  href="/app/sources"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950"
-                >
-                  View all
-                  <ArrowRight className="size-4" />
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <KnowledgeSummary records={knowledgeSources} sourcesState={sources.state} />
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-2">
-              <CardTitle className="text-xl">Recent calls</CardTitle>
-              <CardDescription className="leading-6">
-                Sessions from the Chrome extension, including active, paused, and ended calls.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RecentCalls
-                records={recentCalls}
-                sessionsState={sessions.state}
-                sessionsMessage={sessions.state !== "ready" ? sessions.message : undefined}
-                analyticsRecord={analyticsRecord}
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-950">Call outcomes</h2>
+              <p className="mt-1 text-sm leading-6 text-zinc-600">
+                Ended extension sessions appear here with review links and roll into analytics.
+              </p>
+            </div>
+            <Link href="/app/sessions" className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-950">
+              Open calls
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+          <div className="mt-5">
+            <RecentCalls
+              records={recentCalls}
+              sessionsState={sessions.state}
+              sessionsMessage={sessions.state !== "ready" ? sessions.message : undefined}
+              analyticsRecord={analyticsRecord}
+            />
+          </div>
+        </section>
       </div>
     </>
   );
@@ -193,7 +186,7 @@ function UserExtensionSetupPanel() {
           <h2 className="text-lg font-semibold text-emerald-950">Install Radar for your first call</h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-emerald-900/80">
             Download the Chrome extension, load it unpacked, then start Radar only after call consent
-            is clear. End the session when the call finishes so it appears in Calls and analytics.
+            is clear. End the session when the call finishes so it appears in Calls.
           </p>
           <ol className="mt-4 grid gap-2 text-sm leading-6 text-emerald-950">
             <li>1. Download and unzip the Radar extension package.</li>
@@ -223,90 +216,44 @@ function UserExtensionSetupPanel() {
   );
 }
 
-function KnowledgeSummary({
-  records,
-  sourcesState,
-}: {
-  records: AdminRecord[];
-  sourcesState: AdminDataResult<AdminRecord[]>["state"];
-}) {
-  if (sourcesState === "empty") {
-    return <FirstSourceState />;
-  }
-
-  if (sourcesState !== "ready") {
-    return (
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
-        Connect the workspace database before Radar can load approved knowledge sources.
-      </div>
-    );
-  }
-
-  if (records.length === 0) {
-    return <FirstSourceState />;
-  }
+function JourneyRow({ item }: { item: JourneyItem }) {
+  const Icon = item.icon;
+  const statusLabel = {
+    done: "Done",
+    next: "Next",
+    waiting: "Waiting",
+  }[item.state];
+  const StatusIcon = item.state === "done" ? CheckCircle2 : Circle;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-200">
-      {records.map((record) => {
-        const id = displayValue(record.id);
-        const title = displayValue(record.title) || "Untitled source";
-        const status = displayValue(record.status);
-        const sourceType = displayValue(record.sourceType);
-        const chunkCount = numberValue(record.chunkCount);
-
-        return (
-          <Link
-            key={id || title}
-            href={id ? `/app/sources/${encodeURIComponent(id)}` : "/app/sources"}
-            className="flex items-center justify-between gap-4 border-b border-zinc-200 p-4 last:border-b-0 hover:bg-zinc-50"
-          >
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-zinc-950">{title}</div>
-              <div className="mt-1 text-xs text-zinc-500">
-                {formatSourceType(sourceType)}
-                {status ? ` · ${formatStatus(status)}` : ""}
-                {chunkCount > 0 ? ` · ${chunkCount} chunks` : ""}
-              </div>
-            </div>
-            <span className="inline-flex h-8 shrink-0 items-center justify-center rounded-md border border-zinc-200 px-3 text-xs font-semibold text-zinc-700">
-              Open
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function FirstSourceState() {
-  return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-      <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
-          <BookOpenCheck />
+    <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex gap-3">
+        <div
+          className={
+            item.state === "waiting"
+              ? "flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500"
+              : "flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white"
+          }
+        >
+          <Icon className="size-4" />
         </div>
         <div>
-          <h3 className="text-sm font-semibold text-zinc-950">Add the first approved source</h3>
-          <p className="mt-1 text-sm leading-6 text-zinc-600">
-            Upload a source or request a connector so Radar has evidence to cite before it answers.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link
-              href="/app/uploads"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-zinc-950 px-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
-            >
-              Upload source
-            </Link>
-            <Link
-              href="/app/connectors"
-              className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-200 px-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
-            >
-              Connect tool
-            </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold text-zinc-950">{item.title}</h3>
+            <Badge variant={item.state === "next" ? "default" : "outline"} className="gap-1">
+              <StatusIcon className="size-3" />
+              {statusLabel}
+            </Badge>
           </div>
+          <p className="mt-1 text-sm leading-6 text-zinc-600">{item.body}</p>
         </div>
       </div>
+      <Link
+        href={item.href}
+        className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-zinc-200 px-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
+      >
+        {item.action}
+      </Link>
     </div>
   );
 }
@@ -412,19 +359,7 @@ function getAnalyticsText(record: AdminRecord | undefined) {
     parts.push(`${Math.round((citedAnswerCards / answerProofCards) * 100)}% cited answer/proof coverage`);
   }
 
-  return parts.join(" · ");
-}
-
-function formatSourceType(value: string) {
-  const labels: Record<string, string> = {
-    document: "Document",
-    playbook: "Playbook",
-    policy: "Policy",
-    faq: "FAQ",
-    note: "Note",
-  };
-
-  return labels[value] ?? "Source";
+  return parts.join(" / ");
 }
 
 function formatStatus(value: string) {
@@ -439,6 +374,59 @@ function formatStatus(value: string) {
   };
 
   return labels[value] ?? value;
+}
+
+function getWorkspaceJourney(
+  readiness: { sources: number; users: number; calls: number },
+  contextState: string,
+): JourneyItem[] {
+  if (contextState !== "ready") {
+    return [
+      {
+        title: "Connect workspace data",
+        body: "Radar needs workspace data before sources, users, calls, and invite state can load.",
+        href: "/app/settings",
+        action: "Review settings",
+        icon: BarChart3,
+        state: "next",
+      },
+    ];
+  }
+
+  return [
+    {
+      title: "Add approved knowledge",
+      body: `${readiness.sources} approved ${readiness.sources === 1 ? "source" : "sources"} available for citations.`,
+      href: "/app/sources#add-source",
+      action: readiness.sources > 0 ? "Manage sources" : "Add source",
+      icon: FileSearch,
+      state: readiness.sources > 0 ? "done" : "next",
+    },
+    {
+      title: "Invite the team",
+      body: `${readiness.users} workspace ${readiness.users === 1 ? "member" : "members"} can access Radar.`,
+      href: "/app/users",
+      action: "Invite users",
+      icon: Users,
+      state: readiness.users > 1 ? "done" : readiness.sources > 0 ? "next" : "waiting",
+    },
+    {
+      title: "Install Radar Live Assist",
+      body: "Users install the Chrome extension during onboarding before joining customer calls.",
+      href: "/app?onboarding=user",
+      action: "User setup",
+      icon: Download,
+      state: readiness.calls > 0 ? "done" : readiness.users > 1 ? "next" : "waiting",
+    },
+    {
+      title: "Review ended calls",
+      body: `${readiness.calls} ended ${readiness.calls === 1 ? "call" : "calls"} are available for review and analytics.`,
+      href: "/app/sessions",
+      action: "Open calls",
+      icon: BarChart3,
+      state: readiness.calls > 0 ? "next" : "waiting",
+    },
+  ];
 }
 
 function getNextStep(
@@ -461,11 +449,11 @@ function getNextStep(
   }
 
   if (readiness.users <= 1) {
-    return setupSteps[2];
+    return setupSteps[1];
   }
 
   if (readiness.calls === 0) {
-    return setupSteps[3];
+    return setupSteps[2];
   }
 
   return {
