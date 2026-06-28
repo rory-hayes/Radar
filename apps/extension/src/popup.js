@@ -7,6 +7,7 @@ const sessionId = document.querySelector("#sessionId");
 const realtimeState = document.querySelector("#realtimeState");
 const transcriptionState = document.querySelector("#transcriptionState");
 const cardState = document.querySelector("#cardState");
+const reviewCallLink = document.querySelector("#reviewCallLink");
 
 const controls = {
   preflight: document.querySelector("#preflight"),
@@ -74,6 +75,7 @@ function render(state) {
   realtimeState.textContent = realtimeLabel(state.realtime);
   transcriptionState.textContent = transcriptionLabel(state.transcription);
   cardState.textContent = state.lastCard?.title || "No card";
+  renderReviewLink(state);
 
   notice.classList.toggle("error", state.status === "error");
   notice.classList.toggle("ready", state.status === "active" || state.status === "preflight_ready");
@@ -83,6 +85,20 @@ function render(state) {
   controls.pause.disabled = state.status !== "active";
   controls.resume.disabled = state.status !== "paused";
   controls.end.disabled = !["active", "paused", "error"].includes(state.status);
+}
+
+function renderReviewLink(state) {
+  const reviewUrl = state.lastEndedSession?.reviewUrl;
+
+  if (state.status === "ended" && reviewUrl) {
+    reviewCallLink.hidden = false;
+    reviewCallLink.href = reviewUrl;
+    reviewCallLink.textContent = "Review saved call in Radar";
+    return;
+  }
+
+  reviewCallLink.hidden = true;
+  reviewCallLink.removeAttribute("href");
 }
 
 function noticeText(state) {
@@ -103,6 +119,13 @@ function noticeText(state) {
   }
   if (state.status === "paused") {
     return "Radar is paused locally. Resume or end the session from the popup or drawer.";
+  }
+  if (state.status === "ended") {
+    if (state.lastEndedSession?.reviewUrl) {
+      return "Call saved. It now appears in Radar Calls and analytics.";
+    }
+
+    return "Radar ended locally. Start a new session when the next approved call begins.";
   }
   return "Start Radar only after the call participant consent and workspace policy checks are complete.";
 }

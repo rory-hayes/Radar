@@ -98,6 +98,21 @@ test("sign-in and realtime credential requests are rate limited", () => {
   assert.match(clientSecretRoute, /Too many Realtime credential requests/);
 });
 
+test("extension end keeps a saved-call review path visible", () => {
+  const background = read("apps/extension/src/background.js");
+  const popupHtml = read("apps/extension/src/popup.html");
+  const popupJs = read("apps/extension/src/popup.js");
+  const popupCss = read("apps/extension/src/popup.css");
+
+  assert.match(background, /lastEndedSession/);
+  assert.match(background, /reviewUrl:\s*`\$\{radarState\.apiBase\}\/app\/sessions\/\$\{encodeURIComponent\(endedSession\.id\)\}`/);
+  assert.doesNotMatch(background, /\/end`,\s*\{\s*reason\s*\}\)\.catch\(\(\)\s*=>\s*undefined\)/);
+  assert.match(popupHtml, /id="reviewCallLink"/);
+  assert.match(popupJs, /function renderReviewLink/);
+  assert.match(popupJs, /Call saved\. It now appears in Radar Calls and analytics\./);
+  assert.match(popupCss, /\.review-link\[hidden\]/);
+});
+
 test("security scanners pass the current source tree", () => {
   execFileSync(process.execPath, ["scripts/no-dummy-data-scan.mjs", "src"], {
     cwd: repoRoot,

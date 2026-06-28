@@ -22,6 +22,7 @@ const initialState = {
     error: null,
     updatedAt: null
   },
+  lastEndedSession: null,
   lastCard: null,
   lastError: null,
   updatedAt: null
@@ -143,6 +144,7 @@ async function startSession(message) {
     cursor: 0,
     activeTab: toTabContext(activeTab),
     capture,
+    lastEndedSession: null,
     lastCard: null,
     lastError: null
   });
@@ -196,8 +198,10 @@ async function endSession(reason) {
   stopPolling();
   await stopRealtimeTranscription("ended");
 
+  let endedSession = null;
   if (radarState.sessionId) {
-    await postJson(`/v1/sessions/${radarState.sessionId}/end`, { reason }).catch(() => undefined);
+    const response = await postJson(`/v1/sessions/${radarState.sessionId}/end`, { reason });
+    endedSession = response.session || null;
   }
 
   await setState({
@@ -205,6 +209,14 @@ async function endSession(reason) {
     sessionId: null,
     cursor: 0,
     realtime: null,
+    lastEndedSession: endedSession
+      ? {
+          id: endedSession.id,
+          status: endedSession.status,
+          endedAt: endedSession.endedAt,
+          reviewUrl: `${radarState.apiBase}/app/sessions/${encodeURIComponent(endedSession.id)}`
+        }
+      : radarState.lastEndedSession,
     transcription: transcriptionState("ended", {
       source: radarState.capture?.microphone ? "microphone" : null,
       lastFinal: radarState.transcription?.lastFinal || ""

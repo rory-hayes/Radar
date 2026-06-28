@@ -120,6 +120,28 @@ input[type="url"] {
   color: #24543b;
 }
 
+.review-link {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #b9d7c6;
+  border-radius: 7px;
+  background: #effaf3;
+  color: #17694d;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.review-link[hidden] {
+  display: none;
+}
+
+.review-link:hover {
+  background: #e5f5ec;
+}
+
 .actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
