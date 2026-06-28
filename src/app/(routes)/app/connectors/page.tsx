@@ -2,11 +2,8 @@ import Link from "next/link";
 import {
   BookOpenCheck,
   Building2,
-  CheckCircle2,
   Cloud,
-  FileText,
   LifeBuoy,
-  LockKeyhole,
   PlugZap,
   type LucideIcon,
 } from "lucide-react";
@@ -27,39 +24,26 @@ import type { ConnectorType } from "@/lib/connectors/store";
 
 const connectorOptions = [
   {
-    title: "Upload files",
-    description: "Use the production ingestion path for policies, FAQs, playbooks, notes, CSV, JSON, and text exports.",
-    status: "Available now",
-    href: "/app/uploads",
-    action: "Upload source",
-    icon: FileText,
-    ready: true,
-  },
-  {
     title: "Google Drive and Docs",
-    description: "Sync approved folders and documents from where teams already maintain customer-facing knowledge.",
-    status: "Request setup",
+    description: "Approved folders, Docs, Sheets, and exported source material.",
     connectorType: "google_drive",
     icon: Cloud,
   },
   {
     title: "Confluence and Jira",
-    description: "Bring product docs, runbooks, release notes, and escalation tickets into the review queue.",
-    status: "Request setup",
+    description: "Product docs, runbooks, release notes, and escalation tickets.",
     connectorType: "confluence_jira",
     icon: BookOpenCheck,
   },
   {
     title: "Notion",
-    description: "Sync selected workspace pages and databases after an admin approves the source scope.",
-    status: "Request setup",
+    description: "Selected workspace pages, databases, and team knowledge hubs.",
     connectorType: "notion",
     icon: Building2,
   },
   {
     title: "Support and CRM",
-    description: "Connect Zendesk, Intercom, Salesforce, or HubSpot knowledge that can support live customer answers.",
-    status: "Request setup",
+    description: "Zendesk, Intercom, Salesforce, HubSpot, or support knowledge bases.",
     connectorType: "support_crm",
     icon: LifeBuoy,
   },
@@ -68,12 +52,8 @@ const connectorOptions = [
 type ConnectorOption = {
   title: string;
   description: string;
-  status: string;
-  href?: string;
-  action?: string;
   icon: LucideIcon;
-  ready?: boolean;
-  connectorType?: ConnectorType;
+  connectorType: ConnectorType;
 };
 
 type ConnectorsPageProps = {
@@ -92,7 +72,7 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
     <>
       <AdminPageHeader
         title="Connectors"
-        description="Request the tools where approved knowledge already lives. Sync stays off until source scope and ownership are clear."
+        description="Request the one source system where approved knowledge already lives. Sync stays off until an admin confirms scope and ownership."
       >
         <Button asChild>
           <Link href="/app/connectors#connector-request">
@@ -100,21 +80,24 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
             Request connector
           </Link>
         </Button>
-        <Button asChild variant="outline">
-          <Link href="/app/uploads">
-            <FileText data-icon="inline-start" />
-            Upload source
-          </Link>
-        </Button>
       </AdminPageHeader>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex flex-col gap-4">
-          <section className="grid gap-4 md:grid-cols-2">
-            {connectorOptions.map((connector) => (
-              <ConnectorCard key={connector.title} connector={connector} />
-            ))}
-          </section>
+          <Card id="connector-request" className="rounded-lg shadow-sm">
+            <CardHeader className="gap-2">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
+                <PlugZap />
+              </div>
+              <CardTitle className="text-xl">Request connector</CardTitle>
+              <CardDescription className="leading-6">
+                Tell Radar which tool, folder, space, or knowledge base should be connected first.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ConnectorRequestForm initialConnectorType={initialConnectorType} />
+            </CardContent>
+          </Card>
 
           <Card className="rounded-lg shadow-sm">
             <CardHeader className="gap-2">
@@ -129,32 +112,20 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
           </Card>
         </div>
 
-        <aside className="flex flex-col gap-4">
+        <aside>
           <Card className="rounded-lg shadow-sm">
             <CardHeader className="gap-2">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                <LockKeyhole />
-              </div>
-              <CardTitle className="text-base">Connector rule</CardTitle>
+              <CardTitle className="text-xl">Common systems</CardTitle>
               <CardDescription className="leading-6">
-                A connector should never make knowledge available to reps until an admin approves
-                the source scope and Radar can cite it.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader className="gap-2">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-950 text-white">
-                <PlugZap />
-              </div>
-              <CardTitle className="text-base">Request setup</CardTitle>
-              <CardDescription className="leading-6">
-                Tell Radar which tool, folder, space, or knowledge base should be connected first.
+                Choose one to prefill the request form. Credentials and sync remain off until setup is approved.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ConnectorRequestForm initialConnectorType={initialConnectorType} />
+              <div className="grid gap-2">
+                {connectorOptions.map((connector) => (
+                  <ConnectorOptionRow key={connector.title} connector={connector} />
+                ))}
+              </div>
             </CardContent>
           </Card>
         </aside>
@@ -163,45 +134,25 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
   );
 }
 
-function ConnectorCard({ connector }: { connector: ConnectorOption }) {
+function ConnectorOptionRow({ connector }: { connector: ConnectorOption }) {
   const Icon = connector.icon;
 
   return (
-    <Card className="rounded-lg shadow-sm">
-      <CardHeader className="gap-3">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-800">
-            <Icon />
-          </div>
-          <Badge
-            variant="outline"
-            className={
-              connector.ready
-                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border-zinc-200 bg-zinc-50 text-zinc-600"
-            }
-          >
-            {connector.ready ? <CheckCircle2 /> : null}
-            {connector.status}
-          </Badge>
-        </div>
-        <CardTitle className="text-base">{connector.title}</CardTitle>
-        <CardDescription className="leading-6">{connector.description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {connector.href ? (
-          <Button asChild variant="outline" className="w-full">
-            <Link href={connector.href}>{connector.action}</Link>
-          </Button>
-        ) : connector.connectorType ? (
-          <Button asChild variant="outline" className="w-full">
-            <Link href={`/app/connectors?connector=${connector.connectorType}#connector-request`}>
-              Request setup
-            </Link>
-          </Button>
-        ) : null}
-      </CardContent>
-    </Card>
+    <Link
+      href={`/app/connectors?connector=${connector.connectorType}#connector-request`}
+      className="group flex gap-3 rounded-lg border border-zinc-200 p-3 transition hover:bg-zinc-50"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-800">
+        <Icon />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-zinc-950">{connector.title}</span>
+        <span className="mt-1 block text-sm leading-5 text-zinc-600">{connector.description}</span>
+        <span className="mt-2 block text-sm font-semibold text-zinc-950">
+          Select source system
+        </span>
+      </span>
+    </Link>
   );
 }
 

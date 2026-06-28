@@ -2,7 +2,7 @@
 
 import { AlertCircle, CheckCircle2, Loader2, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,10 @@ export function ConnectorRequestForm({
       }
     | null
   >(null);
+
+  useEffect(() => {
+    setConnectorType(initialConnectorType);
+  }, [initialConnectorType]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
