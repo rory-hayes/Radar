@@ -44,3 +44,20 @@ export const KnowledgeSourceTypeSchema = z.enum([
   "faq",
   "note",
 ]);
+
+export const ConnectorTypeSchema = z.enum([
+  "google_drive",
+  "confluence_jira",
+  "notion",
+  "support_crm",
+  "other",
+]);
+
+export const ConnectorRequestSchema = z.object({
+  connectorType: ConnectorTypeSchema.default("google_drive"),
+  displayName: z.string().trim().min(2, {
+    message: "Name the tool or source area.",
+  }),
+  sourceLocation: z.string().trim().max(500).optional().or(z.literal("")),
+  note: z.string().trim().max(1000).optional().or(z.literal("")),
+});

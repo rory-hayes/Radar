@@ -2,6 +2,7 @@ import "server-only";
 
 import { getAuthSession } from "@/lib/auth/session";
 import { readEnv } from "@/lib/env";
+import { listConnectorRequests } from "@/lib/connectors/store";
 import {
   getKnowledgeSource,
   listKnowledgeSources,
@@ -263,6 +264,8 @@ export async function getAdminCollection(
         return toCollection(await listSourceRecords(adminContext.workspaceId));
       case "uploads":
         return toCollection(await listUploadRecords(adminContext.workspaceId));
+      case "connectors":
+        return toCollection(await listConnectorRecords(adminContext.workspaceId));
       case "playbooks":
         return toCollection(await listPlaybookRecords(adminContext.workspaceId));
       case "sessions":
@@ -465,6 +468,20 @@ async function listUploadRecords(workspaceId: string) {
     errorMessage: upload.errorMessage,
     createdAt: upload.createdAt,
     updatedAt: upload.updatedAt,
+  }));
+}
+
+async function listConnectorRecords(workspaceId: string) {
+  return (await listConnectorRequests(workspaceId)).map((request) => ({
+    id: request.id,
+    title: request.displayName,
+    connectorType: request.connectorType,
+    sourceLocation: request.sourceLocation,
+    status: request.status,
+    requestedByEmail: request.requestedByEmail,
+    note: request.note,
+    createdAt: request.createdAt,
+    updatedAt: request.updatedAt,
   }));
 }
 

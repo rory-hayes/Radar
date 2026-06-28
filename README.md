@@ -8,6 +8,7 @@ This repo contains the V1 web app, workspace admin shell, server API contracts, 
 
 - Landing/product surface rewritten from the Prodexa baseline for Radar.
 - Focused workspace routes under `/app` for overview, knowledge, connectors, users, calls, analytics, uploads, and settings. Older secondary URLs redirect back into those core areas.
+- Connector setup requests persist to Supabase so admins can queue Google Drive, Confluence/Jira, Notion, and support/CRM sync work before OAuth jobs are wired.
 - API route contracts under `/api/v1` with `/v1/*` rewrites for the extension.
 - OpenAI Realtime client-secret server helper using `POST /v1/realtime/client_secrets`.
 - AI/RAG schemas and eval tests that require citations for Answer/Proof cards and route unsupported claims to Needs confirmation or Escalate states.
@@ -79,6 +80,10 @@ Do not configure `NEXT_PUBLIC_OPENAI_*` variables.
 Admins and knowledge managers can upload text-based source material from `/app/uploads`. The server extracts text, calls OpenAI embeddings with the server-only API key, stores approved source chunks in Supabase `pgvector`, and records ingestion/audit state in Supabase.
 
 Final transcript segments run retrieval against approved workspace chunks. When approved evidence is found, Radar emits a cited Proof card. When retrieval cannot support the segment, Radar emits Needs confirmation instead of an unsupported Answer card.
+
+## Connectors
+
+Admins can request connector setup from `/app/connectors`. V1 persists these requests in `radar_connector_requests` with the source system, source location, requester, and setup status. This is the production queue for deciding which OAuth/API connector to wire next; it does not sync external systems until those provider integrations are implemented.
 
 ## Workspace And User Onboarding
 

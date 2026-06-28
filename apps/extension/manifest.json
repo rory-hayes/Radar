@@ -24,6 +24,7 @@
   "host_permissions": [
     "https://api.openai.com/*",
     "https://radar-eight-nu.vercel.app/*",
-    "http://localhost:3000/*"
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*"
   ]
 }
