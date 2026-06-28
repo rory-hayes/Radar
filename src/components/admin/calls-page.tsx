@@ -107,10 +107,19 @@ function FlowRow({
 }
 
 function CallQueue({ result }: { result: AdminDataResult<AdminRecord[]> }) {
+  if (result.state === "empty") {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+        No calls captured yet. If you just ran the extension, confirm you were signed in to Radar
+        in the same Chrome profile and clicked End in the popup.
+      </div>
+    );
+  }
+
   if (result.state !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
-        Connect the workspace database before Radar can load call records.
+        {result.message || "Connect the workspace database before Radar can load call records."}
       </div>
     );
   }

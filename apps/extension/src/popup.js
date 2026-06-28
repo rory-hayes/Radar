@@ -93,15 +93,20 @@ function render(state) {
 function renderReviewLink(state) {
   const reviewUrl = state.lastEndedSession?.reviewUrl;
 
-  if (state.status === "ended" && reviewUrl) {
+  if (state.status === "ended") {
     reviewCallLink.hidden = false;
-    reviewCallLink.href = reviewUrl;
-    reviewCallLink.textContent = "Review saved call in Radar";
+    reviewCallLink.href = reviewUrl || appUrl(state, "/app/sessions");
+    reviewCallLink.textContent = reviewUrl ? "Review saved call in Radar" : "Open Radar Calls";
     return;
   }
 
   reviewCallLink.hidden = true;
   reviewCallLink.removeAttribute("href");
+}
+
+function appUrl(state, path) {
+  const apiBase = (state.apiBase || "https://radar-eight-nu.vercel.app").replace(/\/$/, "");
+  return `${apiBase}${path}`;
 }
 
 function noticeText(state) {
@@ -128,7 +133,7 @@ function noticeText(state) {
       return "Call saved. It now appears in Radar Calls and analytics.";
     }
 
-    return "Radar ended locally. Start a new session when the next approved call begins.";
+    return "Radar ended, but no saved session was returned. Open Calls and confirm you were signed in to Radar in this Chrome profile before starting.";
   }
   return "Start Radar only after the call participant consent and workspace policy checks are complete.";
 }

@@ -157,10 +157,18 @@ function ConnectorOptionRow({ connector }: { connector: ConnectorOption }) {
 }
 
 function ConnectorQueue({ result }: { result: AdminDataResult<AdminRecord[]> }) {
+  if (result.state === "empty") {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+        No connector requests yet. Request one source system to define the first sync scope.
+      </div>
+    );
+  }
+
   if (result.state !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
-        Connect the workspace database before Radar can save connector requests.
+        {result.message || "Connect the workspace database before Radar can save connector requests."}
       </div>
     );
   }

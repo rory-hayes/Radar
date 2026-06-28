@@ -109,6 +109,8 @@ test("extension end keeps a saved-call review path visible", () => {
   assert.doesNotMatch(background, /\/end`,\s*\{\s*reason\s*\}\)\.catch\(\(\)\s*=>\s*undefined\)/);
   assert.match(popupHtml, /id="reviewCallLink"/);
   assert.match(popupJs, /function renderReviewLink/);
+  assert.match(popupJs, /appUrl\(state,\s*"\/app\/sessions"\)/);
+  assert.match(popupJs, /Open Radar Calls/);
   assert.match(popupJs, /Call saved\. It now appears in Radar Calls and analytics\./);
   assert.match(popupCss, /\.review-link\[hidden\]/);
 });

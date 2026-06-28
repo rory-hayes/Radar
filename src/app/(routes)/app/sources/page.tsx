@@ -149,10 +149,19 @@ function AddSourceOption({
 }
 
 function KnowledgeList({ result }: { result: AdminDataResult<AdminRecord[]> }) {
+  if (result.state === "empty") {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
+        No knowledge sources yet. Upload one source or connect a tool before users rely on Radar in
+        calls.
+      </div>
+    );
+  }
+
   if (result.state !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
-        Connect the workspace database before Radar can load approved knowledge.
+        {result.message || "Connect the workspace database before Radar can load approved knowledge."}
       </div>
     );
   }

@@ -20,7 +20,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getAdminCollection, getAdminContext, type AdminRecord } from "@/lib/admin-data";
+import {
+  getAdminCollection,
+  getAdminContext,
+  type AdminDataResult,
+  type AdminRecord,
+} from "@/lib/admin-data";
 
 type OverviewPageProps = {
   onboardingAudience?: "admin" | "user";
@@ -163,6 +168,7 @@ export async function OverviewPage({ onboardingAudience }: OverviewPageProps = {
               <RecentCalls
                 records={recentCalls}
                 sessionsState={sessions.state}
+                sessionsMessage={sessions.state !== "ready" ? sessions.message : undefined}
                 analyticsRecord={analyticsRecord}
               />
             </CardContent>
@@ -222,8 +228,12 @@ function KnowledgeSummary({
   sourcesState,
 }: {
   records: AdminRecord[];
-  sourcesState: string;
+  sourcesState: AdminDataResult<AdminRecord[]>["state"];
 }) {
+  if (sourcesState === "empty") {
+    return <FirstSourceState />;
+  }
+
   if (sourcesState !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
@@ -233,35 +243,7 @@ function KnowledgeSummary({
   }
 
   if (records.length === 0) {
-    return (
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
-            <BookOpenCheck />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-950">Add the first approved source</h3>
-            <p className="mt-1 text-sm leading-6 text-zinc-600">
-              Upload a source or request a connector so Radar has evidence to cite before it answers.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href="/app/uploads"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-zinc-950 px-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
-              >
-                Upload source
-              </Link>
-              <Link
-                href="/app/connectors"
-                className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-200 px-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
-              >
-                Connect tool
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <FirstSourceState />;
   }
 
   return (
@@ -297,19 +279,62 @@ function KnowledgeSummary({
   );
 }
 
+function FirstSourceState() {
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-white">
+          <BookOpenCheck />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-950">Add the first approved source</h3>
+          <p className="mt-1 text-sm leading-6 text-zinc-600">
+            Upload a source or request a connector so Radar has evidence to cite before it answers.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/app/uploads"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-zinc-950 px-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            >
+              Upload source
+            </Link>
+            <Link
+              href="/app/connectors"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-zinc-200 px-3 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
+            >
+              Connect tool
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RecentCalls({
   records,
   sessionsState,
+  sessionsMessage,
   analyticsRecord,
 }: {
   records: AdminRecord[];
-  sessionsState: string;
+  sessionsState: AdminDataResult<AdminRecord[]>["state"];
+  sessionsMessage?: string;
   analyticsRecord?: AdminRecord;
 }) {
+  if (sessionsState === "empty") {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
+        No sessions captured yet. Sign in to Radar in Chrome, start the extension during a call,
+        then end the session so the review is ready.
+      </div>
+    );
+  }
+
   if (sessionsState !== "ready") {
     return (
       <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-600">
-        Connect the workspace database to load Radar sessions from the Chrome extension.
+        {sessionsMessage || "Connect the workspace database to load Radar sessions from the Chrome extension."}
       </div>
     );
   }
