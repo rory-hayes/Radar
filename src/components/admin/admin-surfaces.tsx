@@ -65,11 +65,11 @@ export const adminSurfaces = {
   },
   uploads: {
     resource: "uploads",
-    title: "Uploads",
+    title: "Add source",
     description:
-      "Track source ingestion jobs and document uploads without exposing browser-side secrets.",
+      "Upload or paste approved knowledge without exposing browser-side secrets.",
     primaryAction: {
-      label: "Upload source",
+      label: "Add source",
       href: "/app/uploads",
       capability: "manageSources",
     },
@@ -77,7 +77,7 @@ export const adminSurfaces = {
     emptyDescription:
       "Upload text-based source material to create approved, searchable knowledge chunks.",
     configuredDescription:
-      "Upload jobs appear here with status, owner, and processing state.",
+      "Approved sources appear in Knowledge after ingestion.",
     roleNote:
       "Only source managers and admins should start ingestion jobs or retry failed uploads.",
   },
@@ -101,12 +101,12 @@ export const adminSurfaces = {
   },
   playbooks: {
     resource: "playbooks",
-    title: "Playbooks",
+    title: "Knowledge",
     description:
-      "Approved call guidance uploaded as knowledge sources that Radar can cite in live assistance.",
+      "Playbooks are managed as approved knowledge sources that Radar can cite in live assistance.",
     primaryAction: {
-      label: "Create playbook",
-      href: "/app/uploads?type=playbook",
+      label: "Add source",
+      href: "/app/uploads",
       capability: "managePlaybooks",
     },
     emptyTitle: "No playbooks are published",
@@ -615,7 +615,7 @@ function resourceHref(resource: AdminResource): string | null {
   }
 
   if (resource === "playbooks") {
-    return "/app/playbooks";
+    return "/app/sources";
   }
 
   if (resource === "sessions") {

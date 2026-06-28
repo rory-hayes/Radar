@@ -1,9 +1,5 @@
-import {
-  AdminCollectionSurface,
-  adminSurfaces,
-} from "@/components/admin/admin-surfaces";
 import { KnowledgeUploadForm } from "@/components/admin/knowledge-upload-form";
-import { can, getAdminCollection, getAdminContext } from "@/lib/admin-data";
+import { can, getAdminContext } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
 
@@ -16,10 +12,8 @@ type UploadsPageProps = {
 export default async function UploadsPage({ searchParams }: UploadsPageProps) {
   const params = await searchParams;
   const context = await getAdminContext();
-  const result = await getAdminCollection("uploads", context);
   const configured = context.state === "ready";
   const canUpload = can(context, "manageSources");
-  const playbookMode = params.type === "playbook";
 
   return (
     <div className="space-y-4">
@@ -29,13 +23,6 @@ export default async function UploadsPage({ searchParams }: UploadsPageProps) {
         canUpload={canUpload}
         initialSourceType={params.type}
       />
-      {playbookMode ? null : (
-        <AdminCollectionSurface
-          context={context}
-          definition={adminSurfaces.uploads}
-          result={result}
-        />
-      )}
     </div>
   );
 }

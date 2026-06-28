@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertCircle, BookOpenCheck, CheckCircle2, Loader2, UploadCloud } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -47,7 +47,6 @@ export function KnowledgeUploadForm({
   const router = useRouter();
   const defaultSourceType = resolveInitialSourceType(initialSourceType);
   const [selectedSourceType, setSelectedSourceType] = useState<SourceTypeValue>(defaultSourceType);
-  const isPlaybook = selectedSourceType === "playbook";
   const [state, setState] = useState<UploadState>(null);
   const [isPending, setIsPending] = useState(false);
   const disabled = isPending || !configured || !canUpload;
@@ -92,30 +91,16 @@ export function KnowledgeUploadForm({
       }
 
       const source = payload.source;
-      const createdPlaybook = source?.sourceType === "playbook";
-      const sourceTitle = source?.title ?? (createdPlaybook ? "Playbook" : "Source");
-      const sourceHref =
-        source?.id && createdPlaybook
-          ? `/app/playbooks/${encodeURIComponent(source.id)}`
-          : source?.id
-            ? `/app/sources/${encodeURIComponent(source.id)}`
-            : undefined;
-
-      if (createdPlaybook && sourceHref) {
-        router.push(sourceHref);
-        router.refresh();
-        return;
-      }
+      const sourceTitle = source?.title ?? "Source";
+      const sourceHref = source?.id ? `/app/sources/${encodeURIComponent(source.id)}` : undefined;
 
       setState({
         tone: "success",
-        title: createdPlaybook ? "Playbook ready" : "Source ready",
-        message: createdPlaybook
-          ? `${sourceTitle} is approved, searchable, and ready for cited live-call guidance.`
-          : `${sourceTitle} is approved and ready for cited live-call guidance.`,
+        title: "Source ready",
+        message: `${sourceTitle} is approved, searchable, and ready for cited live-call guidance.`,
         primaryAction: sourceHref
           ? {
-              label: createdPlaybook ? "Open playbook" : "Open source",
+              label: "Open source",
               href: sourceHref,
             }
           : undefined,
@@ -141,13 +126,10 @@ export function KnowledgeUploadForm({
   return (
     <section className="rounded-lg border border-zinc-200 bg-white p-5">
       <div className="flex flex-col gap-2">
-        <h2 className="text-base font-semibold text-zinc-950">
-          {isPlaybook ? "Create playbook" : "Add approved source"}
-        </h2>
+        <h2 className="text-base font-semibold text-zinc-950">Add approved source</h2>
         <p className="text-sm leading-6 text-zinc-600">
-          {isPlaybook
-            ? "Paste or upload an approved call playbook so Radar can use it for cited live-call guidance."
-            : "Upload or paste a document, FAQ, policy, note, or export. Radar keeps it in the workspace knowledge base for cited guidance."}
+          Upload or paste a document, FAQ, policy, playbook, note, or export. Radar keeps it in
+          the workspace knowledge base for cited guidance.
         </p>
       </div>
 
@@ -204,35 +186,24 @@ export function KnowledgeUploadForm({
             <Input name="title" required disabled={disabled} maxLength={180} />
           </label>
 
-          {defaultSourceType === "playbook" ? (
-            <div className="grid gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-              <span className="text-sm font-medium text-emerald-950">Source type</span>
-              <span className="inline-flex items-center gap-2 text-sm text-emerald-800">
-                <BookOpenCheck className="size-4" />
-                Playbook
-              </span>
-              <input type="hidden" name="sourceType" value="playbook" />
-            </div>
-          ) : (
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-zinc-700">Source type</span>
-              <select
-                name="sourceType"
-                disabled={disabled}
-                className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-zinc-950 shadow-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                value={selectedSourceType}
-                onChange={(event) =>
-                  setSelectedSourceType(resolveInitialSourceType(event.target.value))
-                }
-              >
-                {sourceTypes.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          <label className="grid gap-2">
+            <span className="text-sm font-medium text-zinc-700">Source type</span>
+            <select
+              name="sourceType"
+              disabled={disabled}
+              className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-zinc-950 shadow-sm outline-none transition-colors focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              value={selectedSourceType}
+              onChange={(event) =>
+                setSelectedSourceType(resolveInitialSourceType(event.target.value))
+              }
+            >
+              {sourceTypes.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -255,17 +226,11 @@ export function KnowledgeUploadForm({
             disabled={disabled}
             accept=".txt,.md,.markdown,.csv,.json,.html,.xml,text/plain,text/markdown,text/csv,application/json,text/html,application/xml,text/xml"
           />
-          <span className="text-xs text-zinc-500">
-            {isPlaybook
-              ? "Text-based playbooks up to 1 MB are supported."
-              : "Text-based uploads up to 1 MB are supported."}
-          </span>
+          <span className="text-xs text-zinc-500">Text-based uploads up to 1 MB are supported.</span>
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-medium text-zinc-700">
-            {isPlaybook ? "Or paste playbook text" : "Or paste source text"}
-          </span>
+          <span className="text-sm font-medium text-zinc-700">Or paste source text</span>
           <textarea
             name="text"
             disabled={disabled}
@@ -277,12 +242,10 @@ export function KnowledgeUploadForm({
         <Button type="submit" disabled={disabled}>
           {isPending ? (
             <Loader2 data-icon="inline-start" className="animate-spin" />
-          ) : isPlaybook ? (
-            <BookOpenCheck data-icon="inline-start" />
           ) : (
             <UploadCloud data-icon="inline-start" />
           )}
-          {isPlaybook ? "Create playbook" : "Save source"}
+          Save source
         </Button>
       </form>
     </section>

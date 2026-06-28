@@ -32,7 +32,6 @@ const primaryNav: AdminNavItem[] = [
     icon: FileSearch,
     activePaths: [
       "/app/uploads",
-      "/app/playbooks",
       "/app/approvals",
       "/app/knowledge-gaps",
     ],

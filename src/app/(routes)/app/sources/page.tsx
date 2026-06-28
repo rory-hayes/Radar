@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  BookOpenCheck,
   FileText,
   PlugZap,
   UploadCloud,
@@ -90,17 +89,10 @@ const addSourceOptions = [
   },
   {
     title: "Upload or paste source",
-    body: "Add a policy, FAQ, note, export, or text-based document directly to the workspace knowledge base.",
+    body: "Add a policy, FAQ, playbook, note, export, or text-based document directly to the workspace knowledge base.",
     href: "/app/uploads",
     action: "Upload source",
     icon: UploadCloud,
-  },
-  {
-    title: "Create a playbook",
-    body: "Turn approved talk tracks, qualification steps, and escalation rules into cited call guidance.",
-    href: "/app/uploads?type=playbook",
-    action: "Create playbook",
-    icon: BookOpenCheck,
   },
 ] satisfies Array<{
   title: string;
@@ -120,7 +112,7 @@ function AddSourcePanel() {
           an admin confirms the exact source scope.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-3 md:grid-cols-3">
+      <CardContent className="grid gap-3 md:grid-cols-2">
         {addSourceOptions.map((option) => (
           <AddSourceOption key={option.title} option={option} />
         ))}

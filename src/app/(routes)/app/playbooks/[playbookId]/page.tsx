@@ -1,5 +1,4 @@
-import { AdminDetailSurface } from "@/components/admin/admin-surfaces";
-import { getAdminContext, getAdminRecord } from "@/lib/admin-data";
+import { redirect } from "next/navigation";
 
 export default async function PlaybookDetailPage({
   params,
@@ -7,16 +6,5 @@ export default async function PlaybookDetailPage({
   params: Promise<{ playbookId: string }>;
 }) {
   const { playbookId } = await params;
-  const context = await getAdminContext();
-  const result = await getAdminRecord("playbooks", playbookId, context);
-
-  return (
-    <AdminDetailSurface
-      context={context}
-      result={result}
-      title="Playbook detail"
-      description="Review a playbook record, lifecycle state, source backing, and approval readiness."
-      recordLabel="playbook"
-    />
-  );
+  redirect(`/app/sources/${encodeURIComponent(playbookId)}`);
 }
