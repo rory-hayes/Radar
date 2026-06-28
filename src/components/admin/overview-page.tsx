@@ -445,10 +445,10 @@ function getNextStep(
 
   return {
     stage: "Review",
-    title: "Review call analytics",
-    body: "Use ended calls to inspect citation coverage, confirmation moments, and escalations.",
-    href: "/app/analytics",
-    action: "Open analytics",
+    title: "Review recent calls",
+    body: "Use captured calls to inspect citation coverage, confirmation moments, and escalations.",
+    href: "/app/sessions",
+    action: "Open calls",
     icon: BarChart3,
   };
 }

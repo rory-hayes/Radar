@@ -25,7 +25,7 @@ type AdminNavItem = {
 };
 
 const primaryNav: AdminNavItem[] = [
-  { href: "/app", label: "Dashboard", icon: Gauge, activePaths: ["/app/overview", "/app/analytics"] },
+  { href: "/app", label: "Dashboard", icon: Gauge, activePaths: ["/app/overview"] },
   {
     href: "/app/sources",
     label: "Knowledge",
