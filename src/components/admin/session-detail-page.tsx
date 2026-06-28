@@ -101,17 +101,7 @@ export function SessionDetailPage({
               {cards.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {cards.map((card, index) => (
-                    <div key={displayValue(card.id) || index} className="rounded-lg border border-zinc-200 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <h2 className="text-sm font-semibold text-zinc-950">
-                          {displayValue(card.title) || displayValue(card.card_type) || "Guidance card"}
-                        </h2>
-                        <Badge variant="outline">{displayValue(card.lane) || displayValue(card.card_type)}</Badge>
-                      </div>
-                      <p className="mt-2 text-sm leading-6 text-zinc-600">
-                        {displayValue(card.summary) || displayValue(card.message) || "Review card details in the stored payload."}
-                      </p>
-                    </div>
+                    <GuidanceReviewCard key={displayValue(card.id) || index} card={card} />
                   ))}
                 </div>
               ) : (
@@ -135,6 +125,70 @@ export function SessionDetailPage({
         </Card>
       </div>
     </>
+  );
+}
+
+function GuidanceReviewCard({ card }: { card: AdminRecord }) {
+  const lane = displayValue(card.lane) || displayValue(card.card_type);
+  const body =
+    displayValue(card.body) ||
+    displayValue(card.summary) ||
+    displayValue(card.message) ||
+    "Review card details in the stored payload.";
+  const citations = arrayValue(card.citations);
+  const shouldHaveCitation = lane === "answer" || lane === "proof";
+
+  return (
+    <div className="rounded-lg border border-zinc-200 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-zinc-950">
+          {displayValue(card.title) || lane || "Guidance card"}
+        </h2>
+        <Badge variant="outline">{formatLane(lane)}</Badge>
+      </div>
+      <p className="mt-2 text-sm leading-6 text-zinc-700">{body}</p>
+
+      {citations.length > 0 ? (
+        <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <div className="text-xs font-semibold uppercase tracking-normal text-zinc-500">
+            Citations
+          </div>
+          <div className="mt-3 flex flex-col gap-3">
+            {citations.map((citation, index) => (
+              <CitationRow key={`${displayValue(citation.title)}-${index}`} citation={citation} />
+            ))}
+          </div>
+        </div>
+      ) : shouldHaveCitation ? (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+          Citation missing. Treat this card as Needs confirmation before using it in a customer response.
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function CitationRow({ citation }: { citation: AdminRecord }) {
+  const title = displayValue(citation.title) || displayValue(citation.source) || "Source";
+  const quote = displayValue(citation.quote);
+  const url = displayValue(citation.url);
+
+  return (
+    <div className="text-sm leading-6">
+      {url ? (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-zinc-950 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-950"
+        >
+          {title}
+        </a>
+      ) : (
+        <div className="font-semibold text-zinc-950">{title}</div>
+      )}
+      {quote ? <p className="mt-1 text-zinc-600">{quote}</p> : null}
+    </div>
   );
 }
 
@@ -183,6 +237,10 @@ function EmptyReviewState({ message }: { message: string }) {
 
 function arrayValue(value: unknown): AdminRecord[] {
   return Array.isArray(value) ? (value as AdminRecord[]) : [];
+}
+
+function formatLane(value: string) {
+  return value ? value.replaceAll("_", " ") : "card";
 }
 
 function displayValue(value: unknown): string {

@@ -61,9 +61,9 @@ export default async function AnalyticsPage() {
         <div className="grid gap-4">
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-              title="Calls captured"
-              value={numberValue(analytics.sessions)}
-              description={`${numberValue(analytics.endedSessions)} ended, ${numberValue(analytics.activeSessions)} active`}
+              title="Reviewable calls"
+              value={numberValue(analytics.endedSessions)}
+              description={`${numberValue(analytics.activeSessions)} active and ${numberValue(analytics.pausedSessions)} paused sessions still need ending`}
               icon={BarChart3}
             />
             <MetricCard

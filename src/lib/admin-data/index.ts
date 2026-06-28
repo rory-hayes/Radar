@@ -366,7 +366,7 @@ function toCollection(records: AdminRecord[]): AdminDataResult<AdminRecord[]> {
 
 async function getOverviewRecord(context: Extract<AdminContext, { state: "ready" }>) {
   const supabase = getSupabaseAdminClient();
-  const [members, sessions, audit, sources] = await Promise.all([
+  const [members, endedSessions, audit, sources] = await Promise.all([
     supabase
       .from("radar_workspace_members")
       .select("id", { count: "exact", head: true })
@@ -374,6 +374,7 @@ async function getOverviewRecord(context: Extract<AdminContext, { state: "ready"
     supabase
       .from("radar_sessions")
       .select("id", { count: "exact", head: true })
+      .eq("status", "ended")
       .eq("workspace_id", context.workspaceId),
     supabase
       .from("radar_audit_events")
@@ -389,7 +390,7 @@ async function getOverviewRecord(context: Extract<AdminContext, { state: "ready"
     id: context.workspaceId,
     workspaceId: context.workspaceId,
     users: members.count ?? 0,
-    sessions: sessions.count ?? 0,
+    sessions: endedSessions.count ?? 0,
     auditEvents: audit.count ?? 0,
     sources: sources.count ?? 0,
     status: "connected",
@@ -585,7 +586,8 @@ async function listSessionRecords(workspaceId: string) {
     .from("radar_sessions")
     .select("id,status,created_by_email,created_at,updated_at,ended_at,tab,capture")
     .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
+    .eq("status", "ended")
+    .order("ended_at", { ascending: false, nullsFirst: false })
     .limit(100);
 
   if (error) {
