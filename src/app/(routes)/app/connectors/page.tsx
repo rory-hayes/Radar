@@ -92,7 +92,7 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
     <>
       <AdminPageHeader
         title="Connectors"
-        description="Request the tools where approved knowledge already lives. OAuth syncs stay off until source scope and ownership are clear."
+        description="Request the tools where approved knowledge already lives. Sync stays off until source scope and ownership are clear."
       >
         <Button asChild>
           <Link href="#connector-request">
@@ -120,7 +120,7 @@ export default async function ConnectorsPage({ searchParams }: ConnectorsPagePro
             <CardHeader className="gap-2">
               <CardTitle className="text-xl">Setup queue</CardTitle>
               <CardDescription className="leading-6">
-                Connector requests are saved here before we wire OAuth and sync jobs.
+                Connector requests are saved here before sync is enabled for the approved source scope.
               </CardDescription>
             </CardHeader>
             <CardContent>

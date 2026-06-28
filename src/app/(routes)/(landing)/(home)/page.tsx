@@ -15,6 +15,11 @@ import Link from "next/link";
 import { useEffect } from "react";
 import IntegrationsMobile from "@/sections/integrations-mobile";
 import { RadarLogo } from "@/components/radar/radar-ui";
+import {
+  getSupabaseAuthHashParams,
+  inferSupabaseAuthType,
+  normalizeSupabaseAuthHash,
+} from "@/lib/auth/supabase-hash";
 
 const HomePage = () => {
   useEffect(() => {
@@ -79,10 +84,10 @@ function rescueSupabaseAuthHash() {
     return false;
   }
 
-  const hash = window.location.hash;
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  const hash = normalizeSupabaseAuthHash(window.location.hash);
+  const params = getSupabaseAuthHashParams(hash);
   const accessToken = params.get("access_token");
-  const type = params.get("type");
+  const type = params.get("type") ?? inferSupabaseAuthType(hash);
 
   if (!accessToken) {
     return false;

@@ -86,7 +86,7 @@ export function KnowledgeUploadForm({
         setState({
           tone: "error",
           title: "Upload failed",
-          message: payload?.error?.message ?? "Radar could not ingest this source.",
+          message: payload?.error?.message ?? "Radar could not save this source.",
         });
         return;
       }
@@ -103,10 +103,10 @@ export function KnowledgeUploadForm({
 
       setState({
         tone: "success",
-        title: createdPlaybook ? "Playbook ready" : "Source ingested",
+        title: createdPlaybook ? "Playbook ready" : "Source ready",
         message: createdPlaybook
           ? `${sourceTitle} is approved, searchable, and ready for cited live-call guidance.`
-          : `${sourceTitle} is approved with ${source?.chunkCount ?? 0} searchable chunks.`,
+          : `${sourceTitle} is approved and ready for cited live-call guidance.`,
         primaryAction: sourceHref
           ? {
               label: createdPlaybook ? "Open playbook" : "Open source",
@@ -125,7 +125,7 @@ export function KnowledgeUploadForm({
       setState({
         tone: "error",
         title: "Upload failed",
-        message: "Radar could not reach the ingestion service.",
+        message: "Radar could not save this source right now.",
       });
     } finally {
       setIsPending(false);
@@ -136,12 +136,12 @@ export function KnowledgeUploadForm({
     <section className="rounded-lg border border-zinc-200 bg-white p-5">
       <div className="flex flex-col gap-2">
         <h2 className="text-base font-semibold text-zinc-950">
-          {isPlaybook ? "Create playbook" : "Upload approved knowledge"}
+          {isPlaybook ? "Create playbook" : "Add approved source"}
         </h2>
         <p className="text-sm leading-6 text-zinc-600">
           {isPlaybook
-            ? "Paste or upload an approved call playbook. Radar will make it searchable for cited live-call guidance."
-            : "Upload text-based source material. Radar embeds it server-side and makes approved chunks available to live guidance."}
+            ? "Paste or upload an approved call playbook so Radar can use it for cited live-call guidance."
+            : "Upload or paste a document, FAQ, policy, note, or export. Radar keeps it in the workspace knowledge base for cited guidance."}
         </p>
       </div>
 
@@ -276,7 +276,7 @@ export function KnowledgeUploadForm({
           ) : (
             <UploadCloud data-icon="inline-start" />
           )}
-          {isPlaybook ? "Create playbook" : "Ingest source"}
+          {isPlaybook ? "Create playbook" : "Save source"}
         </Button>
       </form>
     </section>

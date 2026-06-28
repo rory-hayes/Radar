@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { getSupabaseAuthHashParams } from "@/lib/auth/supabase-hash";
 
 type AcceptState =
   | {
@@ -30,7 +31,7 @@ export function AcceptInviteClient() {
   });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const params = getSupabaseAuthHashParams(window.location.hash);
     const query = new URLSearchParams(window.location.search);
     const accessToken = params.get("access_token") ?? query.get("access_token");
 

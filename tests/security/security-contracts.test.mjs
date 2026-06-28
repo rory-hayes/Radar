@@ -123,6 +123,31 @@ test("extension keeps operator-selected API base and renders error state", () =>
   assert.match(popupJs, /nextState\s*=\s*error\.state/);
 });
 
+test("escaped Supabase invite and recovery hashes are rescued consistently", () => {
+  const helper = read("src/lib/auth/supabase-hash.ts");
+  const home = read("src/app/(routes)/(landing)/(home)/page.tsx");
+  const acceptInvite = read("src/components/auth/accept-invite-client.tsx");
+  const signIn = read("src/components/auth/sign-in-form.tsx");
+
+  assert.match(helper, /replaceAll\("&amp;",\s*"&"\)/);
+  assert.match(helper, /replaceAll\("&#38;",\s*"&"\)/);
+  assert.match(helper, /type=invite/);
+  assert.match(helper, /type=recovery/);
+  assert.match(home, /getSupabaseAuthHashParams\(hash\)/);
+  assert.match(home, /inferSupabaseAuthType\(hash\)/);
+  assert.match(acceptInvite, /getSupabaseAuthHashParams\(window\.location\.hash\)/);
+  assert.match(signIn, /getSupabaseAuthHashParams\(window\.location\.hash\)/);
+});
+
+test("auth email configuration can enable a Radar SMTP sender", () => {
+  const script = read("scripts/configure-supabase-auth-email.mjs");
+
+  assert.match(script, /external_email_enabled:\s*true/);
+  assert.match(script, /smtp_sender_name:\s*senderName/);
+  assert.match(script, /trimmed\.startsWith\("\\""\)/);
+  assert.match(script, /trimmed\.startsWith\("'"\)/);
+});
+
 test("security scanners pass the current source tree", () => {
   execFileSync(process.execPath, ["scripts/no-dummy-data-scan.mjs", "src"], {
     cwd: repoRoot,

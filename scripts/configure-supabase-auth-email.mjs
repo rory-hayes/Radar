@@ -79,6 +79,7 @@ function smtpPayload() {
   }
 
   return {
+    external_email_enabled: true,
     smtp_host: host,
     smtp_port: port,
     smtp_user: user,
@@ -134,6 +135,15 @@ function normalizeEnvValue(value) {
   if (!trimmed || trimmed === "\"\"" || trimmed === "''") {
     return undefined;
   }
+
+  if (
+    (trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    const unquoted = trimmed.slice(1, -1).trim();
+    return unquoted || undefined;
+  }
+
   return trimmed;
 }
 

@@ -75,8 +75,8 @@ export async function SettingsPage() {
           <section className="rounded-lg border border-zinc-200 bg-white p-5">
             <h2 className="text-base font-semibold text-zinc-950">Email and invite delivery</h2>
             <p className="mt-1 text-sm leading-6 text-zinc-600">
-              Radar invite and recovery templates are in the repo. Sender branding is controlled by
-              the email provider configured for auth delivery.
+              Radar invite and recovery emails use branded templates. Sender branding is controlled
+              by the email provider configured for auth delivery.
             </p>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
@@ -85,7 +85,7 @@ export async function SettingsPage() {
               </div>
               <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">
                 <div className="font-semibold text-zinc-950">Sender name</div>
-                <p className="mt-1">Use custom SMTP to send from Radar instead of the default auth sender.</p>
+                <p className="mt-1">Use custom SMTP to send from Radar instead of the default provider sender.</p>
               </div>
             </div>
             <div className="mt-5 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm leading-6 text-zinc-700">

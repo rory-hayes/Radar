@@ -21,6 +21,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useForm } from "react-hook-form";
 import { PasswordInput } from "../ui/password-input";
 import { z } from "zod";
+import { getSupabaseAuthHashParams } from "@/lib/auth/supabase-hash";
 
 type RecoveryTokenState = {
   accessToken: string;
@@ -48,7 +49,7 @@ const SignInForm = () => {
   });
 
   useEffect(() => {
-    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const hash = getSupabaseAuthHashParams(window.location.hash);
     const query = new URLSearchParams(window.location.search);
     const accessToken = hash.get("access_token");
     const refreshToken = hash.get("refresh_token");

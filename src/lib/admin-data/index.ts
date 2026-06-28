@@ -249,7 +249,7 @@ export async function getAdminCollection(
   if (adminContext.state === "not_configured") {
     return {
       state: "not_configured",
-      message: "Connect Supabase server configuration before this data can load.",
+      message: "Connect the workspace database before this data can load.",
       missingConfig: adminContext.missingConfig,
     };
   }
@@ -285,7 +285,7 @@ export async function getAdminCollection(
   } catch {
     return {
       state: "error",
-      message: "Supabase could not return this workspace data.",
+      message: "Radar could not return this workspace data.",
     };
   }
 }
@@ -301,7 +301,7 @@ export async function getAdminRecord(
   if (adminContext.state === "not_configured") {
     return {
       state: "not_configured",
-      message: "Connect Supabase server configuration before this record can load.",
+      message: "Connect the workspace database before this record can load.",
       missingConfig: adminContext.missingConfig,
     };
   }
@@ -323,7 +323,7 @@ export async function getAdminRecord(
     } catch {
       return {
         state: "error",
-        message: "Supabase could not return this source record.",
+        message: "Radar could not return this source record.",
       };
     }
   }
@@ -341,7 +341,7 @@ export async function getAdminRecord(
   } catch {
     return {
       state: "error",
-      message: "Supabase could not return this workspace record.",
+      message: "Radar could not return this workspace record.",
     };
   }
 }

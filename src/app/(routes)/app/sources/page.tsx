@@ -82,25 +82,25 @@ export default async function SourcesPage() {
 
 const addSourceOptions = [
   {
+    title: "Connect a tool",
+    body: "Request the Drive, Confluence, Notion, CRM, or support source where the team already keeps approved knowledge.",
+    href: "/app/connectors#connector-request",
+    action: "Choose connector",
+    icon: PlugZap,
+  },
+  {
     title: "Upload or paste source",
-    body: "Add a policy, FAQ, note, export, or text-based document through the production ingestion path.",
+    body: "Add a policy, FAQ, note, export, or text-based document directly to the workspace knowledge base.",
     href: "/app/uploads",
     action: "Upload source",
     icon: UploadCloud,
   },
   {
     title: "Create a playbook",
-    body: "Fastest path to useful live-call guidance when the team already has approved talk tracks.",
+    body: "Turn approved talk tracks, qualification steps, and escalation rules into cited call guidance.",
     href: "/app/uploads?type=playbook",
     action: "Create playbook",
     icon: BookOpenCheck,
-  },
-  {
-    title: "Request a connector",
-    body: "Queue Google Drive, Confluence, Notion, CRM, or support knowledge for admin-scoped setup.",
-    href: "/app/connectors#connector-request",
-    action: "Request connector",
-    icon: PlugZap,
   },
 ] satisfies Array<{
   title: string;
@@ -116,8 +116,8 @@ function AddSourcePanel() {
       <CardHeader className="gap-2">
         <CardTitle className="text-xl">Add source</CardTitle>
         <CardDescription className="leading-6">
-          Choose the shortest path to approved knowledge. Connectors start as setup requests until
-          OAuth syncs and approval rules are wired.
+          Choose the shortest path to approved knowledge. Connector requests stay in setup until
+          an admin confirms the exact source scope.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3 md:grid-cols-3">
