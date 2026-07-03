@@ -1,5 +1,8 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/radar";
 
@@ -10,6 +13,10 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <section className="flex min-h-[50vh] flex-col justify-center gap-5">
       <ErrorState

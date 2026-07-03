@@ -1,5 +1,6 @@
 import "server-only";
 
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -220,6 +221,12 @@ function normalizeGuardrailError(error: unknown) {
   if (error instanceof ServerGuardrailError) {
     return error;
   }
+
+  Sentry.captureException(error, {
+    tags: {
+      radar_boundary: "server_guardrail",
+    },
+  });
 
   return new ServerGuardrailError("server_error", "Radar could not complete the request. Try again.");
 }
