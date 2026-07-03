@@ -51,7 +51,7 @@ pnpm db:reset
 
 That command applies migrations and then runs `supabase/seed.sql`. RAD-019 keeps `seed.sql` as the entrypoint and includes `supabase/seeds/radar-demo-workspace.sql` for deterministic local/test users, one demo workspace, workspace memberships, and representative audit activity.
 
-The Phase 1 seed did not create source, assertion, run, or finding tables ahead of their data-model tickets. RAD-021 introduces real source tables, so the demo seed may now persist synthetic `sources`, `source_versions`, `source_documents`, and `source_chunks` rows. RAD-022 introduces real assertion and test-case tables, so the demo seed may now persist synthetic `assertions`, `assertion_sources`, `assertion_runs_schedule`, `test_cases`, and workspace-owned `assertion_templates` rows. Until run and finding schemas exist, run and finding examples may appear only as workspace-scoped audit metadata that demonstrates the intended local scenario.
+The Phase 1 seed did not create source, assertion, run, or finding tables ahead of their data-model tickets. RAD-021 introduces real source tables, so the demo seed may now persist synthetic `sources`, `source_versions`, `source_documents`, and `source_chunks` rows. RAD-022 introduces real assertion and test-case tables, so the demo seed may now persist synthetic `assertions`, `assertion_sources`, `assertion_runs_schedule`, `test_cases`, and workspace-owned `assertion_templates` rows. RAD-023 introduces real evaluation run history, so the demo seed may now persist synthetic `evaluation_runs` and `test_case_results` rows. Until finding schemas exist, finding examples may appear only as workspace-scoped audit metadata that demonstrates the intended local scenario.
 
 ## Future Seed Shape
 

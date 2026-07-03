@@ -54,6 +54,12 @@ RAD-022 stores assertions, assertion-source links, schedules, and test cases wit
 
 Assertion templates may be system-level only when `workspace_id` is null and `is_system` is true. Workspace templates must be workspace-owned. Assertion metadata, test inputs, and schedule metadata must not contain runner credentials, provider secrets, webhook secrets, raw customer documents, or unbounded source content.
 
+## Evaluation Run Data Isolation
+
+RAD-023 stores evaluation runs and test-case results with direct `workspace_id` ownership plus workspace-scoped foreign keys back to assertions, test cases, and runs. RLS allows active workspace members to read run history, restricts run/result creation and updates to active Admin or Editor members, and restricts deletes to active Admin members.
+
+Run `execution_metadata`, result `actual_output`, summaries, and `evidence_refs` must remain bounded. They may store synthetic runner outputs, citations, source chunk IDs, artifact paths, scores, and timings, but must not store runner credentials, provider secrets, raw webhook headers, full source documents, or unredacted PII.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.

@@ -57,6 +57,8 @@ const requiredStrings = {
     "public.assertion_runs_schedule",
     "public.test_cases",
     "public.assertion_templates",
+    "public.evaluation_runs",
+    "public.test_case_results",
     "public.audit_logs",
     "radar-demo-workspace",
     "source.created",

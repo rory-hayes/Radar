@@ -67,6 +67,15 @@ RAD-022 adds the assertion-led verification layer:
 
 Every assertion and test-case table has `workspace_id` ownership. System templates are the only assertion records without a workspace, and they must stay generic and free of customer data. Repository helpers for product CRUD are added later; product code must not query these tables ad hoc from UI components.
 
+## Evaluation Runs and Results
+
+RAD-023 adds durable run history:
+
+- `evaluation_runs` stores one execution attempt for an assertion, including runner type, trigger type, lifecycle status, aggregate counts, score, confidence, evidence references, and execution metadata.
+- `test_case_results` stores per-test-case outcomes for a run, including status, score, confidence, actual output summary, evaluator summary, evidence references, timing, and execution metadata.
+
+Both tables are directly workspace-owned and also constrained back to workspace-owned assertions and test cases. Evidence references are bounded JSON arrays that point to source chunks, source documents, or storage artifacts; they must not duplicate raw documents or runner secrets.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.
