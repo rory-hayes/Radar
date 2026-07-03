@@ -259,6 +259,7 @@ export const findingResponseSchema = z.object({
   recommendedFix: z.string().min(1),
   ownerUserId: radarIdSchema.optional(),
   dedupeKey: z.string().min(1),
+  metadata: radarJsonRecordSchema.optional(),
 });
 
 export const findingEvidenceResponseSchema = z.object({

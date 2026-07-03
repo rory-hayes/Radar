@@ -3,8 +3,14 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import type { RadarAssertion, RadarTestCase } from "@/lib/assertions/schema";
-import type { FindingEvidenceInput, FindingInput, FindingSeverity, RadarFinding } from "@/lib/findings/schema";
+import type { FindingEvidenceInput, FindingInput, RadarFinding } from "@/lib/findings/schema";
 import type { EvaluationEvidenceRefInput, RadarTestCaseResult, TestCaseResultStatus } from "@/lib/evaluation/schema";
+import {
+  assessSeverityAndImpact,
+  nextFindingRepeatCount,
+  severityImpactModelVersion,
+  type SeverityImpactAssessment,
+} from "@/lib/findings/severity-impact-model";
 import {
   addFindingEvidence,
   createFinding,
@@ -56,9 +62,16 @@ export async function createOrUpdateFindingForResult(
   }
 
   const now = input.now ?? new Date().toISOString();
-  const findingInput = findingInputFromResult(input, now);
-  const existing = await getFindingByDedupeKey(client, input.workspaceId, findingInput.dedupeKey);
+  const dedupeKey = findingDedupeKey(input);
+  const existing = await getFindingByDedupeKey(client, input.workspaceId, dedupeKey);
   const shouldUpdateExisting = existing ? !isInactiveFindingStatus(existing.status) : false;
+  const risk = assessSeverityAndImpact({
+    assertion: input.assertion,
+    testCase: input.testCase,
+    result: input.result,
+    repeatCount: shouldUpdateExisting ? nextFindingRepeatCount(existing) : 1,
+  });
+  const findingInput = findingInputFromResult(input, now, risk);
   const finding = existing && shouldUpdateExisting
     ? await updateFindingOccurrence(client, input.workspaceId, existing.id, {
         evaluationRunId: findingInput.evaluationRunId,
@@ -99,8 +112,16 @@ export async function createOrUpdateFindingForResult(
   };
 }
 
-export function findingInputFromResult(input: FindingCreationInput, now = new Date().toISOString()): FindingInput {
-  const severity = severityForResult(input.assertion.priority, input.result.status);
+export function findingInputFromResult(
+  input: FindingCreationInput,
+  now = new Date().toISOString(),
+  risk = assessSeverityAndImpact({
+    assertion: input.assertion,
+    testCase: input.testCase,
+    result: input.result,
+    repeatCount: 1,
+  }),
+): FindingInput {
   const confidence = boundedConfidence(input.result.confidence ?? input.result.score ?? 0.65);
   const actual = actualTextFromResult(input.result.actualOutput);
 
@@ -115,10 +136,10 @@ export function findingInputFromResult(input: FindingCreationInput, now = new Da
     ),
     expected: boundedText(input.testCase.expectedResult, 2000),
     actual,
-    severity,
+    severity: risk.severity,
     status: "open",
     confidence,
-    customerImpact: customerImpactForResult(input.assertion, input.testCase, input.result.status),
+    customerImpact: risk.customerImpact,
     recommendedFix: "Review the failing assertion evidence, update the source of truth or customer-facing handoff, then rerun the assertion.",
     dedupeKey: findingDedupeKey(input),
     firstSeenAt: now,
@@ -129,6 +150,10 @@ export function findingInputFromResult(input: FindingCreationInput, now = new Da
       resultStatus: input.result.status,
       score: input.result.score,
       confidence,
+      severityImpactModelVersion,
+      impactLevel: risk.impactLevel,
+      repeatCount: risk.repeatCount,
+      riskFactors: risk.factors,
     },
   };
 }
@@ -147,18 +172,13 @@ export function findingDedupeKey(input: FindingCreationInput) {
     .digest("hex");
 }
 
-export function severityForResult(
-  assertionPriority: RadarAssertion["priority"],
-  status: TestCaseResultStatus,
-): FindingSeverity {
-  if (status === "warning") {
-    return assertionPriority === "critical" || assertionPriority === "high" ? "medium" : "low";
-  }
-
-  if (assertionPriority === "critical") return "critical";
-  if (assertionPriority === "high") return "high";
-  if (assertionPriority === "medium") return "medium";
-  return "low";
+export function severityForResult(input: FindingCreationInput, repeatCount = 1) {
+  return assessSeverityAndImpact({
+    assertion: input.assertion,
+    testCase: input.testCase,
+    result: input.result,
+    repeatCount,
+  }).severity;
 }
 
 function evidenceInputsFromResult(input: FindingCreationInput, findingId: string): FindingEvidenceInput[] {
@@ -253,17 +273,6 @@ function actualTextFromResult(actualOutput: JsonRecord) {
 
   const text = boundedText(summary ?? JSON.stringify(actualOutput), 2000);
   return text.length >= 4 ? text : "No runner output captured.";
-}
-
-function customerImpactForResult(
-  assertion: RadarAssertion,
-  testCase: RadarTestCase,
-  status: TestCaseResultStatus,
-) {
-  return boundedText(
-    `${statusLabel(status)} on ${assertion.category} assertion "${assertion.title}" may affect customers attempting: ${testCase.title}.`,
-    2000,
-  );
 }
 
 function stableFailureFingerprint(actualOutput: JsonRecord) {

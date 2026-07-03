@@ -28,6 +28,7 @@ import {
   optionalNumber,
   optionalString,
   requireRepositoryRow,
+  type JsonRecord,
   type RadarRepositoryClient,
 } from "@/lib/repositories/client";
 
@@ -48,6 +49,7 @@ type FindingRow = {
   recommended_fix: string;
   owner_user_id: string | null;
   dedupe_key: string;
+  metadata: JsonRecord;
 };
 
 type FindingEvidenceRow = {
@@ -113,7 +115,7 @@ export type RadarFindingActivity = {
 };
 
 const findingSelect =
-  "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key";
+  "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key, metadata";
 
 const findingEvidenceSelect =
   "id, workspace_id, finding_id, evidence_type, source_id, source_document_id, source_chunk_id, evaluation_run_id, test_case_result_id, quote, artifact_path, citation, confidence";
@@ -379,6 +381,7 @@ function mapFindingRow(row: FindingRow): RadarFinding {
     recommendedFix: row.recommended_fix,
     ownerUserId: optionalString(row.owner_user_id),
     dedupeKey: row.dedupe_key,
+    metadata: row.metadata,
   });
 }
 

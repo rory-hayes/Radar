@@ -36,6 +36,7 @@ export type RadarFinding = {
   recommendedFix: string;
   ownerUserId?: string;
   dedupeKey: string;
+  metadata?: Record<string, unknown>;
 };
 
 export type RadarFindingEvidence = {

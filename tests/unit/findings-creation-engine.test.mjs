@@ -69,10 +69,11 @@ test("RAD-071 wires finding creation into persisted runner results", async () =>
 test("RAD-071 maps severity confidence impact and evidence", async () => {
   const engine = await readWorkspaceFile("src/lib/findings/creation-engine.ts");
 
-  assert.match(engine, /assertionPriority === "critical"/);
-  assert.match(engine, /assertionPriority === "high"/);
+  assert.match(engine, /assessSeverityAndImpact/);
+  assert.match(engine, /severityImpactModelVersion/);
   assert.match(engine, /boundedConfidence/);
-  assert.match(engine, /customerImpactForResult/);
+  assert.match(engine, /customerImpact: risk\.customerImpact/);
+  assert.match(engine, /repeatCount: risk\.repeatCount/);
   assert.match(engine, /recommendedFix: "Review the failing assertion evidence/);
   assert.match(engine, /addFindingEvidence/);
   assert.match(engine, /recordFindingActivity/);

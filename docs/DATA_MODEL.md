@@ -109,6 +109,8 @@ Findings are workspace-owned and tied back to assertions, evaluation runs, and t
 
 RAD-071 keeps duplicate runner failures from flooding the inbox by looking up findings through the workspace-scoped `dedupe_key` before insert. New failed or warning results create a finding with `first_seen_at` and `last_seen_at`; repeated active failures update `last_seen_at`, the latest run/result pointers, severity, confidence, bounded actual text, metadata, evidence, and activity while preserving the original first-seen timestamp. Closed lifecycle states remain separate records if the same failure appears again later.
 
+RAD-075 records severity-impact metadata on findings, including model version, impact level, repeat count, and the bounded risk factors used to derive severity and customer-impact text. The metadata supports repeat-aware prioritization while preserving the customer-readable `severity`, `confidence`, and `customer_impact` fields as the product-facing contract.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.
