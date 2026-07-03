@@ -59,6 +59,10 @@ Copy `.env.example` to `.env.local` for local development. `RADAR_ENV=local` all
 
 Validation errors list variable names only. They do not print secret values.
 
+## CI
+
+GitHub Actions runs the same baseline gates on pull requests and pushes to `main`/`master`: install, env validation, lint, typecheck, unit tests, E2E smoke tests, and build.
+
 The initial app intentionally exposes only a clean Radar placeholder. Product routes for Command Center, Assertions, Findings, and Sources are introduced by later RAD tickets.
 
 

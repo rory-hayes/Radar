@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -60,41 +60,63 @@ package/config/app shell/docs/test files as required by the task.
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant. No UI/API behavior changed in this CI-only ticket.
+- [x] Data persists correctly where applicable. No persistence path changed.
+- [x] Workspace authorization is enforced where applicable. No authorization path changed.
+- [x] No unrelated scope is introduced.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Capture screenshots for UI changes. Not applicable; no UI changed.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+Implemented CI quality baseline:
+
+- Added `.github/workflows/ci.yml`.
+- The workflow runs on pull requests and pushes to `main`/`master`.
+- The workflow uses Node 24, pnpm 11.7.0, dependency caching, read-only contents permission, and concurrency cancellation.
+- CI runs `pnpm install --frozen-lockfile`, `pnpm validate:env`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e`, and `pnpm build`.
+- CI sets `RADAR_ENV=local` so foundation CI does not require real service secrets.
+- CI sets `NAPI_RS_FORCE_WASI=true` so Tailwind uses the same native-binary-safe path as local Codex builds.
+- Added `tests/unit/ci-workflow.test.mjs` to lock the required workflow commands and safety settings.
+- Documented CI gates in `README.md`.
+
+Commands run:
+
+- `pnpm validate:env` — passed.
+- `pnpm lint` — passed.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed, 14 unit tests.
+- `pnpm test:e2e` — passed, 3 smoke tests.
+- `pnpm build` — passed. Next still logs the known local SWC native-loader warning and falls back to WASM; Tailwind still runs through WASI.
+
+Follow-ups:
+
+- Once the repository is pushed to GitHub, verify the workflow runs on the first PR or push.
