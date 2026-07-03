@@ -12,6 +12,7 @@ import {
 } from "@/lib/server/guardrails";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { persistUploadedDocumentSource } from "@/lib/sources/file-ingestion";
+import { runSourceSyncJob } from "@/lib/sources/source-sync-jobs";
 import { sourceTypes, type CreateSourceInput } from "@/lib/sources/schema";
 
 const endpointMethods = ["GET", "POST"] as const;
@@ -73,6 +74,9 @@ const sourceFormActionSchema = z
   });
 
 type SourceFormInput = z.infer<typeof sourceFormActionSchema>;
+const sourceResyncActionSchema = z.object({
+  sourceId: z.uuid(),
+});
 
 export type SourceFormState = {
   error?: string;
@@ -164,6 +168,39 @@ export async function updateSourceAction(
 
   revalidatePath("/sources");
   redirect("/sources");
+}
+
+export async function resyncSourceAction(formData: FormData): Promise<void> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        sourceId: String(formData.get("sourceId") ?? ""),
+      },
+      permission: "source:edit",
+      schema: sourceResyncActionSchema,
+    },
+    async ({ input, membership }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      return runSourceSyncJob(supabase, {
+        workspaceId: membership.workspace.id,
+        sourceId: input.sourceId,
+        reason: "manual",
+      });
+    },
+  );
+
+  if (result.ok) {
+    const sourceId = result.data.sourceId;
+
+    revalidatePath("/sources");
+    revalidatePath(`/sources/${sourceId}`);
+  }
+
 }
 
 function sourceFormInputFromFormData(mode: SourceFormInput["mode"], formData: FormData, uploadedFile: File | null) {

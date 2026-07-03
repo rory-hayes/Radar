@@ -101,13 +101,16 @@ export function SourceCard({ source, canEdit = false }: SourceCardProps) {
           ) : null}
         </dl>
       </CardContent>
-      {canEdit ? (
-        <CardFooter className="justify-end border-t border-border/80">
+      <CardFooter className="justify-end gap-2 border-t border-border/80">
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/sources/${source.id}`}>View detail</Link>
+        </Button>
+        {canEdit ? (
           <Button asChild variant="outline" size="sm">
             <Link href={`/sources/${source.id}/edit`}>Edit source</Link>
           </Button>
-        </CardFooter>
-      ) : null}
+        ) : null}
+      </CardFooter>
     </Card>
   );
 }

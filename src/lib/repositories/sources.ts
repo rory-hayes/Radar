@@ -65,6 +65,13 @@ type SourceVersionRow = {
   chunk_count: number;
 };
 
+type SourceVersionDetailRow = SourceVersionRow & {
+  sync_started_at: string | null;
+  sync_completed_at: string | null;
+  sync_error: string | null;
+  created_at: string;
+};
+
 type SourceDocumentRow = {
   id: string;
   workspace_id: string;
@@ -77,6 +84,12 @@ type SourceDocumentRow = {
   status: SourceDocumentStatus;
   content_hash: string;
   byte_size: number | null;
+};
+
+type SourceDocumentDetailRow = SourceDocumentRow & {
+  extracted_at: string | null;
+  extraction_error: string | null;
+  created_at: string;
 };
 
 type SourceChunkRow = {
@@ -428,6 +441,19 @@ export type RadarEvidenceChunkMatch = {
   similarity: number;
 };
 
+export type RadarSourceVersionDetail = RadarSourceVersion & {
+  syncStartedAt?: string;
+  syncCompletedAt?: string;
+  syncError?: string;
+  createdAt: string;
+};
+
+export type RadarSourceDocumentDetail = RadarSourceDocument & {
+  extractedAt?: string;
+  extractionError?: string;
+  createdAt: string;
+};
+
 type MatchAssertionSourceChunksInput = {
   assertionId: string;
   queryEmbedding: readonly number[];
@@ -497,6 +523,67 @@ export async function matchAssertionSourceChunks(
   return rows.map(mapEvidenceChunkMatchRow);
 }
 
+export async function listSourceVersions(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("source_versions")
+    .select(
+      "id, workspace_id, source_id, version_number, sync_status, content_hash, document_count, chunk_count, sync_started_at, sync_completed_at, sync_error, created_at",
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .order("version_number", { ascending: false })
+    .limit(options.limit ?? 10)
+    .returns<SourceVersionDetailRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source versions");
+  return (data ?? []).map(mapSourceVersionDetailRow);
+}
+
+export async function listSourceDocuments(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("source_documents")
+    .select(
+      "id, workspace_id, source_id, source_version_id, title, document_uri, mime_type, storage_path, status, content_hash, byte_size, extracted_at, extraction_error, created_at",
+    )
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .order("created_at", { ascending: false })
+    .limit(options.limit ?? 20)
+    .returns<SourceDocumentDetailRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source documents");
+  return (data ?? []).map(mapSourceDocumentDetailRow);
+}
+
+export async function listSourceChunksPreview(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("source_chunks")
+    .select("id, workspace_id, source_id, source_document_id, chunk_index, content, content_hash, token_count")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .order("chunk_index", { ascending: true })
+    .limit(options.limit ?? 6)
+    .returns<SourceChunkRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source chunk preview");
+  return (data ?? []).map(mapSourceChunkRow);
+}
+
 function mapSourceRow(row: SourceRow): RadarSource {
   return sourceResponseSchema.parse({
     id: row.id,
@@ -534,6 +621,16 @@ function mapSourceVersionRow(row: SourceVersionRow): RadarSourceVersion {
   });
 }
 
+function mapSourceVersionDetailRow(row: SourceVersionDetailRow): RadarSourceVersionDetail {
+  return {
+    ...mapSourceVersionRow(row),
+    syncStartedAt: optionalString(row.sync_started_at),
+    syncCompletedAt: optionalString(row.sync_completed_at),
+    syncError: optionalString(row.sync_error),
+    createdAt: row.created_at,
+  };
+}
+
 function mapSourceDocumentRow(row: SourceDocumentRow): RadarSourceDocument {
   return sourceDocumentResponseSchema.parse({
     id: row.id,
@@ -548,6 +645,15 @@ function mapSourceDocumentRow(row: SourceDocumentRow): RadarSourceDocument {
     contentHash: row.content_hash,
     byteSize: optionalNumber(row.byte_size),
   });
+}
+
+function mapSourceDocumentDetailRow(row: SourceDocumentDetailRow): RadarSourceDocumentDetail {
+  return {
+    ...mapSourceDocumentRow(row),
+    extractedAt: optionalString(row.extracted_at),
+    extractionError: optionalString(row.extraction_error),
+    createdAt: row.created_at,
+  };
 }
 
 function mapSourceChunkRow(row: SourceChunkRow): RadarSourceChunk {

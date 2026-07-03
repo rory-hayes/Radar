@@ -229,6 +229,22 @@ export async function listAssertionSourcesForAssertion(
   return (data ?? []).map(mapAssertionSourceRow);
 }
 
+export async function listAssertionSourcesForSource(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+) {
+  const { data, error } = await client
+    .from("assertion_sources")
+    .select("workspace_id, assertion_id, source_id, is_required, purpose")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .returns<AssertionSourceRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source assertion links");
+  return (data ?? []).map(mapAssertionSourceRow);
+}
+
 export async function upsertAssertionRunSchedule(
   client: RadarRepositoryClient,
   workspaceId: string,

@@ -48,7 +48,7 @@ export function SourceList({ sources, canEdit = false }: SourceListProps) {
               <TableHead>Status</TableHead>
               <TableHead>Last sync</TableHead>
               <TableHead className="text-right">Affected assertions</TableHead>
-              {canEdit ? <TableHead className="pr-(--card-spacing) text-right">Actions</TableHead> : null}
+              <TableHead className="pr-(--card-spacing) text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -73,13 +73,18 @@ export function SourceList({ sources, canEdit = false }: SourceListProps) {
                 <TableCell className="text-right">
                   {source.affectedAssertionCount}
                 </TableCell>
-                {canEdit ? (
-                  <TableCell className="pr-(--card-spacing) text-right">
+                <TableCell className="pr-(--card-spacing) text-right">
+                  <div className="flex justify-end gap-2">
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/sources/${source.id}/edit`}>Edit</Link>
+                      <Link href={`/sources/${source.id}`}>View</Link>
                     </Button>
-                  </TableCell>
-                ) : null}
+                    {canEdit ? (
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/sources/${source.id}/edit`}>Edit</Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -47,6 +47,8 @@ RAD-036 indexing jobs process source chunks with missing embeddings and store ve
 
 RAD-037 retrieval uses only assertion-linked sources and returns ranked chunk excerpts with citations to source, document, chunk index, and content hash. Retrieval APIs are server guarded and are intended for the eval engine, not as a generic workspace search or exploration surface.
 
+RAD-038 source detail pages show source health, recent versions, extracted document previews, content chunks, linked assertions, bounded sync errors, and a permission-gated manual re-sync action. The detail view is business-readable and avoids exposing low-level crawl logs or generic trace exploration.
+
 ## Change detection
 
 Radar stores content hashes and source versions. When a source changes, Radar identifies affected assertions and reruns only those checks.
