@@ -29,6 +29,29 @@ Radar is **customer-facing business verification**. It is not a generic AI eval 
 
 Paste the contents of `/tasks/KICKOFF_GOAL_PROMPT.md` into Codex using `/goal`.
 
+## Local development
+
+RAD-001 adds the baseline Next.js application and quality scripts.
+
+Use pnpm:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Quality checks:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm build
+```
+
+The initial app intentionally exposes only a clean Radar placeholder. Product routes for Command Center, Assertions, Findings, and Sources are introduced by later RAD tickets.
+
 
 ## Shadcn MCP setup for Codex
 
