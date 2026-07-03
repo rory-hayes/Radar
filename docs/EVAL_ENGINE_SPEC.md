@@ -46,6 +46,12 @@ RAD-052 introduces a server-only LLM adapter for OpenAI Responses JSON calls. Pr
 
 Phase 5 prompt tasks are limited to generation, judging, summarization, and fix recommendations. They must stay assertion-led and evidence-backed; prompt contracts must not introduce a prompt playground, trace explorer, model comparison UI, or generic eval platform surface.
 
+## Evidence loading
+
+RAD-053 adds a server-only evaluation evidence loader that runs before judging. The loader validates workspace assertion and test-case ownership, restricts retrieval to assertion-linked sources, builds a test-case-specific retrieval query, reuses the assertion-scoped evidence retrieval service, converts matches into bounded evaluation evidence references, and attaches latest source-version/document snapshots for explainability.
+
+Evidence loading is not a generic workspace search surface. It exists only to ground a specific assertion/test-case evaluation and must not copy full source documents or raw source context into logs, traces, or client-visible metadata.
+
 ## Evidence rule
 
 No evidence means no critical finding. Serious findings must include expected vs actual plus source evidence or runner artifact.
