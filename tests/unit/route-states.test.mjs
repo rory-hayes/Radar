@@ -80,16 +80,11 @@ test("RAD-018 gives every primary placeholder a Radar-specific empty state", asy
   assert.match(routePlaceholder, /EmptyState/);
   assert.match(routePlaceholder, /emptyState/);
 
-  for (const [route, expectedCopy] of [
-    ["command-center", "No verification activity yet"],
-    ["findings", "No evidence-backed findings yet"],
-  ]) {
-    const page = await readWorkspaceFile(`src/app/(app)/${route}/page.tsx`);
+  const commandCenterPage = await readWorkspaceFile("src/app/(app)/command-center/page.tsx");
 
-    assert.match(page, new RegExp(expectedCopy));
-    assert.match(page, /details:/);
-    assert.doesNotMatch(page, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
-  }
+  assert.match(commandCenterPage, /No verification activity yet/);
+  assert.match(commandCenterPage, /details:/);
+  assert.doesNotMatch(commandCenterPage, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
 
   const assertionsPage = await readWorkspaceFile("src/app/(app)/assertions/page.tsx");
   const assertionTable = await readWorkspaceFile("src/components/assertions/assertion-table.tsx");
@@ -110,4 +105,15 @@ test("RAD-018 gives every primary placeholder a Radar-specific empty state", asy
   assert.match(sourcesPage, /Sync health/);
   assert.match(sourcesPage, /Affected assertions/);
   assert.doesNotMatch(sourcesPage, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
+
+  const findingsPage = await readWorkspaceFile("src/app/(app)/findings/page.tsx");
+  const findingInbox = await readWorkspaceFile("src/components/findings/finding-inbox.tsx");
+
+  assert.match(findingsPage, /FindingInbox/);
+  assert.doesNotMatch(findingsPage, /RoutePlaceholder/);
+  assert.match(findingInbox, /No evidence-backed findings yet/);
+  assert.match(findingInbox, /Expected behavior/);
+  assert.match(findingInbox, /Actual result/);
+  assert.match(findingInbox, /Recommended fix/);
+  assert.doesNotMatch(findingInbox, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
 });

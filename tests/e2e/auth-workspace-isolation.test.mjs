@@ -93,15 +93,18 @@ test("RAD-020 gate keeps product scope and primary navigation locked", async () 
   assert.match(sidebar, /primaryAppRoutes\.map/);
   assert.doesNotMatch(sidebar, /Prompt Playground|Trace Explorer|Workflow Canvas|Marketplace/i);
 
-  for (const source of [commandCenter, findings]) {
-    assert.doesNotMatch(source, /generic eval|prompt playground|trace explorer|workflow canvas|integration marketplace/i);
-    assert.match(source, /RoutePlaceholder/);
-  }
+  assert.doesNotMatch(commandCenter, /generic eval|prompt playground|trace explorer|workflow canvas|integration marketplace/i);
+  assert.match(commandCenter, /RoutePlaceholder/);
 
   assert.doesNotMatch(assertions, /generic eval|prompt playground|trace explorer|workflow canvas|integration marketplace/i);
   assert.doesNotMatch(assertions, /RoutePlaceholder/);
   assert.match(assertions, /listAssertions/);
   assert.match(assertions, /AssertionTable/);
+
+  assert.doesNotMatch(findings, /generic eval|prompt playground|trace explorer|workflow canvas|integration marketplace/i);
+  assert.doesNotMatch(findings, /RoutePlaceholder/);
+  assert.match(findings, /listFindings/);
+  assert.match(findings, /FindingInbox/);
 
   assert.doesNotMatch(sources, /generic eval|prompt playground|trace explorer|workflow canvas|integration marketplace/i);
   assert.doesNotMatch(sources, /RoutePlaceholder/);
