@@ -1,6 +1,8 @@
 import { assertionCategories, type AssertionCategory, type RadarAssertion } from "@/lib/assertions/schema";
 import type { RadarFinding, FindingStatus } from "@/lib/findings/schema";
-import type { RadarEvaluationRunSummary } from "@/lib/repositories";
+import { buildRecentActivityFeed, type CommandCenterRecentActivityItem } from "@/lib/command-center/recent-activity";
+import type { RadarEvaluationRunSummary, RadarFindingActivity } from "@/lib/repositories";
+import type { RadarSource } from "@/lib/sources/schema";
 
 export type CommandCenterTrend = {
   label: string;
@@ -18,6 +20,7 @@ export type CommandCenterKpiSummary = {
   monitoredAssertions: number;
   needsAttention: CommandCenterNeedsAttentionItem[];
   categoryHealth: CommandCenterCategoryHealth[];
+  recentActivity: CommandCenterRecentActivityItem[];
   trends: CommandCenterTrend[];
   hasActivity: boolean;
 };
@@ -48,7 +51,9 @@ export type CommandCenterNeedsAttentionItem = {
 type CommandCenterKpiInput = {
   assertions: readonly RadarAssertion[];
   findings: readonly RadarFinding[];
+  sources?: readonly RadarSource[];
   runs: readonly RadarEvaluationRunSummary[];
+  findingActivity?: readonly RadarFindingActivity[];
   now?: Date;
 };
 
@@ -59,7 +64,9 @@ const oneDayMs = 24 * 60 * 60 * 1000;
 export function buildCommandCenterKpiSummary({
   assertions,
   findings,
+  sources = [],
   runs,
+  findingActivity = [],
   now = new Date(),
 }: CommandCenterKpiInput): CommandCenterKpiSummary {
   const activeFindings = findings.filter((finding) =>
@@ -83,7 +90,8 @@ export function buildCommandCenterKpiSummary({
     monitoredAssertions: assertions.filter((assertion) => assertion.status === "active").length,
     needsAttention: selectNeedsAttentionFindings(activeFindings, assertionTitles),
     categoryHealth: buildAssertionCategoryHealth({ assertions, activeFindings, runs: terminalRuns }),
-    hasActivity: assertions.length > 0 || findings.length > 0 || terminalRuns.length > 0,
+    recentActivity: buildRecentActivityFeed({ assertions, findings, sources, runs, findingActivity }),
+    hasActivity: assertions.length > 0 || findings.length > 0 || sources.length > 0 || terminalRuns.length > 0,
     trends: [
       {
         label: "Run volume",

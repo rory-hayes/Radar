@@ -5,7 +5,13 @@ import { CommandCenterKpiSummary } from "@/components/command-center";
 import { ErrorState } from "@/components/radar";
 import { buildCommandCenterKpiSummary } from "@/lib/command-center/kpi-summary";
 import { getAppRouteByHref } from "@/lib/radar-routes";
-import { listAssertions, listEvaluationRunSummariesForWorkspace, listFindings } from "@/lib/repositories";
+import {
+  listAssertions,
+  listEvaluationRunSummariesForWorkspace,
+  listFindings,
+  listRecentFindingActivityForWorkspace,
+  listSources,
+} from "@/lib/repositories";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveWorkspace } from "@/lib/workspaces/server";
 
@@ -57,14 +63,16 @@ async function loadCommandCenterSummary(
   workspaceId: string,
 ) {
   try {
-    const [assertions, findings, runs] = await Promise.all([
+    const [assertions, findings, runs, sources, findingActivity] = await Promise.all([
       listAssertions(supabase, workspaceId),
       listFindings(supabase, workspaceId),
       listEvaluationRunSummariesForWorkspace(supabase, workspaceId),
+      listSources(supabase, workspaceId),
+      listRecentFindingActivityForWorkspace(supabase, workspaceId),
     ]);
 
     return {
-      summary: buildCommandCenterKpiSummary({ assertions, findings, runs }),
+      summary: buildCommandCenterKpiSummary({ assertions, findings, sources, runs, findingActivity }),
       error: null,
     };
   } catch (error) {

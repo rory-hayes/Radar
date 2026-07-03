@@ -105,6 +105,7 @@ export const sourceResponseSchema = z.object({
   lastSyncedAt: radarIsoDateTimeSchema.optional(),
   lastSyncError: z.string().optional(),
   createdBy: radarIdSchema,
+  updatedAt: radarIsoDateTimeSchema.optional(),
 });
 
 export const sourceVersionResponseSchema = z.object({
@@ -263,6 +264,11 @@ export const findingResponseSchema = z.object({
   recommendedFix: z.string().min(1),
   ownerUserId: radarIdSchema.optional(),
   dedupeKey: z.string().min(1),
+  firstSeenAt: radarIsoDateTimeSchema.optional(),
+  lastSeenAt: radarIsoDateTimeSchema.optional(),
+  resolvedAt: radarIsoDateTimeSchema.optional(),
+  resolvedByUserId: radarIdSchema.optional(),
+  resolutionSummary: z.string().optional(),
   metadata: radarJsonRecordSchema.optional(),
 });
 

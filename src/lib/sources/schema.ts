@@ -22,6 +22,7 @@ export type RadarSource = {
   lastSyncedAt?: string;
   lastSyncError?: string;
   createdBy: string;
+  updatedAt?: string;
 };
 
 export type RadarSourceVersion = {

@@ -38,6 +38,11 @@ export type RadarFinding = {
   recommendedFix: string;
   ownerUserId?: string;
   dedupeKey: string;
+  firstSeenAt?: string;
+  lastSeenAt?: string;
+  resolvedAt?: string;
+  resolvedByUserId?: string;
+  resolutionSummary?: string;
   metadata?: Record<string, unknown>;
 };
 

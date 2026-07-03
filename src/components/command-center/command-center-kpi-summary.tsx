@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { AssertionHealthPanel } from "@/components/command-center/assertion-health-panel";
 import { NeedsAttentionPanel } from "@/components/command-center/needs-attention-panel";
+import { RecentActivityFeed } from "@/components/command-center/recent-activity-feed";
 import type { CommandCenterKpiSummary as CommandCenterKpiSummaryData } from "@/lib/command-center/kpi-summary";
 
 type CommandCenterKpiSummaryProps = {
@@ -93,6 +94,8 @@ export function CommandCenterKpiSummary({ summary }: CommandCenterKpiSummaryProp
       </Card>
 
       <NeedsAttentionPanel findings={summary.needsAttention} />
+
+      <RecentActivityFeed activity={summary.recentActivity} />
 
       <AssertionHealthPanel categories={summary.categoryHealth} />
 

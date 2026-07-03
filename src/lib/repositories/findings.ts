@@ -50,6 +50,11 @@ type FindingRow = {
   recommended_fix: string;
   owner_user_id: string | null;
   dedupe_key: string;
+  first_seen_at: string;
+  last_seen_at: string;
+  resolved_at: string | null;
+  resolved_by_user_id: string | null;
+  resolution_summary: string | null;
   metadata: JsonRecord;
 };
 
@@ -131,7 +136,7 @@ export type FindingOwnershipUpdateInput = {
 };
 
 const findingSelect =
-  "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key, metadata";
+  "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key, first_seen_at, last_seen_at, resolved_at, resolved_by_user_id, resolution_summary, metadata";
 
 const findingEvidenceSelect =
   "id, workspace_id, finding_id, evidence_type, source_id, source_document_id, source_chunk_id, evaluation_run_id, test_case_result_id, quote, artifact_path, citation, confidence";
@@ -384,6 +389,23 @@ export async function listFindingActivity(client: RadarRepositoryClient, workspa
   return (data ?? []).map(mapFindingActivityRow);
 }
 
+export async function listRecentFindingActivityForWorkspace(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("finding_activity")
+    .select("id, workspace_id, finding_id, actor_user_id, activity_type, from_status, to_status, note, created_at")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(options.limit ?? 50)
+    .returns<FindingActivityRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list workspace finding activity");
+  return (data ?? []).map(mapFindingActivityRow);
+}
+
 export async function assignFinding(
   client: RadarRepositoryClient,
   workspaceId: string,
@@ -453,6 +475,11 @@ function mapFindingRow(row: FindingRow): RadarFinding {
     recommendedFix: row.recommended_fix,
     ownerUserId: optionalString(row.owner_user_id),
     dedupeKey: row.dedupe_key,
+    firstSeenAt: row.first_seen_at,
+    lastSeenAt: row.last_seen_at,
+    resolvedAt: optionalString(row.resolved_at),
+    resolvedByUserId: optionalString(row.resolved_by_user_id),
+    resolutionSummary: optionalString(row.resolution_summary),
     metadata: row.metadata,
   });
 }

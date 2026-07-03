@@ -47,6 +47,7 @@ type SourceRow = {
   last_synced_at: string | null;
   last_sync_error: string | null;
   created_by: string;
+  updated_at: string;
 };
 
 type SourceSyncTargetRow = SourceRow & {
@@ -119,7 +120,7 @@ type SourceSyncStateInput = {
 };
 
 const sourceSelect =
-  "id, workspace_id, name, description, type, sync_status, origin_uri, content_hash, last_synced_at, last_sync_error, created_by";
+  "id, workspace_id, name, description, type, sync_status, origin_uri, content_hash, last_synced_at, last_sync_error, created_by, updated_at";
 const sourceSyncTargetSelect = `${sourceSelect}, config, metadata`;
 
 export type RadarSourceSyncTarget = RadarSource & {
@@ -624,6 +625,7 @@ function mapSourceRow(row: SourceRow): RadarSource {
     lastSyncedAt: optionalString(row.last_synced_at),
     lastSyncError: optionalString(row.last_sync_error),
     createdBy: row.created_by,
+    updatedAt: row.updated_at,
   });
 }
 

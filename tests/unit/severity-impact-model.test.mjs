@@ -50,7 +50,7 @@ test("RAD-075 writes risk factors and repeat counts through finding creation", a
   assert.match(engine, /impactLevel: risk\.impactLevel/);
   assert.match(engine, /repeatCount: risk\.repeatCount/);
   assert.match(engine, /riskFactors: risk\.factors/);
-  assert.match(repository, /dedupe_key, metadata/);
+  assert.match(repository, /dedupe_key, first_seen_at, last_seen_at, resolved_at, resolved_by_user_id, resolution_summary, metadata/);
 });
 
 test("RAD-075 exposes bounded metadata on finding responses for repeat scoring", async () => {
