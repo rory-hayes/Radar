@@ -13,6 +13,8 @@ Examples:
 - Security answer cites current policy.
 - Bot refuses out-of-scope questions.
 
+RAD-055 implements the first Knowledge Runner execution loop. It runs approved customer-question test cases against one ready assertion-linked target, captures the actual answer, attaches source evidence references, and persists raw `test_case_results`. These raw outputs are not final scoring decisions; the evaluator rubric decides pass, warning, fail, or finding creation in later Phase 5 work.
+
 ## Journey Runner
 
 The Journey Runner verifies customer-facing flows using browser automation.

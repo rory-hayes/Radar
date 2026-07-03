@@ -58,6 +58,12 @@ RAD-054 adds server-only Knowledge target configuration for assertion-linked sou
 
 Endpoint targets expose only URL, HTTP method, and credential mode. Credentials, bearer values, and API keys must stay outside target configuration records, UI summaries, logs, and evaluation metadata. Uploaded and manual answer-set targets are runnable only after synced content is available. The assertion detail Sources tab renders this readiness state so users can complete the minimum target setup without leaving Radar's assertion-led model.
 
+## Knowledge Runner raw execution
+
+RAD-055 adds the server-only execution loop for raw Knowledge Runner outputs. It claims queued knowledge runs, loads approved customer-question test cases, selects one ready target from the assertion-linked target configuration, retrieves assertion-scoped evidence, calls the configured endpoint or uploaded/manual answer set, and writes one `test_case_results` row per executed test case.
+
+Raw Knowledge Runner outputs are intentionally marked `inconclusive` until the hybrid evaluator scores them in later tickets. Each result stores bounded actual answer text, target metadata without credentials, evidence references, timing metadata, and bounded error details when target execution fails. The run summary records aggregate raw-output capture state and evidence refs, not final pass/fail scoring.
+
 ## Evidence rule
 
 No evidence means no critical finding. Serious findings must include expected vs actual plus source evidence or runner artifact.
