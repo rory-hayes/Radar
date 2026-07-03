@@ -1,7 +1,7 @@
 -- RAD-019 deterministic local/test seed.
 -- This file may run only through the local Supabase seed entrypoint.
--- It intentionally seeds only schemas that exist in Phase 1:
--- auth.users, workspaces, workspace_members, and audit_logs.
+-- It seeds only schemas that exist in completed data-model tickets.
+-- Future product tables must be added here only after their migrations land.
 
 begin;
 
@@ -326,6 +326,216 @@ set
   embedding = excluded.embedding,
   metadata = excluded.metadata,
   created_at = excluded.created_at;
+
+insert into public.assertions (
+  id,
+  workspace_id,
+  title,
+  purpose,
+  expected_behavior,
+  category,
+  priority,
+  runner_type,
+  status,
+  owner_user_id,
+  created_by,
+  metadata,
+  created_at,
+  updated_at
+)
+values (
+  '50000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  'Pricing answers match the pricing policy',
+  'Verify that customer-facing pricing answers stay aligned with the current pricing policy source.',
+  'Support answers must quote current plan limits and route billing exceptions to a human owner.',
+  'pricing',
+  'high',
+  'knowledge',
+  'active',
+  '10000000-0000-4000-8000-000000000002',
+  '10000000-0000-4000-8000-000000000001',
+  '{"demo": true, "businessRisk": "customers receive outdated plan limits"}'::jsonb,
+  '2026-07-03 09:15:00+00',
+  '2026-07-03 09:15:00+00'
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  title = excluded.title,
+  purpose = excluded.purpose,
+  expected_behavior = excluded.expected_behavior,
+  category = excluded.category,
+  priority = excluded.priority,
+  runner_type = excluded.runner_type,
+  status = excluded.status,
+  owner_user_id = excluded.owner_user_id,
+  created_by = excluded.created_by,
+  metadata = excluded.metadata,
+  updated_at = excluded.updated_at;
+
+insert into public.assertion_sources (
+  workspace_id,
+  assertion_id,
+  source_id,
+  is_required,
+  purpose,
+  created_at
+)
+values (
+  '20000000-0000-4000-8000-000000000001',
+  '50000000-0000-4000-8000-000000000001',
+  '40000000-0000-4000-8000-000000000001',
+  true,
+  'Pricing policy source required for knowledge runner grounding.',
+  '2026-07-03 09:16:00+00'
+)
+on conflict (assertion_id, source_id) do update
+set
+  workspace_id = excluded.workspace_id,
+  is_required = excluded.is_required,
+  purpose = excluded.purpose;
+
+insert into public.assertion_runs_schedule (
+  id,
+  workspace_id,
+  assertion_id,
+  cadence,
+  timezone,
+  source_change_trigger,
+  is_enabled,
+  next_run_at,
+  last_scheduled_at,
+  metadata,
+  created_at,
+  updated_at
+)
+values (
+  '51000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '50000000-0000-4000-8000-000000000001',
+  'daily',
+  'UTC',
+  true,
+  true,
+  '2026-07-04 09:00:00+00',
+  '2026-07-03 09:17:00+00',
+  '{"demo": true, "reason": "daily-pricing-confidence"}'::jsonb,
+  '2026-07-03 09:17:00+00',
+  '2026-07-03 09:17:00+00'
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  assertion_id = excluded.assertion_id,
+  cadence = excluded.cadence,
+  timezone = excluded.timezone,
+  source_change_trigger = excluded.source_change_trigger,
+  is_enabled = excluded.is_enabled,
+  next_run_at = excluded.next_run_at,
+  last_scheduled_at = excluded.last_scheduled_at,
+  metadata = excluded.metadata,
+  updated_at = excluded.updated_at;
+
+insert into public.test_cases (
+  id,
+  workspace_id,
+  assertion_id,
+  title,
+  type,
+  status,
+  input,
+  expected_result,
+  ordinal,
+  created_by,
+  approved_by,
+  approved_at,
+  metadata,
+  created_at,
+  updated_at
+)
+values (
+  '52000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '50000000-0000-4000-8000-000000000001',
+  'Customer asks about current plan limits',
+  'customer_question',
+  'approved',
+  '{"question": "What plan limit applies to my account today?"}'::jsonb,
+  'The answer should match the pricing policy source and avoid outdated plan limits.',
+  0,
+  '10000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000002',
+  '2026-07-03 09:18:00+00',
+  '{"demo": true, "runnerType": "knowledge"}'::jsonb,
+  '2026-07-03 09:18:00+00',
+  '2026-07-03 09:18:00+00'
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  assertion_id = excluded.assertion_id,
+  title = excluded.title,
+  type = excluded.type,
+  status = excluded.status,
+  input = excluded.input,
+  expected_result = excluded.expected_result,
+  ordinal = excluded.ordinal,
+  created_by = excluded.created_by,
+  approved_by = excluded.approved_by,
+  approved_at = excluded.approved_at,
+  metadata = excluded.metadata,
+  updated_at = excluded.updated_at;
+
+insert into public.assertion_templates (
+  id,
+  workspace_id,
+  name,
+  description,
+  category,
+  priority,
+  runner_type,
+  purpose_template,
+  expected_behavior_template,
+  required_source_types,
+  test_case_blueprints,
+  is_system,
+  metadata,
+  created_at,
+  updated_at
+)
+values (
+  '53000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  'Pricing accuracy assertion',
+  'Local template for verifying customer-facing pricing answers against approved sources.',
+  'pricing',
+  'high',
+  'knowledge',
+  'Verify pricing answers against the current policy source.',
+  'Answers must match the approved source and escalate billing exceptions.',
+  array['manual_text']::public.source_type[],
+  '[{"type": "customer_question", "title": "Customer asks about plan limits"}]'::jsonb,
+  false,
+  '{"demo": true}'::jsonb,
+  '2026-07-03 09:19:00+00',
+  '2026-07-03 09:19:00+00'
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  name = excluded.name,
+  description = excluded.description,
+  category = excluded.category,
+  priority = excluded.priority,
+  runner_type = excluded.runner_type,
+  purpose_template = excluded.purpose_template,
+  expected_behavior_template = excluded.expected_behavior_template,
+  required_source_types = excluded.required_source_types,
+  test_case_blueprints = excluded.test_case_blueprints,
+  is_system = excluded.is_system,
+  metadata = excluded.metadata,
+  updated_at = excluded.updated_at;
 
 insert into public.audit_logs (
   id,

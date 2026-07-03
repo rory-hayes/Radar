@@ -48,6 +48,12 @@ RAD-016 records security-relevant actions in `audit_logs` with actor, workspace,
 
 RAD-021 stores source records, versions, documents, and chunks with direct `workspace_id` ownership. RLS allows active workspace members to read source evidence and restricts source mutations to active Admin or Editor members. Source metadata must remain bounded and structured; raw source bodies belong only in source document/chunk storage paths or `source_chunks.content`, never in audit metadata, analytics events, Sentry context, or external traces.
 
+## Assertion Data Isolation
+
+RAD-022 stores assertions, assertion-source links, schedules, and test cases with direct `workspace_id` ownership. RLS allows active workspace members to read assertion data, restricts assertion/test-case/template/schedule mutations to active Admin or Editor members, and restricts assertion deletes to active Admin members.
+
+Assertion templates may be system-level only when `workspace_id` is null and `is_system` is true. Workspace templates must be workspace-owned. Assertion metadata, test inputs, and schedule metadata must not contain runner credentials, provider secrets, webhook secrets, raw customer documents, or unbounded source content.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.

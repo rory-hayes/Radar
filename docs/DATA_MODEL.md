@@ -55,6 +55,18 @@ RAD-021 adds the first source-of-truth persistence layer:
 
 Every source table has direct `workspace_id` ownership and RLS. Source content may be stored in `source_chunks.content`, but it must not be copied into logs, analytics, or unbounded metadata fields.
 
+## Assertions and Test Cases
+
+RAD-022 adds the assertion-led verification layer:
+
+- `assertions` stores workspace-owned business truths with purpose, expected behavior, category, priority, runner type, status, owner, creator, and bounded metadata.
+- `assertion_sources` links assertions to the minimum evidence sources needed to verify the business truth.
+- `assertion_templates` stores system or workspace-scoped starting points for common business assertions without creating a generic marketplace.
+- `assertion_runs_schedule` stores cadence, timezone, source-change trigger, and enabled state for later runner orchestration.
+- `test_cases` stores customer questions, journey scenarios, and integration checks linked to a single assertion.
+
+Every assertion and test-case table has `workspace_id` ownership. System templates are the only assertion records without a workspace, and they must stay generic and free of customer data. Repository helpers for product CRUD are added later; product code must not query these tables ad hoc from UI components.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.
