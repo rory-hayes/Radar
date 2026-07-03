@@ -1,10 +1,6 @@
 import "server-only";
 
 import {
-  findingActivitySchema,
-  findingAssignmentSchema,
-  findingEvidenceSchema,
-  findingSchema,
   type FindingActivityInput,
   type FindingActivityType,
   type FindingAssignmentInput,
@@ -16,6 +12,17 @@ import {
   type RadarFinding,
   type RadarFindingEvidence,
 } from "@/lib/findings/schema";
+import {
+  findingActivityCreateRequestSchema,
+  findingActivityResponseSchema,
+  findingAssignmentCreateRequestSchema,
+  findingAssignmentResponseSchema,
+  findingCreateRequestSchema,
+  findingEvidenceCreateRequestSchema,
+  findingEvidenceResponseSchema,
+  findingResponseSchema,
+  findingStatusUpdateRequestSchema,
+} from "@/lib/validation";
 import {
   assertRepositorySuccess,
   optionalNumber,
@@ -135,7 +142,7 @@ export async function getFindingById(client: RadarRepositoryClient, workspaceId:
 }
 
 export async function createFinding(client: RadarRepositoryClient, workspaceId: string, input: FindingInput) {
-  const parsedInput = findingSchema.parse(input);
+  const parsedInput = findingCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("findings")
     .insert({
@@ -175,11 +182,12 @@ export async function updateFindingStatus(
   findingId: string,
   status: FindingStatus,
 ) {
+  const parsedInput = findingStatusUpdateRequestSchema.parse({ findingId, status });
   const { data, error } = await client
     .from("findings")
-    .update({ status })
+    .update({ status: parsedInput.status })
     .eq("workspace_id", workspaceId)
-    .eq("id", findingId)
+    .eq("id", parsedInput.findingId)
     .select(findingSelect)
     .single<FindingRow>();
 
@@ -192,7 +200,7 @@ export async function addFindingEvidence(
   workspaceId: string,
   input: FindingEvidenceInput,
 ) {
-  const parsedInput = findingEvidenceSchema.parse(input);
+  const parsedInput = findingEvidenceCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("finding_evidence")
     .insert({
@@ -235,7 +243,7 @@ export async function assignFinding(
   workspaceId: string,
   input: FindingAssignmentInput,
 ) {
-  const parsedInput = findingAssignmentSchema.parse(input);
+  const parsedInput = findingAssignmentCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("finding_assignments")
     .insert({
@@ -259,7 +267,7 @@ export async function recordFindingActivity(
   workspaceId: string,
   input: FindingActivityInput,
 ) {
-  const parsedInput = findingActivitySchema.parse(input);
+  const parsedInput = findingActivityCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("finding_activity")
     .insert({
@@ -282,7 +290,7 @@ export async function recordFindingActivity(
 }
 
 function mapFindingRow(row: FindingRow): RadarFinding {
-  return {
+  return findingResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     assertionId: row.assertion_id,
@@ -299,11 +307,11 @@ function mapFindingRow(row: FindingRow): RadarFinding {
     recommendedFix: row.recommended_fix,
     ownerUserId: optionalString(row.owner_user_id),
     dedupeKey: row.dedupe_key,
-  };
+  });
 }
 
 function mapFindingEvidenceRow(row: FindingEvidenceRow): RadarFindingEvidence {
-  return {
+  return findingEvidenceResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     findingId: row.finding_id,
@@ -316,11 +324,11 @@ function mapFindingEvidenceRow(row: FindingEvidenceRow): RadarFindingEvidence {
     quote: optionalString(row.quote),
     citation: optionalString(row.citation),
     confidence: optionalNumber(row.confidence),
-  };
+  });
 }
 
 function mapFindingAssignmentRow(row: FindingAssignmentRow): RadarFindingAssignment {
-  return {
+  return findingAssignmentResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     findingId: row.finding_id,
@@ -329,11 +337,11 @@ function mapFindingAssignmentRow(row: FindingAssignmentRow): RadarFindingAssignm
     note: optionalString(row.note),
     assignedAt: row.assigned_at,
     unassignedAt: optionalString(row.unassigned_at),
-  };
+  });
 }
 
 function mapFindingActivityRow(row: FindingActivityRow): RadarFindingActivity {
-  return {
+  return findingActivityResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     findingId: row.finding_id,
@@ -343,5 +351,5 @@ function mapFindingActivityRow(row: FindingActivityRow): RadarFindingActivity {
     toStatus: row.to_status ?? undefined,
     note: optionalString(row.note),
     createdAt: row.created_at,
-  };
+  });
 }

@@ -40,20 +40,20 @@ test("RAD-025 validates write inputs with shared Zod schemas", async () => {
   const evaluation = await readWorkspaceFile("src/lib/repositories/evaluation.ts");
   const findings = await readWorkspaceFile("src/lib/repositories/findings.ts");
 
-  assert.match(sources, /createSourceSchema\.parse/);
-  assert.match(sources, /sourceVersionSchema\.parse/);
-  assert.match(sources, /sourceDocumentSchema\.parse/);
-  assert.match(sources, /sourceChunkSchema\.parse/);
-  assert.match(assertions, /createAssertionSchema\.parse/);
-  assert.match(assertions, /assertionSourceSchema\.parse/);
-  assert.match(assertions, /assertionRunScheduleSchema\.parse/);
-  assert.match(assertions, /testCaseSchema\.parse/);
-  assert.match(evaluation, /evaluationRunSchema\.parse/);
-  assert.match(evaluation, /testCaseResultSchema\.parse/);
-  assert.match(findings, /findingSchema\.parse/);
-  assert.match(findings, /findingEvidenceSchema\.parse/);
-  assert.match(findings, /findingAssignmentSchema\.parse/);
-  assert.match(findings, /findingActivitySchema\.parse/);
+  assert.match(sources, /sourceCreateRequestSchema\.parse/);
+  assert.match(sources, /sourceVersionCreateRequestSchema\.parse/);
+  assert.match(sources, /sourceDocumentCreateRequestSchema\.parse/);
+  assert.match(sources, /sourceChunkCreateRequestSchema\.parse/);
+  assert.match(assertions, /assertionCreateRequestSchema\.parse/);
+  assert.match(assertions, /assertionSourceLinkRequestSchema\.parse/);
+  assert.match(assertions, /assertionScheduleUpsertRequestSchema\.parse/);
+  assert.match(assertions, /testCaseCreateRequestSchema\.parse/);
+  assert.match(evaluation, /evaluationRunCreateRequestSchema\.parse/);
+  assert.match(evaluation, /testCaseResultCreateRequestSchema\.parse/);
+  assert.match(findings, /findingCreateRequestSchema\.parse/);
+  assert.match(findings, /findingEvidenceCreateRequestSchema\.parse/);
+  assert.match(findings, /findingAssignmentCreateRequestSchema\.parse/);
+  assert.match(findings, /findingActivityCreateRequestSchema\.parse/);
 });
 
 test("RAD-025 keeps workspace scope explicit for product-table queries", async () => {

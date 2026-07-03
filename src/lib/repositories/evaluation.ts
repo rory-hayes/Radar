@@ -1,8 +1,6 @@
 import "server-only";
 
 import {
-  evaluationRunSchema,
-  testCaseResultSchema,
   type EvaluationRunInput,
   type EvaluationRunStatus,
   type EvaluationRunTriggerType,
@@ -12,6 +10,13 @@ import {
   type TestCaseResultStatus,
 } from "@/lib/evaluation/schema";
 import { type RunnerType } from "@/lib/assertions/schema";
+import {
+  evaluationRunCreateRequestSchema,
+  evaluationRunResponseSchema,
+  evaluationRunStatusUpdateRequestSchema,
+  testCaseResultCreateRequestSchema,
+  testCaseResultResponseSchema,
+} from "@/lib/validation";
 import {
   assertRepositorySuccess,
   jsonRecord,
@@ -74,7 +79,7 @@ export async function createEvaluationRun(
   workspaceId: string,
   input: EvaluationRunInput,
 ) {
-  const parsedInput = evaluationRunSchema.parse(input);
+  const parsedInput = evaluationRunCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("evaluation_runs")
     .insert({
@@ -113,11 +118,12 @@ export async function updateEvaluationRunStatus(
   evaluationRunId: string,
   status: EvaluationRunStatus,
 ) {
+  const parsedInput = evaluationRunStatusUpdateRequestSchema.parse({ evaluationRunId, status });
   const { data, error } = await client
     .from("evaluation_runs")
-    .update({ status })
+    .update({ status: parsedInput.status })
     .eq("workspace_id", workspaceId)
-    .eq("id", evaluationRunId)
+    .eq("id", parsedInput.evaluationRunId)
     .select(evaluationRunSelect)
     .single<EvaluationRunRow>();
 
@@ -147,7 +153,7 @@ export async function createTestCaseResult(
   workspaceId: string,
   input: TestCaseResultInput,
 ) {
-  const parsedInput = testCaseResultSchema.parse(input);
+  const parsedInput = testCaseResultCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("test_case_results")
     .insert({
@@ -177,7 +183,7 @@ export async function createTestCaseResult(
 }
 
 function mapEvaluationRunRow(row: EvaluationRunRow): RadarEvaluationRun {
-  return {
+  return evaluationRunResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     assertionId: row.assertion_id,
@@ -188,11 +194,11 @@ function mapEvaluationRunRow(row: EvaluationRunRow): RadarEvaluationRun {
     totalTestCases: row.total_test_cases,
     score: optionalNumber(row.score),
     confidence: optionalNumber(row.confidence),
-  };
+  });
 }
 
 function mapTestCaseResultRow(row: TestCaseResultRow): RadarTestCaseResult {
-  return {
+  return testCaseResultResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     evaluationRunId: row.evaluation_run_id,
@@ -204,5 +210,5 @@ function mapTestCaseResultRow(row: TestCaseResultRow): RadarTestCaseResult {
     confidence: optionalNumber(row.confidence),
     actualOutput: jsonRecord(row.actual_output),
     evidenceRefs: Array.isArray(row.evidence_refs) ? row.evidence_refs : [],
-  };
+  });
 }

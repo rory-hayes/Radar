@@ -1,10 +1,6 @@
 import "server-only";
 
 import {
-  createSourceSchema,
-  sourceChunkSchema,
-  sourceDocumentSchema,
-  sourceVersionSchema,
   type CreateSourceInput,
   type RadarSource,
   type RadarSourceChunk,
@@ -17,6 +13,17 @@ import {
   type SourceType,
   type SourceVersionInput,
 } from "@/lib/sources/schema";
+import {
+  sourceChunkCreateRequestSchema,
+  sourceChunkResponseSchema,
+  sourceCreateRequestSchema,
+  sourceDocumentCreateRequestSchema,
+  sourceDocumentResponseSchema,
+  sourceResponseSchema,
+  sourceUpdateRequestSchema,
+  sourceVersionCreateRequestSchema,
+  sourceVersionResponseSchema,
+} from "@/lib/validation";
 import {
   assertRepositorySuccess,
   jsonRecord,
@@ -109,7 +116,7 @@ export async function createSource(
   createdBy: string,
   input: CreateSourceInput,
 ) {
-  const parsedInput = createSourceSchema.parse(input);
+  const parsedInput = sourceCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("sources")
     .insert({
@@ -136,7 +143,7 @@ export async function updateSource(
   sourceId: string,
   input: Partial<CreateSourceInput>,
 ) {
-  const parsedInput = createSourceSchema.partial().parse(input);
+  const parsedInput = sourceUpdateRequestSchema.parse(input);
   const { data, error } = await client
     .from("sources")
     .update({
@@ -162,7 +169,7 @@ export async function deleteSource(client: RadarRepositoryClient, workspaceId: s
 }
 
 export async function createSourceVersion(client: RadarRepositoryClient, workspaceId: string, input: SourceVersionInput) {
-  const parsedInput = sourceVersionSchema.parse(input);
+  const parsedInput = sourceVersionCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("source_versions")
     .insert({
@@ -183,7 +190,7 @@ export async function createSourceVersion(client: RadarRepositoryClient, workspa
 }
 
 export async function createSourceDocument(client: RadarRepositoryClient, workspaceId: string, input: SourceDocumentInput) {
-  const parsedInput = sourceDocumentSchema.parse(input);
+  const parsedInput = sourceDocumentCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("source_documents")
     .insert({
@@ -207,7 +214,7 @@ export async function createSourceDocument(client: RadarRepositoryClient, worksp
 }
 
 export async function createSourceChunk(client: RadarRepositoryClient, workspaceId: string, input: SourceChunkInput) {
-  const parsedInput = sourceChunkSchema.parse(input);
+  const parsedInput = sourceChunkCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("source_chunks")
     .insert({
@@ -228,7 +235,7 @@ export async function createSourceChunk(client: RadarRepositoryClient, workspace
 }
 
 function mapSourceRow(row: SourceRow): RadarSource {
-  return {
+  return sourceResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     name: row.name,
@@ -240,11 +247,11 @@ function mapSourceRow(row: SourceRow): RadarSource {
     lastSyncedAt: optionalString(row.last_synced_at),
     lastSyncError: optionalString(row.last_sync_error),
     createdBy: row.created_by,
-  };
+  });
 }
 
 function mapSourceVersionRow(row: SourceVersionRow): RadarSourceVersion {
-  return {
+  return sourceVersionResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     sourceId: row.source_id,
@@ -253,11 +260,11 @@ function mapSourceVersionRow(row: SourceVersionRow): RadarSourceVersion {
     contentHash: row.content_hash,
     documentCount: row.document_count,
     chunkCount: row.chunk_count,
-  };
+  });
 }
 
 function mapSourceDocumentRow(row: SourceDocumentRow): RadarSourceDocument {
-  return {
+  return sourceDocumentResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     sourceId: row.source_id,
@@ -269,11 +276,11 @@ function mapSourceDocumentRow(row: SourceDocumentRow): RadarSourceDocument {
     status: row.status,
     contentHash: row.content_hash,
     byteSize: optionalNumber(row.byte_size),
-  };
+  });
 }
 
 function mapSourceChunkRow(row: SourceChunkRow): RadarSourceChunk {
-  return {
+  return sourceChunkResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     sourceId: row.source_id,
@@ -282,5 +289,5 @@ function mapSourceChunkRow(row: SourceChunkRow): RadarSourceChunk {
     content: row.content,
     contentHash: row.content_hash,
     tokenCount: optionalNumber(row.token_count),
-  };
+  });
 }

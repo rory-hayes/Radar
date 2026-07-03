@@ -1,8 +1,6 @@
 import "server-only";
 
 import {
-  createWorkspaceSchema,
-  updateWorkspaceSettingsSchema,
   type CreateWorkspaceInput,
   type RadarWorkspace,
   type RadarWorkspaceMembership,
@@ -12,6 +10,12 @@ import {
   type WorkspaceStatus,
   type WorkspaceTeamVisibility,
 } from "@/lib/workspaces/schema";
+import {
+  workspaceCreateRequestSchema,
+  workspaceMembershipResponseSchema,
+  workspaceResponseSchema,
+  workspaceUpdateSettingsRequestSchema,
+} from "@/lib/validation";
 import {
   assertRepositorySuccess,
   requireRepositoryRow,
@@ -68,18 +72,18 @@ export async function getFirstActiveWorkspaceMembershipForUser(
     return null;
   }
 
-  return {
+  return workspaceMembershipResponseSchema.parse({
     workspace: mapWorkspaceRow(workspace),
     role: data.role,
     memberStatus: data.status,
-  };
+  });
 }
 
 export async function createWorkspaceWithAdminMembership(
   client: RadarRepositoryClient,
   input: CreateWorkspaceInput & { slug: string },
 ) {
-  const parsedInput = createWorkspaceSchema.parse(input);
+  const parsedInput = workspaceCreateRequestSchema.parse(input);
   const { data, error } = await client.rpc("create_workspace_with_admin_membership", {
     workspace_name: parsedInput.name,
     workspace_slug: input.slug,
@@ -94,7 +98,7 @@ export async function updateWorkspaceSettings(
   workspaceId: string,
   input: UpdateWorkspaceSettingsInput,
 ) {
-  const parsedInput = updateWorkspaceSettingsSchema.parse(input);
+  const parsedInput = workspaceUpdateSettingsRequestSchema.parse(input);
   const { data, error } = await client
     .from("workspaces")
     .update({
@@ -111,11 +115,11 @@ export async function updateWorkspaceSettings(
 }
 
 function mapWorkspaceRow(row: WorkspaceRow): RadarWorkspace {
-  return {
+  return workspaceResponseSchema.parse({
     id: row.id,
     name: row.name,
     slug: row.slug,
     status: row.status,
     teamVisibility: row.team_visibility,
-  };
+  });
 }

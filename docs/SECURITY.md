@@ -44,6 +44,12 @@ Future source, assertion, run, and finding mutations must enter through these gu
 
 RAD-025 centralizes typed data access in `src/lib/repositories`. Repository functions must stay server-only, accept explicit workspace scope for customer-owned tables, validate mutation inputs with shared schemas, and return mapped domain types. They do not grant permissions by themselves; callers must enforce RBAC through server guardrails before invoking write functions.
 
+## Validation Boundary
+
+RAD-026 centralizes operation-level Zod schemas in `src/lib/validation`. Server actions, API handlers, repositories, and runner jobs should reuse these request schemas instead of accepting ad hoc payloads. Repository response schemas must validate mapped objects before returning them to calling code so workspace IDs, evidence references, runner statuses, confidence scores, and finding fields stay bounded and typed.
+
+Validation is not authorization. Client-provided IDs, statuses, source links, or evidence references are still untrusted until the server resolves workspace membership, enforces RBAC, and applies RLS-backed database constraints.
+
 ## Audit Logging
 
 RAD-016 records security-relevant actions in `audit_logs` with actor, workspace, action, resource, metadata, and timestamp. Server-side mutation helpers should call `recordAuditEvent(...)` after successful writes. Metadata must stay small and must not include raw source content, runner credentials, provider secrets, or customer-sensitive evidence bodies.

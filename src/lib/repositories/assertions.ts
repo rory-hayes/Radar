@@ -1,10 +1,6 @@
 import "server-only";
 
 import {
-  assertionRunScheduleSchema,
-  assertionSourceSchema,
-  createAssertionSchema,
-  testCaseSchema,
   type AssertionCategory,
   type AssertionPriority,
   type AssertionRunScheduleInput,
@@ -19,6 +15,17 @@ import {
   type TestCaseStatus,
   type TestCaseType,
 } from "@/lib/assertions/schema";
+import {
+  assertionCreateRequestSchema,
+  assertionResponseSchema,
+  assertionRunScheduleResponseSchema,
+  assertionScheduleUpsertRequestSchema,
+  assertionSourceLinkRequestSchema,
+  assertionSourceResponseSchema,
+  assertionUpdateRequestSchema,
+  testCaseCreateRequestSchema,
+  testCaseResponseSchema,
+} from "@/lib/validation";
 import {
   assertRepositorySuccess,
   jsonRecord,
@@ -127,7 +134,7 @@ export async function createAssertion(
   createdBy: string,
   input: CreateAssertionInput,
 ) {
-  const parsedInput = createAssertionSchema.parse(input);
+  const parsedInput = assertionCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("assertions")
     .insert({
@@ -156,7 +163,7 @@ export async function updateAssertion(
   assertionId: string,
   input: Partial<CreateAssertionInput>,
 ) {
-  const parsedInput = createAssertionSchema.partial().parse(input);
+  const parsedInput = assertionUpdateRequestSchema.parse(input);
   const { data, error } = await client
     .from("assertions")
     .update({
@@ -189,7 +196,7 @@ export async function linkAssertionSource(
   workspaceId: string,
   input: AssertionSourceInput,
 ) {
-  const parsedInput = assertionSourceSchema.parse(input);
+  const parsedInput = assertionSourceLinkRequestSchema.parse(input);
   const { data, error } = await client
     .from("assertion_sources")
     .upsert({
@@ -211,7 +218,7 @@ export async function upsertAssertionRunSchedule(
   workspaceId: string,
   input: AssertionRunScheduleInput,
 ) {
-  const parsedInput = assertionRunScheduleSchema.parse(input);
+  const parsedInput = assertionScheduleUpsertRequestSchema.parse(input);
   const { data, error } = await client
     .from("assertion_runs_schedule")
     .upsert({
@@ -254,7 +261,7 @@ export async function createTestCase(
   createdBy: string,
   input: TestCaseInput,
 ) {
-  const parsedInput = testCaseSchema.parse(input);
+  const parsedInput = testCaseCreateRequestSchema.parse(input);
   const { data, error } = await client
     .from("test_cases")
     .insert({
@@ -277,7 +284,7 @@ export async function createTestCase(
 }
 
 function mapAssertionRow(row: AssertionRow): RadarAssertion {
-  return {
+  return assertionResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     title: row.title,
@@ -289,21 +296,21 @@ function mapAssertionRow(row: AssertionRow): RadarAssertion {
     status: row.status,
     ownerUserId: optionalString(row.owner_user_id),
     createdBy: row.created_by,
-  };
+  });
 }
 
 function mapAssertionSourceRow(row: AssertionSourceRow): RadarAssertionSource {
-  return {
+  return assertionSourceResponseSchema.parse({
     workspaceId: row.workspace_id,
     assertionId: row.assertion_id,
     sourceId: row.source_id,
     isRequired: row.is_required,
     purpose: optionalString(row.purpose),
-  };
+  });
 }
 
 function mapAssertionRunScheduleRow(row: AssertionRunScheduleRow): RadarAssertionRunSchedule {
-  return {
+  return assertionRunScheduleResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     assertionId: row.assertion_id,
@@ -313,11 +320,11 @@ function mapAssertionRunScheduleRow(row: AssertionRunScheduleRow): RadarAssertio
     isEnabled: row.is_enabled,
     nextRunAt: optionalString(row.next_run_at),
     metadata: jsonRecord(row.metadata),
-  };
+  });
 }
 
 function mapTestCaseRow(row: TestCaseRow): RadarTestCase {
-  return {
+  return testCaseResponseSchema.parse({
     id: row.id,
     workspaceId: row.workspace_id,
     assertionId: row.assertion_id,
@@ -327,5 +334,5 @@ function mapTestCaseRow(row: TestCaseRow): RadarTestCase {
     input: jsonRecord(row.input),
     expectedResult: row.expected_result,
     ordinal: row.ordinal,
-  };
+  });
 }

@@ -40,6 +40,12 @@ RAD-025 adds server-only typed repositories under `src/lib/repositories`. Produc
 
 The repository layer is not an authorization substitute. Server actions and APIs must still use the guardrail layer to resolve the authenticated user, active workspace, and permission before calling repositories.
 
+## Validation contracts
+
+RAD-026 centralizes shared request and response schemas in `src/lib/validation`. These schemas compose the domain models for workspace actions, sources, assertions, test cases, evaluation runs, findings, and evidence into operation-level contracts for server actions, API handlers, repositories, and future runner jobs.
+
+Repositories parse mutation requests before writes and parse mapped response objects before returning them. This keeps customer-facing assertion, source, run, and finding data shaped consistently across UI, API, and background workflow boundaries.
+
 ## Bootstrap stack
 
 - Next.js and Vercel for the web app.
