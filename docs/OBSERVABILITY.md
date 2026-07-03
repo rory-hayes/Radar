@@ -4,7 +4,7 @@ Radar uses Sentry for production error monitoring and release-aware stack traces
 
 ## Sentry setup
 
-Required in strict environments:
+Required to enable Sentry events:
 
 - `NEXT_PUBLIC_SENTRY_DSN`
 - `SENTRY_AUTH_TOKEN`
@@ -15,7 +15,7 @@ Recommended for source-map upload and release tracking:
 - `SENTRY_PROJECT`
 - `SENTRY_RELEASE`
 
-When `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` are present during `next build`, `withSentryConfig` uploads production source maps. Client source maps are deleted after upload.
+Sentry variables are optional for application boot so production deploys do not need fake observability credentials. When `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` are present during `next build`, `withSentryConfig` uploads production source maps. Client source maps are deleted after upload.
 
 ## Privacy boundary
 

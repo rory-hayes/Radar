@@ -38,7 +38,7 @@ test("RAD-004 allows empty local placeholders", () => {
   assert.match(result.stdout, /validation passed for local/);
 });
 
-test("RAD-004 fails strict environments with variable names only", () => {
+test("RAD-004 fails strict boot environments with variable names only", () => {
   const secretValue = "do-not-print-this-secret";
   const result = runValidator({
     RADAR_ENV: "production",
@@ -49,8 +49,35 @@ test("RAD-004 fails strict environments with variable names only", () => {
   assert.notEqual(result.status, 0);
   assert.match(output, /Radar environment validation failed for production/);
   assert.match(output, /NEXT_PUBLIC_SUPABASE_URL/);
-  assert.match(output, /STRIPE_WEBHOOK_SECRET/);
+  assert.match(output, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+  assert.match(output, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.doesNotMatch(output, new RegExp(secretValue));
+});
+
+test("RAD-004 accepts core strict production configuration", () => {
+  const result = runValidator({
+    RADAR_ENV: "production",
+    NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example.com",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+    SUPABASE_SERVICE_ROLE_KEY: "service-role-key",
+    OPENAI_API_KEY: "sk-test-radar",
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /validation passed for production/);
+});
+
+test("RAD-004 accepts Vercel Supabase integration aliases", () => {
+  const result = runValidator({
+    RADAR_ENV: "production",
+    NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example.com",
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
+    SUPABASE_SECRET_KEY: "service-role-key",
+    OPENAI_API_KEY: "sk-test-radar",
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /validation passed for production/);
 });
 
 test("RAD-004 accepts complete strict production configuration", () => {

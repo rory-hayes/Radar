@@ -4,7 +4,7 @@ Radar billing is workspace-scoped. Stripe identifiers live in `billing_customers
 
 ## Stripe environment
 
-Required in strict environments:
+Required to enable Stripe billing:
 
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
@@ -15,7 +15,7 @@ Required to start paid checkout from settings:
 - `RADAR_APP_URL`
 - `STRIPE_PRICE_ID_STARTER`
 
-`STRIPE_PRICE_ID_STARTER` is optional in environment validation so local builds can run without Stripe, but checkout returns a safe configuration error until the value is present.
+Stripe variables are optional for application boot so non-billing pilots can deploy without fake credentials. Checkout and billing portal actions return a safe configuration error until the required Stripe values are present.
 
 ## Plan gates
 

@@ -10,6 +10,7 @@ export const publicEnvKeys = [
   "NEXT_PUBLIC_RADAR_ENV",
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "NEXT_PUBLIC_POSTHOG_KEY",
   "NEXT_PUBLIC_POSTHOG_HOST",
   "NEXT_PUBLIC_SENTRY_DSN",
@@ -18,6 +19,7 @@ export const publicEnvKeys = [
 
 export const serverEnvKeys = [
   "SUPABASE_SERVICE_ROLE_KEY",
+  "SUPABASE_SECRET_KEY",
   "OPENAI_API_KEY",
   "TRIGGER_SECRET_KEY",
   "RESEND_API_KEY",
@@ -39,24 +41,21 @@ export const serverEnvKeys = [
 export const requiredPublicEnvKeys = [
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "NEXT_PUBLIC_POSTHOG_KEY",
-  "NEXT_PUBLIC_SENTRY_DSN",
-  "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
 ] as const satisfies readonly PublicEnvKey[];
 
 export const requiredServerEnvKeys = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "OPENAI_API_KEY",
-  "TRIGGER_SECRET_KEY",
-  "RESEND_API_KEY",
-  "STRIPE_SECRET_KEY",
-  "STRIPE_WEBHOOK_SECRET",
-  "SENTRY_AUTH_TOKEN",
 ] as const satisfies readonly ServerEnvKey[];
 
 export type PublicEnvKey = (typeof publicEnvKeys)[number];
 export type ServerEnvKey = (typeof serverEnvKeys)[number];
 export type RequiredEnvKey = (typeof requiredPublicEnvKeys)[number] | (typeof requiredServerEnvKeys)[number];
+
+export const envAliases: Partial<Record<RequiredEnvKey, readonly (PublicEnvKey | ServerEnvKey)[]>> = {
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"],
+  SUPABASE_SERVICE_ROLE_KEY: ["SUPABASE_SECRET_KEY"],
+};
 
 export type RawEnv = Partial<Record<PublicEnvKey | ServerEnvKey | "RADAR_ENV" | "VERCEL_ENV" | "NODE_ENV", string>>;
 
@@ -92,6 +91,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_RADAR_ENV: z.enum(radarEnvironments).optional(),
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalText,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalText,
   NEXT_PUBLIC_POSTHOG_KEY: optionalText,
   NEXT_PUBLIC_POSTHOG_HOST: optionalUrl,
   NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
@@ -100,6 +100,7 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: optionalText,
+  SUPABASE_SECRET_KEY: optionalText,
   OPENAI_API_KEY: optionalText,
   TRIGGER_SECRET_KEY: optionalText,
   RESEND_API_KEY: optionalText,
@@ -187,7 +188,7 @@ export function formatEnvErrorMessage(
 }
 
 function findMissingRequiredKeys(env: Partial<Record<RequiredEnvKey, string>>) {
-  return [...requiredPublicEnvKeys, ...requiredServerEnvKeys].filter((key) => !env[key]);
+  return [...requiredPublicEnvKeys, ...requiredServerEnvKeys].filter((key) => !hasEnvValue(env, key));
 }
 
 function normalizeEnvValue(value: unknown) {
@@ -202,6 +203,14 @@ function normalizeEnvValue(value: unknown) {
 
 function isRadarEnvironment(value: unknown): value is RadarEnvironment {
   return typeof value === "string" && radarEnvironments.includes(value as RadarEnvironment);
+}
+
+function hasEnvValue(env: Partial<Record<PublicEnvKey | ServerEnvKey, string | undefined>>, key: RequiredEnvKey) {
+  if (env[key]) {
+    return true;
+  }
+
+  return (envAliases[key] ?? []).some((aliasKey) => Boolean(env[aliasKey]));
 }
 
 function formatIssuePaths(issues: z.core.$ZodIssue[]) {

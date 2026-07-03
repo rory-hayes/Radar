@@ -11,38 +11,28 @@ Radar production operations must keep the assertion-led product recoverable: sou
 | Staging | Production rehearsal, migrations, performance smoke, runner checks | Production-like synthetic or approved pilot test data | Main candidate |
 | Production | Customer pilots and paid usage | Customer data | Approved main deployment |
 
-Production and staging must use strict environment validation. `RADAR_ENV=preview`, `RADAR_ENV=staging`, or `RADAR_ENV=production` requires the strict variables enforced by `scripts/validate-env.mjs`.
+Production and staging must use strict environment validation. `RADAR_ENV=preview`, `RADAR_ENV=staging`, or `RADAR_ENV=production` requires the boot-critical variables enforced by `scripts/validate-env.mjs`. Feature-specific providers remain optional for boot and must be configured before enabling the related workflow.
 
 ## Environment Variables
 
-Required in strict environments:
+Required to boot strict environments:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_POSTHOG_KEY`
-- `NEXT_PUBLIC_SENTRY_DSN`
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENAI_API_KEY`
-- `TRIGGER_SECRET_KEY`
-- `RESEND_API_KEY`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `SENTRY_AUTH_TOKEN`
 
-Recommended or feature-specific:
+Vercel's Supabase integration names are accepted as aliases: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SECRET_KEY` for `SUPABASE_SERVICE_ROLE_KEY`.
 
-- `RADAR_APP_URL`
-- `NEXT_PUBLIC_POSTHOG_HOST`
-- `RESEND_FROM_EMAIL`
-- `SLACK_WEBHOOK_URL`
-- `STRIPE_PRICE_ID_STARTER`
-- `SENTRY_ORG`
-- `SENTRY_PROJECT`
-- `SENTRY_RELEASE`
-- `LANGFUSE_PUBLIC_KEY`
-- `LANGFUSE_SECRET_KEY`
-- `LANGFUSE_BASE_URL`
+Required before enabling the related production workflow:
+
+- Product analytics: `NEXT_PUBLIC_POSTHOG_KEY`, optional `NEXT_PUBLIC_POSTHOG_HOST`
+- Sentry events and source maps: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, optional `SENTRY_RELEASE`
+- Stripe billing: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_STARTER`
+- Email notifications: `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `RADAR_APP_URL`
+- Trigger.dev jobs: `TRIGGER_SECRET_KEY`
+- Slack alerts: `SLACK_WEBHOOK_URL`
+- Langfuse tracing: `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, optional `LANGFUSE_BASE_URL`
 
 Never commit real secret values. Configure production and staging secrets in the hosting provider and provider dashboards.
 

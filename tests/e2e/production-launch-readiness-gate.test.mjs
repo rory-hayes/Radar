@@ -59,16 +59,10 @@ test("RAD-100 gate verifies security billing data lifecycle and abuse controls",
   for (const envKey of [
     "NEXT_PUBLIC_SUPABASE_URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "NEXT_PUBLIC_POSTHOG_KEY",
-    "NEXT_PUBLIC_SENTRY_DSN",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_SECRET_KEY",
     "OPENAI_API_KEY",
-    "TRIGGER_SECRET_KEY",
-    "RESEND_API_KEY",
-    "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET",
-    "SENTRY_AUTH_TOKEN",
   ]) {
     assert.match(validateEnv, new RegExp(envKey));
   }
@@ -88,6 +82,7 @@ test("RAD-100 gate verifies security billing data lifecycle and abuse controls",
   assert.match(security, /Launch security bar/);
   assert.match(security, /Rate Limits, Quotas, And Abuse Controls/);
   assert.match(billing, /Workspace admins can start checkout or open the billing portal from Settings/);
+  assert.match(billing, /Required to enable Stripe billing/);
   assert.match(dataLifecycle, /Exports deliberately omit encrypted runner credential values/);
 });
 
