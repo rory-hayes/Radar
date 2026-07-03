@@ -114,3 +114,5 @@ Sources, prompts, rubrics, runner definitions, and assertion templates must be v
 ## Sensitive data
 
 Secrets and credentials must be encrypted or stored in provider-managed secret stores. Sensitive source content must not be logged to analytics, Sentry, or external traces.
+
+RAD-069 adds `runner_credentials` for workspace-scoped runner secrets. The table stores only encrypted credential envelopes plus redacted metadata, test status, and ownership fields. Product reads should use summary selectors that omit `encrypted_value`; decrypt helpers are server-only and require an explicit encryption key.

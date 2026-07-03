@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 import type { RadarAssertion, RadarTestCase } from "@/lib/assertions/schema";
+import { redactRunnerCredentialText } from "@/lib/credentials/runner-credentials";
 import {
   type EvaluationJobOptions,
   type RunNextEvaluationJobInput,
@@ -310,13 +311,7 @@ export function redactIntegrationText(
   value: string,
   credentials: readonly IntegrationCredentialInput[] = [],
 ) {
-  const credentialRedacted = credentials.reduce((redacted, credential) => {
-    return redacted.split(credential.value).join(credential.redactionLabel ?? `[redacted:${credential.name}]`);
-  }, value);
-
-  return credentialRedacted
-    .replace(/authorization:\s*bearer\s+[a-z0-9._-]+/gi, "authorization: bearer [redacted-token]")
-    .replace(/\b(?:bearer\s+)?[a-z0-9_-]{24,}\b/gi, "[redacted-token]")
+  return redactRunnerCredentialText(value, credentials)
     .replace(/https?:\/\/\S+/gi, (url) => safeUrlPreview(url));
 }
 

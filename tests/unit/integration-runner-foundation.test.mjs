@@ -68,6 +68,7 @@ test("RAD-066 handles auth headers only through execution-time credentials", asy
 
 test("RAD-066 captures redacted HTTP exchange artifacts without adding marketplace scope", async () => {
   const runner = await readWorkspaceFile("src/lib/evaluation/integration-runner.ts");
+  const credentialHelper = await readWorkspaceFile("src/lib/credentials/runner-credentials.ts");
   const runnerSpec = await readWorkspaceFile("docs/RUNNERS_SPEC.md");
 
   assert.match(runner, /kind: "http_exchange"/);
@@ -78,7 +79,8 @@ test("RAD-066 captures redacted HTTP exchange artifacts without adding marketpla
   assert.match(runner, /isSensitiveHeader/);
   assert.match(runner, /safeUrlPreview/);
   assert.match(runner, /responseBodyHash/);
-  assert.match(runner, /\[redacted-token\]/);
+  assert.match(runner, /redactRunnerCredentialText/);
+  assert.match(credentialHelper, /\[redacted-token\]/);
   assert.match(runnerSpec, /RAD-066 adds the server-only Integration Runner foundation/);
   assert.match(runnerSpec, /redacted `http_exchange` artifacts/);
 

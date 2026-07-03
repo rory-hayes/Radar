@@ -70,6 +70,9 @@ The supported checks are `webhook_fired`, `api_expected_state`, `ticket_endpoint
 RAD-068 adds minimal handoff templates in `src/lib/evaluation/handoff-templates.ts`.
 The templates cover `email-sent`, `support-ticket-created`, `crm-task-created`, `webhook-event-received`, and `billing-status-changed`. They only collect the endpoint, optional auth/header configuration, expected status, optional text matcher, and optional JSON state matcher needed by the assertion; each template compiles to a RAD-067 generic check and then to the RAD-066 Integration Runner input.
 
+RAD-069 hardens runner credential handling with `runner_credentials`, `src/lib/credentials/runner-credentials.ts`, and `src/lib/repositories/runner-credentials.ts`.
+Runner credentials are encrypted with AES-256-GCM before persistence, scoped by workspace RLS, returned to product surfaces only as redacted summaries, decrypted only inside explicit server-side execution/test actions, and redacted from runner actual output, artifacts, metadata, summaries, and errors.
+
 ## Shared runner contract
 
 RAD-061 defines the shared runner contract in `src/lib/evaluation/runner-contract.ts`.

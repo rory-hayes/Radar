@@ -44,6 +44,8 @@ Future source, assertion, run, and finding mutations must enter through these gu
 
 RAD-025 centralizes typed data access in `src/lib/repositories`. Repository functions must stay server-only, accept explicit workspace scope for customer-owned tables, validate mutation inputs with shared schemas, and return mapped domain types. They do not grant permissions by themselves; callers must enforce RBAC through server guardrails before invoking write functions.
 
+RAD-069 adds `runner_credentials` plus server-only credential helpers. Runner credentials are encrypted with AES-256-GCM before persistence, scoped by workspace RLS, and returned to product surfaces only as redacted summaries. Plaintext may be decrypted only inside explicit server-side execution or credential-test actions, and must not be copied into UI state, logs, runner artifacts, evaluation metadata, or audit metadata.
+
 ## Validation Boundary
 
 RAD-026 centralizes operation-level Zod schemas in `src/lib/validation`. Server actions, API handlers, repositories, and runner jobs should reuse these request schemas instead of accepting ad hoc payloads. Repository response schemas must validate mapped objects before returning them to calling code so workspace IDs, evidence references, runner statuses, confidence scores, and finding fields stay bounded and typed.

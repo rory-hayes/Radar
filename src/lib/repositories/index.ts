@@ -6,3 +6,4 @@ export * from "@/lib/repositories/sources";
 export * from "@/lib/repositories/assertions";
 export * from "@/lib/repositories/evaluation";
 export * from "@/lib/repositories/findings";
+export * from "@/lib/repositories/runner-credentials";
