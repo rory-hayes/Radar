@@ -55,9 +55,11 @@ export async function sendWorkspaceNotificationEmails(
   for (const recipientEmail of uniqueRecipients) {
     const delivery = await createNotificationDelivery(client, {
       workspaceId: parsedInput.workspaceId,
+      channel: "email",
       notificationType: parsedInput.notificationType,
       recipientEmail,
       subject: template.subject,
+      provider: "resend",
       resourceType: template.resourceType,
       resourceId: template.resourceId,
       preferencesUrl,

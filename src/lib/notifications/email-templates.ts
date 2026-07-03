@@ -1,9 +1,9 @@
 import "server-only";
 
-import { notificationPayloadSchema, type NotificationDeliveryType, type RadarNotificationPayload } from "@/lib/notifications/schema";
+import { notificationPayloadSchema, type EmailNotificationType, type RadarNotificationPayload } from "@/lib/notifications/schema";
 
 export type RadarEmailTemplateInput = {
-  notificationType: NotificationDeliveryType;
+  notificationType: EmailNotificationType;
   payload: RadarNotificationPayload;
   preferencesUrl?: string;
   unsubscribeUrl?: string;

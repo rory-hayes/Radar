@@ -39,6 +39,7 @@ const envSchema = z.object({
   TRIGGER_SECRET_KEY: optionalText,
   RESEND_API_KEY: optionalText,
   RESEND_FROM_EMAIL: optionalText,
+  SLACK_WEBHOOK_URL: optionalUrl,
   RADAR_APP_URL: optionalUrl,
   STRIPE_SECRET_KEY: optionalText,
   STRIPE_WEBHOOK_SECRET: optionalText,

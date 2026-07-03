@@ -4,6 +4,7 @@ import {
   notificationDeliveryCreateSchema,
   notificationDeliveryStatusUpdateSchema,
   type NotificationDeliveryCreateInput,
+  type NotificationChannel,
   type NotificationDeliveryStatus,
   type NotificationDeliveryStatusUpdateInput,
   type NotificationDeliveryType,
@@ -21,11 +22,13 @@ import {
 type NotificationDeliveryRow = {
   id: string;
   workspace_id: string;
+  channel: NotificationChannel;
   notification_type: NotificationDeliveryType;
-  recipient_email: string;
+  recipient_email: string | null;
+  recipient_label: string | null;
   subject: string;
   status: NotificationDeliveryStatus;
-  provider: "resend";
+  provider: "resend" | "slack_webhook";
   provider_message_id: string | null;
   error_message: string | null;
   resource_type: string | null;
@@ -38,7 +41,7 @@ type NotificationDeliveryRow = {
 };
 
 const notificationDeliverySelect =
-  "id, workspace_id, notification_type, recipient_email, subject, status, provider, provider_message_id, error_message, resource_type, resource_id, preferences_url, unsubscribe_url, metadata, sent_at, created_at";
+  "id, workspace_id, channel, notification_type, recipient_email, recipient_label, subject, status, provider, provider_message_id, error_message, resource_type, resource_id, preferences_url, unsubscribe_url, metadata, sent_at, created_at";
 
 export async function createNotificationDelivery(
   client: RadarRepositoryClient,
@@ -49,9 +52,12 @@ export async function createNotificationDelivery(
     .from("notification_deliveries")
     .insert({
       workspace_id: parsedInput.workspaceId,
+      channel: parsedInput.channel,
       notification_type: parsedInput.notificationType,
-      recipient_email: parsedInput.recipientEmail,
+      recipient_email: parsedInput.recipientEmail ?? null,
+      recipient_label: parsedInput.recipientLabel ?? null,
       subject: parsedInput.subject,
+      provider: parsedInput.provider,
       resource_type: parsedInput.resourceType ?? null,
       resource_id: parsedInput.resourceId ?? null,
       preferences_url: parsedInput.preferencesUrl ?? null,
@@ -110,8 +116,10 @@ function mapNotificationDeliveryRow(row: NotificationDeliveryRow): RadarNotifica
   return {
     id: row.id,
     workspaceId: row.workspace_id,
+    channel: row.channel,
     notificationType: row.notification_type,
-    recipientEmail: row.recipient_email,
+    recipientEmail: optionalString(row.recipient_email),
+    recipientLabel: optionalString(row.recipient_label),
     subject: row.subject,
     status: row.status,
     provider: row.provider,
