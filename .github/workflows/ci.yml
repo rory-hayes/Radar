@@ -62,5 +62,8 @@ jobs:
       - name: E2E smoke tests
         run: pnpm test:e2e
 
+      - name: Pilot performance smoke
+        run: pnpm perf:pilot
+
       - name: Build
         run: pnpm build
