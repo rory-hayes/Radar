@@ -16,8 +16,21 @@ export type CommandCenterKpiSummary = {
   recommendedFixes: number;
   passRate: number | null;
   monitoredAssertions: number;
+  needsAttention: CommandCenterNeedsAttentionItem[];
   trends: CommandCenterTrend[];
   hasActivity: boolean;
+};
+
+export type CommandCenterNeedsAttentionItem = {
+  id: string;
+  title: string;
+  assertionId: string;
+  assertionTitle: string;
+  severity: RadarFinding["severity"];
+  status: RadarFinding["status"];
+  confidence: number;
+  customerImpact: string;
+  recommendedFix: string;
 };
 
 type CommandCenterKpiInput = {
@@ -47,6 +60,7 @@ export function buildCommandCenterKpiSummary({
   const checksTrend = recentRuns.length - previousRuns.length;
   const criticalIssues = activeFindings.filter((finding) => finding.severity === "critical").length;
   const recommendedFixes = activeFindings.filter((finding) => finding.recommendedFix.trim().length > 0).length;
+  const assertionTitles = new Map(assertions.map((assertion) => [assertion.id, assertion.title]));
 
   return {
     checksRun: recentRuns.length,
@@ -55,6 +69,7 @@ export function buildCommandCenterKpiSummary({
     recommendedFixes,
     passRate,
     monitoredAssertions: assertions.filter((assertion) => assertion.status === "active").length,
+    needsAttention: selectNeedsAttentionFindings(activeFindings, assertionTitles),
     hasActivity: assertions.length > 0 || findings.length > 0 || terminalRuns.length > 0,
     trends: [
       {
@@ -77,6 +92,33 @@ export function buildCommandCenterKpiSummary({
       },
     ],
   };
+}
+
+export function selectNeedsAttentionFindings(
+  findings: readonly RadarFinding[],
+  assertionTitles: ReadonlyMap<string, string>,
+  limit = 5,
+): CommandCenterNeedsAttentionItem[] {
+  return [...findings]
+    .filter((finding) => (activeFindingStatuses as readonly FindingStatus[]).includes(finding.status))
+    .sort((a, b) => (
+      severityRank(a.severity) - severityRank(b.severity)
+      || statusRank(a.status) - statusRank(b.status)
+      || b.confidence - a.confidence
+      || a.title.localeCompare(b.title)
+    ))
+    .slice(0, limit)
+    .map((finding) => ({
+      id: finding.id,
+      title: finding.title,
+      assertionId: finding.assertionId,
+      assertionTitle: assertionTitles.get(finding.assertionId) ?? "Assertion unavailable",
+      severity: finding.severity,
+      status: finding.status,
+      confidence: finding.confidence,
+      customerImpact: finding.customerImpact,
+      recommendedFix: finding.recommendedFix,
+    }));
 }
 
 function passRateForRuns(runs: readonly RadarEvaluationRunSummary[]) {
@@ -113,4 +155,28 @@ function passRateTone(passRate: number | null): CommandCenterTrend["tone"] {
   if (passRate >= 95) return "pass";
   if (passRate >= 80) return "warning";
   return "fail";
+}
+
+function severityRank(severity: RadarFinding["severity"]) {
+  const ranks: Record<RadarFinding["severity"], number> = {
+    critical: 0,
+    high: 1,
+    medium: 2,
+    low: 3,
+  };
+
+  return ranks[severity];
+}
+
+function statusRank(status: RadarFinding["status"]) {
+  const ranks: Record<RadarFinding["status"], number> = {
+    open: 0,
+    investigating: 1,
+    fixed: 2,
+    resolved: 3,
+    ignored: 4,
+    false_positive: 5,
+  };
+
+  return ranks[status];
 }
