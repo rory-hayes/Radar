@@ -138,7 +138,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 | [RAD-087](tasks/phase-8-dashboard-reports-alerts/rad-087-implement-email-notifications-with-resend.md) | Implement email notifications with Resend | P1 | Done | Send transactional notifications for critical findings, weekly report availability, failed source sync, and invited workspace users. |
 | [RAD-088](tasks/phase-8-dashboard-reports-alerts/rad-088-implement-slack-webhook-alerts.md) | Implement Slack webhook alerts | P1 | Done | Add optional Slack incoming webhook notifications for critical findings and daily summary without building full Slack OAuth yet. |
 | [RAD-089](tasks/phase-8-dashboard-reports-alerts/rad-089-add-product-analytics-and-event-taxonomy.md) | Add product analytics and event taxonomy | P1 | Done | Track key product events with PostHog or equivalent, including source added, assertion approved, run completed, finding opened, fix rerun, and report viewed. |
-| [RAD-090](tasks/phase-8-dashboard-reports-alerts/rad-090-e2e-gate-9-executive-dashboard-and-report-flow.md) | E2E Gate 9 — Executive dashboard and report flow | P1 | Backlog | Run E2E coverage from source/assertion/run/finding through Command Center summary, alert generation, and weekly report creation. |
+| [RAD-090](tasks/phase-8-dashboard-reports-alerts/rad-090-e2e-gate-9-executive-dashboard-and-report-flow.md) | E2E Gate 9 — Executive dashboard and report flow | P1 | Done | Run E2E coverage from source/assertion/run/finding through Command Center summary, alert generation, and weekly report creation. |
 ## Phase 9 — Production Readiness
 
 | ID | Task | Priority | Status | Description |
