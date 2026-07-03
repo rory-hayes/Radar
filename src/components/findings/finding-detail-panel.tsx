@@ -12,6 +12,7 @@ import {
   StatusBadge,
   type StatusTone,
 } from "@/components/radar";
+import { FindingLifecycleForm } from "@/components/findings/finding-lifecycle-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,14 +32,16 @@ import type {
 } from "@/lib/findings/schema";
 import type { RadarFindingActivity } from "@/lib/repositories";
 import type { FindingListItem } from "@/components/findings/finding-inbox";
+import { allowedFindingStatusTargets } from "@/lib/findings/lifecycle-workflow";
 
 export type FindingDetailPanelProps = {
   finding?: FindingListItem;
   evidence: readonly RadarFindingEvidence[];
   activity: readonly RadarFindingActivity[];
+  canResolve: boolean;
 };
 
-export function FindingDetailPanel({ finding, evidence, activity }: FindingDetailPanelProps) {
+export function FindingDetailPanel({ finding, evidence, activity, canResolve }: FindingDetailPanelProps) {
   if (!finding) {
     return (
       <EmptyState
@@ -83,6 +86,13 @@ export function FindingDetailPanel({ finding, evidence, activity }: FindingDetai
           </Button>
         </CardFooter>
       </Card>
+
+      <FindingLifecycleForm
+        findingId={finding.id}
+        currentStatus={finding.status}
+        allowedStatuses={allowedFindingStatusTargets(finding.status)}
+        canResolve={canResolve}
+      />
 
       <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
         <CardHeader>

@@ -114,6 +114,14 @@ export type RadarFindingActivity = {
   createdAt: string;
 };
 
+export type FindingStatusUpdateInput = {
+  status: FindingStatus;
+  resolvedAt?: string;
+  resolvedByUserId?: string;
+  resolutionSummary?: string;
+  clearResolution?: boolean;
+};
+
 const findingSelect =
   "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key, metadata";
 
@@ -241,12 +249,30 @@ export async function updateFindingStatus(
   client: RadarRepositoryClient,
   workspaceId: string,
   findingId: string,
-  status: FindingStatus,
+  input: FindingStatusUpdateInput,
 ) {
-  const parsedInput = findingStatusUpdateRequestSchema.parse({ findingId, status });
+  const parsedInput = findingStatusUpdateRequestSchema.parse({ findingId, ...input });
+  const resolutionStatus = parsedInput.status === "resolved" || parsedInput.status === "false_positive";
+  const resolutionFields = resolutionStatus
+    ? {
+        resolved_at: parsedInput.resolvedAt,
+        resolved_by_user_id: parsedInput.resolvedByUserId,
+        resolution_summary: parsedInput.resolutionSummary,
+      }
+    : parsedInput.clearResolution
+      ? {
+          resolved_at: null,
+          resolved_by_user_id: null,
+          resolution_summary: null,
+          ignored_until: null,
+        }
+      : {};
   const { data, error } = await client
     .from("findings")
-    .update({ status: parsedInput.status })
+    .update({
+      status: parsedInput.status,
+      ...resolutionFields,
+    })
     .eq("workspace_id", workspaceId)
     .eq("id", parsedInput.findingId)
     .select(findingSelect)

@@ -237,6 +237,10 @@ export const findingCreateRequestSchema = findingSchema;
 export const findingStatusUpdateRequestSchema = z.object({
   findingId: radarIdSchema,
   status: z.enum(findingStatuses),
+  resolvedAt: radarIsoDateTimeSchema.optional(),
+  resolvedByUserId: radarIdSchema.optional(),
+  resolutionSummary: z.string().trim().max(2000).optional(),
+  clearResolution: z.boolean().default(false),
 });
 export const findingEvidenceCreateRequestSchema = findingEvidenceSchema;
 export const findingAssignmentCreateRequestSchema = findingAssignmentSchema;

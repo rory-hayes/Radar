@@ -23,6 +23,7 @@ import {
 import { getAppRouteByHref } from "@/lib/radar-routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveWorkspace } from "@/lib/workspaces/server";
+import { membershipCan } from "@/lib/workspaces/permissions";
 
 const route = getAppRouteByHref("/findings");
 const pageSize = 10;
@@ -107,6 +108,7 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
           finding={selectedFinding}
           evidence={selectedDetail.evidence}
           activity={selectedDetail.activity}
+          canResolve={membershipCan(membership, "finding:resolve")}
         />
       </div>
     </FindingsPageShell>

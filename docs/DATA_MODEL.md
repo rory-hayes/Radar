@@ -113,6 +113,8 @@ RAD-075 records severity-impact metadata on findings, including model version, i
 
 RAD-076 stores recommended-fix generator metadata on findings, including generator version, guardrail state, inferred failure type, evidence counts, bounded rationale, and the known assertion owner when present. The product-facing `recommended_fix` field remains concise and business-readable while the metadata explains which captured evidence and runner output grounded the recommendation.
 
+RAD-077 records finding lifecycle transitions through status updates plus `finding_activity` rows. Resolved and false-positive findings must write `resolved_at`, `resolved_by_user_id`, and `resolution_summary` so the resolution state remains explainable; reopening or moving back to active work clears stale resolution fields. Lifecycle changes also create audit events for workspace accountability.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.
