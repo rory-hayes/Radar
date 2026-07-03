@@ -10,7 +10,12 @@ import {
   type AssertionPriority,
   type RunnerType,
 } from "@/lib/assertions/schema";
-import { serverEnv } from "@/lib/env/server";
+import {
+  createOpenAIJsonProvider,
+  OpenAIResponsesError,
+  parseOpenAIJsonPayload,
+} from "@/lib/llm/openai-responses";
+import { createRadarLlmPromptContract } from "@/lib/llm/prompt-contracts";
 import type { RadarSource } from "@/lib/sources/schema";
 
 export const defaultAssertionSuggestionModel = "gpt-5.2";
@@ -35,6 +40,11 @@ export type SuggestedAssertionDraft = {
 
 export type AssertionSuggestionProvider = {
   model: string;
+  prompt: {
+    id: string;
+    version: string;
+    task: "generation";
+  };
   generate(input: AssertionSuggestionInput): Promise<SuggestedAssertionDraft[]>;
 };
 
@@ -65,81 +75,43 @@ const suggestionsResponseSchema = z.object({
   suggestions: z.array(suggestedAssertionDraftSchema).min(1).max(5),
 });
 
-const openAIResponseSchema = z.object({
-  output_text: z.string().optional(),
-  output: z
-    .array(
-      z.object({
-        type: z.string(),
-        content: z
-          .array(
-            z.object({
-              type: z.string(),
-              text: z.string().optional(),
-            }),
-          )
-          .optional(),
-      }),
-    )
-    .optional(),
-});
-
 export function createOpenAIAssertionSuggestionProvider(
   options: OpenAIAssertionSuggestionProviderOptions = {},
 ): AssertionSuggestionProvider {
-  const apiKey = options.apiKey ?? serverEnv.OPENAI_API_KEY;
-  const model = options.model ?? defaultAssertionSuggestionModel;
-  const fetcher = options.fetcher ?? fetch;
-
-  if (!apiKey) {
-    throw new AssertionSuggestionError("OpenAI assertion suggestions are not configured.");
-  }
+  const provider = createAssertionJsonProvider(options);
+  const promptContract = assertionSuggestionPromptContract();
 
   return {
-    model,
+    model: provider.model,
+    prompt: {
+      id: promptContract.id,
+      version: promptContract.version,
+      task: "generation",
+    },
     async generate(input) {
       const boundedInput = buildSuggestionPrompt(input);
-      const response = await fetcher("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          instructions:
-            "You generate Radar customer-facing business verification assertions. Use only the supplied source context. Return reviewable draft assertions, never active assertions. Do not invent unavailable systems, credentials, or integrations.",
+
+      try {
+        const result = await provider.generateJson({
+          contract: promptContract,
           input: boundedInput,
-          max_output_tokens: 1800,
-          text: {
-            format: {
-              type: "json_schema",
-              name: "radar_assertion_suggestions",
-              strict: true,
-              schema: suggestionJsonSchema,
-            },
-          },
-        }),
-      });
+          responseSchema: suggestionsResponseSchema,
+        });
 
-      if (!response.ok) {
-        throw new AssertionSuggestionError(`OpenAI assertion suggestion request failed with status ${response.status}.`);
+        return result.data.suggestions;
+      } catch (error) {
+        if (error instanceof OpenAIResponsesError) {
+          throw new AssertionSuggestionError(error.message);
+        }
+
+        throw error;
       }
-
-      return parseSuggestionResponse(await response.json());
     },
   };
 }
 
 export function parseSuggestionResponse(payload: unknown) {
-  const parsedPayload = openAIResponseSchema.parse(payload);
-  const text = parsedPayload.output_text ?? outputTextFromResponse(parsedPayload.output ?? []);
-
-  if (!text) {
-    throw new AssertionSuggestionError("OpenAI assertion suggestion response did not include text output.");
-  }
-
-  return suggestionsResponseSchema.parse(JSON.parse(text)).suggestions;
+  return parseOpenAIJsonPayload(payload, suggestionsResponseSchema).suggestions;
 }
 
 export function buildSuggestionPrompt(input: AssertionSuggestionInput) {
@@ -168,14 +140,6 @@ export function buildSuggestionPrompt(input: AssertionSuggestionInput) {
       "Status is omitted because generated assertions are saved as draft by the server.",
     ],
   });
-}
-
-function outputTextFromResponse(output: NonNullable<z.infer<typeof openAIResponseSchema>["output"]>) {
-  return output
-    .flatMap((item) => item.content ?? [])
-    .filter((content) => content.type === "output_text" && typeof content.text === "string")
-    .map((content) => content.text)
-    .join("");
 }
 
 const suggestionJsonSchema = {
@@ -218,6 +182,38 @@ const suggestionJsonSchema = {
     },
   },
 } as const;
+
+function createAssertionJsonProvider(options: OpenAIAssertionSuggestionProviderOptions) {
+  try {
+    return createOpenAIJsonProvider({
+      apiKey: options.apiKey,
+      model: options.model ?? defaultAssertionSuggestionModel,
+      fetcher: options.fetcher,
+    });
+  } catch (error) {
+    if (error instanceof OpenAIResponsesError) {
+      throw new AssertionSuggestionError("OpenAI assertion suggestions are not configured.");
+    }
+
+    throw error;
+  }
+}
+
+function assertionSuggestionPromptContract() {
+  return createRadarLlmPromptContract({
+    id: "assertion_suggestions",
+    version: "v1",
+    task: "generation",
+    instructions:
+      "You generate Radar customer-facing business verification assertions. Use only the supplied source context. Return reviewable draft assertions, never active assertions. Do not invent unavailable systems, credentials, or integrations.",
+    responseFormat: {
+      name: "radar_assertion_suggestions",
+      strict: true,
+      jsonSchema: suggestionJsonSchema,
+    },
+    maxOutputTokens: 1800,
+  });
+}
 
 export class AssertionSuggestionError extends Error {
   constructor(message: string) {

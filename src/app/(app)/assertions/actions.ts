@@ -467,6 +467,8 @@ export async function generateSuggestedTestCasesAction(
           metadata: {
             generatedBy: "radar_ai_test_case_suggestion",
             model: provider.model,
+            promptId: provider.prompt.id,
+            promptVersion: provider.prompt.version,
             sourceIds: linkedSources.map((source) => source.id),
             coverageNotes: suggestion.coverageNotes,
           },
@@ -626,6 +628,8 @@ export async function generateSuggestedAssertionDraftsAction(
           metadata: {
             generatedBy: "radar_ai_suggestion",
             model: provider.model,
+            promptId: provider.prompt.id,
+            promptVersion: provider.prompt.version,
             sourceIds: linkedSourceIds,
             reasoning: suggestion.reasoning,
           },

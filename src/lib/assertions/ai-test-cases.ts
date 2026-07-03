@@ -8,7 +8,12 @@ import {
   type RadarTestCase,
   type TestCaseType,
 } from "@/lib/assertions/schema";
-import { serverEnv } from "@/lib/env/server";
+import {
+  createOpenAIJsonProvider,
+  OpenAIResponsesError,
+  parseOpenAIJsonPayload,
+} from "@/lib/llm/openai-responses";
+import { createRadarLlmPromptContract } from "@/lib/llm/prompt-contracts";
 import type { RadarSource } from "@/lib/sources/schema";
 
 export const defaultTestCaseSuggestionModel = "gpt-5.2";
@@ -37,6 +42,11 @@ export type TestCaseSuggestionInput = {
 
 export type TestCaseSuggestionProvider = {
   model: string;
+  prompt: {
+    id: string;
+    version: string;
+    task: "generation";
+  };
   generate(input: TestCaseSuggestionInput): Promise<SuggestedTestCaseDraft[]>;
 };
 
@@ -58,80 +68,41 @@ const suggestionsResponseSchema = z.object({
   testCases: z.array(suggestedTestCaseDraftSchema).min(1).max(5),
 });
 
-const openAIResponseSchema = z.object({
-  output_text: z.string().optional(),
-  output: z
-    .array(
-      z.object({
-        type: z.string(),
-        content: z
-          .array(
-            z.object({
-              type: z.string(),
-              text: z.string().optional(),
-            }),
-          )
-          .optional(),
-      }),
-    )
-    .optional(),
-});
-
 export function createOpenAITestCaseSuggestionProvider(
   options: OpenAITestCaseSuggestionProviderOptions = {},
 ): TestCaseSuggestionProvider {
-  const apiKey = options.apiKey ?? serverEnv.OPENAI_API_KEY;
-  const model = options.model ?? defaultTestCaseSuggestionModel;
-  const fetcher = options.fetcher ?? fetch;
-
-  if (!apiKey) {
-    throw new TestCaseSuggestionError("OpenAI test case suggestions are not configured.");
-  }
+  const provider = createTestCaseJsonProvider(options);
+  const promptContract = testCaseSuggestionPromptContract();
 
   return {
-    model,
+    model: provider.model,
+    prompt: {
+      id: promptContract.id,
+      version: promptContract.version,
+      task: "generation",
+    },
     async generate(input) {
-      const response = await fetcher("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          instructions:
-            "You generate Radar test cases for customer-facing business verification. Use only the supplied assertion and source context. Return draft, user-editable test cases. Do not invent unavailable systems, credentials, policies, or integrations.",
+      try {
+        const result = await provider.generateJson({
+          contract: promptContract,
           input: buildTestCaseSuggestionPrompt(input),
-          max_output_tokens: 1800,
-          text: {
-            format: {
-              type: "json_schema",
-              name: "radar_test_case_suggestions",
-              strict: true,
-              schema: testCaseSuggestionJsonSchema,
-            },
-          },
-        }),
-      });
+          responseSchema: suggestionsResponseSchema,
+        });
 
-      if (!response.ok) {
-        throw new TestCaseSuggestionError(`OpenAI test case suggestion request failed with status ${response.status}.`);
+        return result.data.testCases;
+      } catch (error) {
+        if (error instanceof OpenAIResponsesError) {
+          throw new TestCaseSuggestionError(error.message);
+        }
+
+        throw error;
       }
-
-      return parseTestCaseSuggestionResponse(await response.json());
     },
   };
 }
 
 export function parseTestCaseSuggestionResponse(payload: unknown) {
-  const parsedPayload = openAIResponseSchema.parse(payload);
-  const text = parsedPayload.output_text ?? outputTextFromResponse(parsedPayload.output ?? []);
-
-  if (!text) {
-    throw new TestCaseSuggestionError("OpenAI test case suggestion response did not include text output.");
-  }
-
-  return suggestionsResponseSchema.parse(JSON.parse(text)).testCases;
+  return parseOpenAIJsonPayload(payload, suggestionsResponseSchema).testCases;
 }
 
 export function buildTestCaseSuggestionPrompt(input: TestCaseSuggestionInput) {
@@ -168,14 +139,6 @@ export function buildTestCaseSuggestionPrompt(input: TestCaseSuggestionInput) {
   });
 }
 
-function outputTextFromResponse(output: NonNullable<z.infer<typeof openAIResponseSchema>["output"]>) {
-  return output
-    .flatMap((item) => item.content ?? [])
-    .filter((content) => content.type === "output_text" && typeof content.text === "string")
-    .map((content) => content.text)
-    .join("");
-}
-
 const testCaseSuggestionJsonSchema = {
   type: "object",
   additionalProperties: false,
@@ -200,6 +163,38 @@ const testCaseSuggestionJsonSchema = {
     },
   },
 } as const;
+
+function createTestCaseJsonProvider(options: OpenAITestCaseSuggestionProviderOptions) {
+  try {
+    return createOpenAIJsonProvider({
+      apiKey: options.apiKey,
+      model: options.model ?? defaultTestCaseSuggestionModel,
+      fetcher: options.fetcher,
+    });
+  } catch (error) {
+    if (error instanceof OpenAIResponsesError) {
+      throw new TestCaseSuggestionError("OpenAI test case suggestions are not configured.");
+    }
+
+    throw error;
+  }
+}
+
+function testCaseSuggestionPromptContract() {
+  return createRadarLlmPromptContract({
+    id: "test_case_suggestions",
+    version: "v1",
+    task: "generation",
+    instructions:
+      "You generate Radar test cases for customer-facing business verification. Use only the supplied assertion and source context. Return draft, user-editable test cases. Do not invent unavailable systems, credentials, policies, or integrations.",
+    responseFormat: {
+      name: "radar_test_case_suggestions",
+      strict: true,
+      jsonSchema: testCaseSuggestionJsonSchema,
+    },
+    maxOutputTokens: 1800,
+  });
+}
 
 export class TestCaseSuggestionError extends Error {
   constructor(message: string) {

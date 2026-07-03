@@ -15,12 +15,15 @@ test("RAD-048 adds a server-only OpenAI test case suggestion provider", async ()
   await fileExists("src/lib/assertions/ai-test-cases.ts");
 
   const provider = await readWorkspaceFile("src/lib/assertions/ai-test-cases.ts");
+  const llmProvider = await readWorkspaceFile("src/lib/llm/openai-responses.ts");
 
   assert.match(provider, /server-only/);
   assert.match(provider, /defaultTestCaseSuggestionModel = "gpt-5\.2"/);
-  assert.match(provider, /https:\/\/api\.openai\.com\/v1\/responses/);
-  assert.match(provider, /Authorization: `Bearer \$\{apiKey\}`/);
-  assert.match(provider, /type: "json_schema"/);
+  assert.match(provider, /createOpenAIJsonProvider/);
+  assert.match(provider, /version: promptContract\.version/);
+  assert.match(llmProvider, /https:\/\/api\.openai\.com\/v1\/responses/);
+  assert.match(llmProvider, /Authorization: `Bearer \$\{apiKey\}`/);
+  assert.match(llmProvider, /type: "json_schema"/);
   assert.match(provider, /coverageNotes/);
   assert.match(provider, /parseTestCaseSuggestionResponse/);
   assert.match(provider, /buildTestCaseSuggestionPrompt/);
