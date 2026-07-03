@@ -7,14 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { type RadarAuthenticatedUser } from "@/lib/auth/session";
-import { type RadarWorkspace } from "@/lib/workspaces/schema";
+import { type RadarWorkspaceMembership } from "@/lib/workspaces/schema";
 
 type TopBarProps = {
   user: RadarAuthenticatedUser;
-  workspace: RadarWorkspace;
+  membership: RadarWorkspaceMembership;
 };
 
-export function TopBar({ user, workspace }: TopBarProps) {
+export function TopBar({ user, membership }: TopBarProps) {
+  const roleLabel = membership.role[0].toUpperCase() + membership.role.slice(1);
+
   return (
     <header className="sticky top-0 flex h-14 shrink-0 items-center gap-3 border-b border-border/80 bg-background/95 px-4 backdrop-blur md:px-6">
       <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
@@ -33,7 +35,8 @@ export function TopBar({ user, workspace }: TopBarProps) {
         <StatusBadge label="Local" className="hidden md:inline-flex">
           <ShieldCheckIcon data-icon="inline-start" />
         </StatusBadge>
-        <StatusBadge label={workspace.name} className="hidden lg:inline-flex" />
+        <StatusBadge label={membership.workspace.name} className="hidden lg:inline-flex" />
+        <StatusBadge label={roleLabel} className="hidden xl:inline-flex" />
       </div>
 
       <div className="flex min-w-0 items-center gap-2">

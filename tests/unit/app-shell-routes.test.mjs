@@ -21,7 +21,7 @@ test("RAD-007 creates public and app route groups with shell-wrapped app routes"
   const appLayout = await readFile("src/app/(app)/layout.tsx", "utf8");
   assert.match(appLayout, /requireAuthenticatedUser\(\)/);
   assert.match(appLayout, /requireActiveWorkspace\(\)/);
-  assert.match(appLayout, /<AppShell user=\{user\} workspace=\{membership\.workspace\}>/);
+  assert.match(appLayout, /<AppShell user=\{user\} membership=\{membership\}>/);
 });
 
 test("RAD-007 keeps primary navigation locked to the four V1 pages", async () => {
@@ -57,7 +57,7 @@ test("RAD-007 exposes stable shell component boundaries", async () => {
 
   assert.match(appShell, /<SidebarProvider>/);
   assert.match(appShell, /<SidebarNav \/>/);
-  assert.match(appShell, /<TopBar user=\{user\} workspace=\{workspace\} \/>/);
+  assert.match(appShell, /<TopBar user=\{user\} membership=\{membership\} \/>/);
 });
 
 test("RAD-010 closes the mobile sidebar after route navigation", async () => {

@@ -24,6 +24,16 @@ Radar will handle sensitive customer docs, endpoints, support answers, runner cr
 - Never create a finding in another workspace.
 - Never trust client-provided workspace_id without server-side membership verification.
 
+## Workspace RBAC
+
+RAD-013 defines the first application permission matrix:
+
+- Admin: read workspace data, manage workspace settings and members, create/edit/delete assertions and sources, rerun checks, and resolve findings.
+- Editor: read workspace data, create/edit assertions and sources, rerun checks, and resolve findings.
+- Viewer: read workspace data only.
+
+Server actions and route handlers must call `requireWorkspacePermission(...)` before mutating workspace-owned data. UI controls should use `WorkspacePermissionGate` or the same permission matrix to hide or explain unavailable actions, but client-side checks are never the source of truth.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.

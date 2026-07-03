@@ -69,7 +69,7 @@ test("RAD-012 adds an authenticated first-workspace creation flow", async () => 
   const redirects = await readWorkspaceFile("src/lib/auth/redirects.ts");
 
   assert.match(appLayout, /requireActiveWorkspace\(\)/);
-  assert.match(appLayout, /workspace=\{membership\.workspace\}/);
+  assert.match(appLayout, /membership=\{membership\}/);
   assert.match(workspaceLayout, /requireAuthenticatedUser\(\)/);
   assert.match(action, /createWorkspaceForCurrentUser/);
   assert.match(action, /redirect\("\/command-center"\)/);

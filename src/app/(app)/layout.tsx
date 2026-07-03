@@ -10,9 +10,5 @@ export default async function AppGroupLayout({
   const user = await requireAuthenticatedUser();
   const membership = await requireActiveWorkspace();
 
-  return (
-    <AppShell user={user} workspace={membership.workspace}>
-      {children}
-    </AppShell>
-  );
+  return <AppShell user={user} membership={membership}>{children}</AppShell>;
 }
