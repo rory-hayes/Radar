@@ -1,0 +1,23 @@
+# Radar Codex MCP configuration
+#
+# SECURITY:
+# - Do not hardcode a shadcn.io token in this file.
+# - Set SHADCNIO_BEARER in the Codex/local environment instead.
+# - Example local shell setup:
+#     export SHADCNIO_TOKEN="paste-your-token-here"
+#     export SHADCNIO_BEARER="Bearer $SHADCNIO_TOKEN"
+#
+# Codex loads project-scoped .codex/config.toml only from trusted projects.
+# After editing config or environment variables, restart the Codex session and run /mcp.
+
+[mcp_servers.shadcnio]
+url = "https://www.shadcn.io/api/mcp"
+env_http_headers = { "Authorization" = "SHADCNIO_BEARER" }
+startup_timeout_sec = 20
+
+# Optional fallback/secondary official shadcn/ui MCP server.
+# This provides official shadcn/ui components/blocks via npx shadcn@latest mcp.
+[mcp_servers.shadcn]
+command = "npx"
+args = ["shadcn@latest", "mcp"]
+startup_timeout_sec = 20

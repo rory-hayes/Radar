@@ -1,0 +1,137 @@
+# Markdown Files Index
+
+This index lists every markdown file included in the Radar Codex Build Pack.
+
+- `.github/pull_request_template.md` — Pull Request
+- `AGENTS.md` — AGENTS.md — Radar Engineering Rules for Codex
+- `MD_FILES_INDEX.md` — Markdown Files Index
+- `README.md` — Radar Codex Build Pack
+- `TASK_NAMES_AND_DESCRIPTIONS.md` — Radar Task Names and Descriptions
+- `docs/ARCHITECTURE.md` — Radar Architecture
+- `docs/BOOTSTRAP_STACK.md` — Bootstrap Stack
+- `docs/DATA_MODEL.md` — Data Model
+- `docs/DECISIONS.md` — Product and Architecture Decisions
+- `docs/DEPLOYMENT_AND_ENVIRONMENTS.md` — Deployment and Environments
+- `docs/EVAL_ENGINE_SPEC.md` — Evaluation Engine Specification
+- `docs/MVP_DEMO_SCRIPT.md` — MVP Demo Script
+- `docs/OPERATING_MODEL.md` — Operating Model
+- `docs/PRD.md` — Radar PRD
+- `docs/PRODUCT_SCOPE.md` — Product Scope
+- `docs/RUNNERS_SPEC.md` — Runners Specification
+- `docs/SECURITY.md` — Security Requirements
+- `docs/SETUP_FOR_CODEX_UPLOAD.md` — Setup for Codex Upload
+- `docs/SHADCN_MCP_AND_BLOCKS.md` — Shadcn MCP and Blocks Plan
+- `docs/SOURCES_AND_EVIDENCE.md` — Sources and Evidence
+- `docs/TEST_STRATEGY.md` — Test Strategy
+- `docs/UI_BLOCKS_IMPLEMENTATION_PLAN.md` — UI Blocks Implementation Plan
+- `docs/UX_SYSTEM.md` — UX System
+- `tasks/CODEX_WORKFLOW.md` — Codex Workflow
+- `tasks/E2E_TEST_PLAN.md` — E2E Test Plan
+- `tasks/KICKOFF_GOAL_PROMPT.md` — Codex `/goal` Kickoff Prompt
+- `tasks/KICKOFF_GOAL_PROMPT_WITH_SHADCN_MCP.md` — Codex `/goal` Kickoff Prompt With Shadcn MCP
+- `tasks/MCP_BLOCKS_USAGE_CHECKLIST.md` — MCP Blocks Usage Checklist
+- `tasks/MILESTONES.md` — Milestones
+- `tasks/QUALITY_GATES.md` — Quality Gates
+- `tasks/RISK_REGISTER.md` — Risk Register
+- `tasks/TASKS.md` — Radar Build Board
+- `tasks/TICKET_TEMPLATE.md` — RAD-XXX — Task title
+- `tasks/phase-0-foundation/rad-001-initialize-repo-and-baseline-next-js-application.md` — RAD-001 — Initialize repo and baseline Next.js application
+- `tasks/phase-0-foundation/rad-002-add-agents-md-and-engineering-operating-rules.md` — RAD-002 — Add AGENTS.md and engineering operating rules
+- `tasks/phase-0-foundation/rad-003-install-and-configure-core-frontend-stack.md` — RAD-003 — Install and configure core frontend stack
+- `tasks/phase-0-foundation/rad-004-create-typed-environment-and-secrets-validation.md` — RAD-004 — Create typed environment and secrets validation
+- `tasks/phase-0-foundation/rad-005-set-up-ci-quality-baseline.md` — RAD-005 — Set up CI quality baseline
+- `tasks/phase-0-foundation/rad-006-add-supabase-local-development-and-migration-pipeline.md` — RAD-006 — Add Supabase local development and migration pipeline
+- `tasks/phase-0-foundation/rad-007-create-radar-app-route-structure-and-shell.md` — RAD-007 — Create Radar app route structure and shell
+- `tasks/phase-0-foundation/rad-008-implement-enterprise-design-tokens-and-base-components.md` — RAD-008 — Implement enterprise design tokens and base components
+- `tasks/phase-0-foundation/rad-009-create-demo-data-policy-and-local-seed-contract.md` — RAD-009 — Create demo data policy and local seed contract
+- `tasks/phase-0-foundation/rad-010-e2e-gate-1-foundation-smoke-test.md` — RAD-010 — E2E Gate 1 — Foundation smoke test
+- `tasks/phase-1-auth-workspaces/rad-011-implement-supabase-authentication.md` — RAD-011 — Implement Supabase authentication
+- `tasks/phase-1-auth-workspaces/rad-012-create-workspace-and-membership-model.md` — RAD-012 — Create workspace and membership model
+- `tasks/phase-1-auth-workspaces/rad-013-implement-rbac-permission-guards.md` — RAD-013 — Implement RBAC permission guards
+- `tasks/phase-1-auth-workspaces/rad-014-build-minimal-authenticated-navigation.md` — RAD-014 — Build minimal authenticated navigation
+- `tasks/phase-1-auth-workspaces/rad-015-add-workspace-settings-basics.md` — RAD-015 — Add workspace settings basics
+- `tasks/phase-1-auth-workspaces/rad-016-add-audit-log-infrastructure.md` — RAD-016 — Add audit log infrastructure
+- `tasks/phase-1-auth-workspaces/rad-017-create-server-side-api-and-action-guardrails.md` — RAD-017 — Create server-side API and action guardrails
+- `tasks/phase-1-auth-workspaces/rad-018-implement-loading-empty-and-error-states.md` — RAD-018 — Implement loading, empty, and error states
+- `tasks/phase-1-auth-workspaces/rad-019-seed-first-demo-workspace-and-users.md` — RAD-019 — Seed first demo workspace and users
+- `tasks/phase-1-auth-workspaces/rad-020-e2e-gate-2-auth-and-workspace-isolation.md` — RAD-020 — E2E Gate 2 — Auth and workspace isolation
+- `tasks/phase-2-data-model/rad-021-create-sources-documents-and-chunks-schema.md` — RAD-021 — Create sources, documents, and chunks schema
+- `tasks/phase-2-data-model/rad-022-create-assertions-and-test-cases-schema.md` — RAD-022 — Create assertions and test cases schema
+- `tasks/phase-2-data-model/rad-023-create-evaluation-runs-and-result-schema.md` — RAD-023 — Create evaluation runs and result schema
+- `tasks/phase-2-data-model/rad-024-create-findings-and-evidence-schema.md` — RAD-024 — Create findings and evidence schema
+- `tasks/phase-2-data-model/rad-025-implement-type-safe-repository-layer.md` — RAD-025 — Implement type-safe repository layer
+- `tasks/phase-2-data-model/rad-026-create-shared-zod-validation-schemas.md` — RAD-026 — Create shared Zod validation schemas
+- `tasks/phase-2-data-model/rad-027-implement-supabase-rls-policies.md` — RAD-027 — Implement Supabase RLS policies
+- `tasks/phase-2-data-model/rad-028-configure-storage-buckets-for-evidence-artifacts.md` — RAD-028 — Configure storage buckets for evidence artifacts
+- `tasks/phase-2-data-model/rad-029-create-migration-and-seed-test-harness.md` — RAD-029 — Create migration and seed test harness
+- `tasks/phase-2-data-model/rad-030-e2e-gate-3-core-data-model-crud-and-isolation.md` — RAD-030 — E2E Gate 3 — Core data model CRUD and isolation
+- `tasks/phase-3-sources-evidence/rad-031-build-sources-page-list-and-source-cards.md` — RAD-031 — Build Sources page list and source cards
+- `tasks/phase-3-sources-evidence/rad-032-build-source-create-and-edit-flow.md` — RAD-032 — Build source create and edit flow
+- `tasks/phase-3-sources-evidence/rad-033-implement-url-crawler-and-text-extraction.md` — RAD-033 — Implement URL crawler and text extraction
+- `tasks/phase-3-sources-evidence/rad-034-implement-file-upload-and-text-extraction.md` — RAD-034 — Implement file upload and text extraction
+- `tasks/phase-3-sources-evidence/rad-035-implement-source-sync-jobs-and-versioning.md` — RAD-035 — Implement source sync jobs and versioning
+- `tasks/phase-3-sources-evidence/rad-036-build-chunking-and-embedding-pipeline.md` — RAD-036 — Build chunking and embedding pipeline
+- `tasks/phase-3-sources-evidence/rad-037-create-evidence-retrieval-api.md` — RAD-037 — Create evidence retrieval API
+- `tasks/phase-3-sources-evidence/rad-038-build-source-detail-page.md` — RAD-038 — Build source detail page
+- `tasks/phase-3-sources-evidence/rad-039-implement-affected-assertion-detection.md` — RAD-039 — Implement affected assertion detection
+- `tasks/phase-3-sources-evidence/rad-040-e2e-gate-4-source-ingestion-to-evidence-retrieval.md` — RAD-040 — E2E Gate 4 — Source ingestion to evidence retrieval
+- `tasks/phase-4-assertions-testcases/rad-041-build-assertions-page-table-and-filters.md` — RAD-041 — Build Assertions page table and filters
+- `tasks/phase-4-assertions-testcases/rad-042-build-assertion-create-and-edit-flow.md` — RAD-042 — Build assertion create and edit flow
+- `tasks/phase-4-assertions-testcases/rad-043-build-assertion-detail-page-foundation.md` — RAD-043 — Build assertion detail page foundation
+- `tasks/phase-4-assertions-testcases/rad-044-implement-assertion-source-linking.md` — RAD-044 — Implement assertion-source linking
+- `tasks/phase-4-assertions-testcases/rad-045-create-first-assertion-packs-and-templates.md` — RAD-045 — Create first assertion packs and templates
+- `tasks/phase-4-assertions-testcases/rad-046-implement-ai-suggested-assertion-generator.md` — RAD-046 — Implement AI suggested assertion generator
+- `tasks/phase-4-assertions-testcases/rad-047-build-test-case-crud.md` — RAD-047 — Build test case CRUD
+- `tasks/phase-4-assertions-testcases/rad-048-implement-ai-test-case-generator.md` — RAD-048 — Implement AI test case generator
+- `tasks/phase-4-assertions-testcases/rad-049-implement-schedules-and-manual-triggers.md` — RAD-049 — Implement schedules and manual triggers
+- `tasks/phase-4-assertions-testcases/rad-050-e2e-gate-5-assertions-to-runnable-test-cases.md` — RAD-050 — E2E Gate 5 — Assertions to runnable test cases
+- `tasks/phase-5-eval-knowledge-runner/rad-051-create-evaluation-job-orchestration.md` — RAD-051 — Create evaluation job orchestration
+- `tasks/phase-5-eval-knowledge-runner/rad-052-implement-llm-provider-abstraction-and-prompt-contracts.md` — RAD-052 — Implement LLM provider abstraction and prompt contracts
+- `tasks/phase-5-eval-knowledge-runner/rad-053-implement-assertion-evidence-loading.md` — RAD-053 — Implement assertion evidence loading
+- `tasks/phase-5-eval-knowledge-runner/rad-054-build-target-endpoint-configuration.md` — RAD-054 — Build target endpoint configuration
+- `tasks/phase-5-eval-knowledge-runner/rad-055-implement-knowledge-runner-execution-loop.md` — RAD-055 — Implement Knowledge Runner execution loop
+- `tasks/phase-5-eval-knowledge-runner/rad-056-implement-hybrid-evaluator-rubric.md` — RAD-056 — Implement hybrid evaluator rubric
+- `tasks/phase-5-eval-knowledge-runner/rad-057-persist-test-case-results-and-scoring.md` — RAD-057 — Persist test case results and scoring
+- `tasks/phase-5-eval-knowledge-runner/rad-058-build-eval-run-history-ui.md` — RAD-058 — Build eval run history UI
+- `tasks/phase-5-eval-knowledge-runner/rad-059-implement-manual-rerun-action.md` — RAD-059 — Implement manual rerun action
+- `tasks/phase-5-eval-knowledge-runner/rad-060-e2e-gate-6-knowledge-eval-to-traceable-result.md` — RAD-060 — E2E Gate 6 — Knowledge eval to traceable result
+- `tasks/phase-6-journey-integration-runners/rad-061-create-shared-runner-interface.md` — RAD-061 — Create shared runner interface
+- `tasks/phase-6-journey-integration-runners/rad-062-implement-playwright-journey-runner-foundation.md` — RAD-062 — Implement Playwright Journey Runner foundation
+- `tasks/phase-6-journey-integration-runners/rad-063-create-journey-step-definition-schema.md` — RAD-063 — Create journey step definition schema
+- `tasks/phase-6-journey-integration-runners/rad-064-build-trial-onboarding-journey-pack.md` — RAD-064 — Build Trial & Onboarding journey pack
+- `tasks/phase-6-journey-integration-runners/rad-065-add-email-receipt-verification-utility.md` — RAD-065 — Add email receipt verification utility
+- `tasks/phase-6-journey-integration-runners/rad-066-implement-integration-runner-foundation.md` — RAD-066 — Implement Integration Runner foundation
+- `tasks/phase-6-journey-integration-runners/rad-067-build-generic-webhook-and-api-assertion-checks.md` — RAD-067 — Build generic webhook and API assertion checks
+- `tasks/phase-6-journey-integration-runners/rad-068-create-minimal-handoff-templates.md` — RAD-068 — Create minimal handoff templates
+- `tasks/phase-6-journey-integration-runners/rad-069-harden-runner-credential-handling.md` — RAD-069 — Harden runner credential handling
+- `tasks/phase-6-journey-integration-runners/rad-070-e2e-gate-7-runner-triad-smoke-test.md` — RAD-070 — E2E Gate 7 — Runner triad smoke test
+- `tasks/phase-7-findings-fixes/rad-071-implement-findings-creation-engine.md` — RAD-071 — Implement findings creation engine
+- `tasks/phase-7-findings-fixes/rad-072-build-findings-inbox-page.md` — RAD-072 — Build Findings inbox page
+- `tasks/phase-7-findings-fixes/rad-073-build-finding-detail-panel.md` — RAD-073 — Build finding detail panel
+- `tasks/phase-7-findings-fixes/rad-074-implement-evidence-diff-and-mismatch-highlighting.md` — RAD-074 — Implement evidence diff and mismatch highlighting
+- `tasks/phase-7-findings-fixes/rad-075-implement-severity-and-customer-impact-model.md` — RAD-075 — Implement severity and customer impact model
+- `tasks/phase-7-findings-fixes/rad-076-implement-recommended-fix-generator.md` — RAD-076 — Implement recommended fix generator
+- `tasks/phase-7-findings-fixes/rad-077-build-finding-lifecycle-workflow.md` — RAD-077 — Build finding lifecycle workflow
+- `tasks/phase-7-findings-fixes/rad-078-add-assignment-and-ownership-updates.md` — RAD-078 — Add assignment and ownership updates
+- `tasks/phase-7-findings-fixes/rad-079-implement-rerun-after-fix-and-resolution-linking.md` — RAD-079 — Implement rerun-after-fix and resolution linking
+- `tasks/phase-7-findings-fixes/rad-080-e2e-gate-8-failure-to-fix-to-resolved.md` — RAD-080 — E2E Gate 8 — Failure to fix to resolved
+- `tasks/phase-8-dashboard-reports-alerts/rad-081-build-command-center-kpi-summary.md` — RAD-081 — Build Command Center KPI summary
+- `tasks/phase-8-dashboard-reports-alerts/rad-082-build-needs-attention-panel.md` — RAD-082 — Build Needs Attention panel
+- `tasks/phase-8-dashboard-reports-alerts/rad-083-build-assertion-health-by-category.md` — RAD-083 — Build assertion health by category
+- `tasks/phase-8-dashboard-reports-alerts/rad-084-build-recent-activity-feed.md` — RAD-084 — Build recent activity feed
+- `tasks/phase-8-dashboard-reports-alerts/rad-085-implement-weekly-trust-report-generator.md` — RAD-085 — Implement weekly trust report generator
+- `tasks/phase-8-dashboard-reports-alerts/rad-086-build-report-page-and-export-scaffold.md` — RAD-086 — Build report page and export scaffold
+- `tasks/phase-8-dashboard-reports-alerts/rad-087-implement-email-notifications-with-resend.md` — RAD-087 — Implement email notifications with Resend
+- `tasks/phase-8-dashboard-reports-alerts/rad-088-implement-slack-webhook-alerts.md` — RAD-088 — Implement Slack webhook alerts
+- `tasks/phase-8-dashboard-reports-alerts/rad-089-add-product-analytics-and-event-taxonomy.md` — RAD-089 — Add product analytics and event taxonomy
+- `tasks/phase-8-dashboard-reports-alerts/rad-090-e2e-gate-9-executive-dashboard-and-report-flow.md` — RAD-090 — E2E Gate 9 — Executive dashboard and report flow
+- `tasks/phase-9-production-readiness/rad-091-implement-stripe-billing-and-plan-gates.md` — RAD-091 — Implement Stripe billing and plan gates
+- `tasks/phase-9-production-readiness/rad-092-build-onboarding-checklist-and-activation-flow.md` — RAD-092 — Build onboarding checklist and activation flow
+- `tasks/phase-9-production-readiness/rad-093-add-sentry-error-monitoring-and-release-tracking.md` — RAD-093 — Add Sentry error monitoring and release tracking
+- `tasks/phase-9-production-readiness/rad-094-add-langfuse-internal-llm-tracing.md` — RAD-094 — Add Langfuse internal LLM tracing
+- `tasks/phase-9-production-readiness/rad-095-implement-rate-limits-quotas-and-abuse-controls.md` — RAD-095 — Implement rate limits, quotas, and abuse controls
+- `tasks/phase-9-production-readiness/rad-096-run-security-hardening-and-secrets-audit.md` — RAD-096 — Run security hardening and secrets audit
+- `tasks/phase-9-production-readiness/rad-097-implement-data-deletion-export-and-retention-controls.md` — RAD-097 — Implement data deletion, export, and retention controls
+- `tasks/phase-9-production-readiness/rad-098-run-performance-and-load-testing.md` — RAD-098 — Run performance and load testing
+- `tasks/phase-9-production-readiness/rad-099-create-production-deployment-and-operations-runbook.md` — RAD-099 — Create production deployment and operations runbook
+- `tasks/phase-9-production-readiness/rad-100-e2e-gate-10-production-launch-readiness.md` — RAD-100 — E2E Gate 10 — Production launch readiness

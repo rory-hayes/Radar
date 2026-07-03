@@ -1,0 +1,156 @@
+# Radar Build Board
+
+This is the repo-native Kanban board for building Radar from zero to controlled production readiness.
+
+## Board statuses
+
+- Backlog
+- Ready
+- In Progress
+- Review
+- Done
+
+## E2E gate rule
+
+Every tenth task is an E2E quality gate. Do not start the next phase until the gate passes or the failure is explicitly documented and accepted.
+
+## Phase 0 — Foundation
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-001](tasks/phase-0-foundation/rad-001-initialize-repo-and-baseline-next-js-application.md) | Initialize repo and baseline Next.js application | P0 | Ready | Create or normalize the project foundation so Radar has a clean Next.js application structure, package scripts, TypeScript config, and predictable local development workflow. |
+| [RAD-002](tasks/phase-0-foundation/rad-002-add-agents-md-and-engineering-operating-rules.md) | Add AGENTS.md and engineering operating rules | P0 | Backlog | Add the repository-level instructions Codex must follow on every task, including scope control, no unrelated refactors, no mock production data, tests-first discipline, and status updates. |
+| [RAD-003](tasks/phase-0-foundation/rad-003-install-and-configure-core-frontend-stack.md) | Install and configure core frontend stack | P0 | Backlog | Install and configure Tailwind, shadcn/ui conventions, React Hook Form, Zod, lucide icons, class utilities, and baseline component folders. |
+| [RAD-004](tasks/phase-0-foundation/rad-004-create-typed-environment-and-secrets-validation.md) | Create typed environment and secrets validation | P0 | Backlog | Implement typed environment loading and validation so missing Supabase, OpenAI, Trigger.dev, PostHog, Sentry, Resend, and Stripe values fail safely in the correct environments. |
+| [RAD-005](tasks/phase-0-foundation/rad-005-set-up-ci-quality-baseline.md) | Set up CI quality baseline | P0 | Backlog | Add GitHub Actions or equivalent CI checks for install, lint, typecheck, unit tests, and build so every Codex PR is automatically gated. |
+| [RAD-006](tasks/phase-0-foundation/rad-006-add-supabase-local-development-and-migration-pipeline.md) | Add Supabase local development and migration pipeline | P0 | Backlog | Create Supabase project configuration, migration folder conventions, local development instructions, and database reset/seed scripts. |
+| [RAD-007](tasks/phase-0-foundation/rad-007-create-radar-app-route-structure-and-shell.md) | Create Radar app route structure and shell | P0 | Backlog | Create the authenticated app route group and public route group with placeholder pages for Command Center, Assertions, Findings, Sources, and Settings hidden behind feature flag if needed. |
+| [RAD-008](tasks/phase-0-foundation/rad-008-implement-enterprise-design-tokens-and-base-components.md) | Implement enterprise design tokens and base components | P0 | Backlog | Define Radar's serious enterprise visual system: neutral palette, typography scale, spacing, cards, tables, badges, empty states, buttons, alerts, and status chips. |
+| [RAD-009](tasks/phase-0-foundation/rad-009-create-demo-data-policy-and-local-seed-contract.md) | Create demo data policy and local seed contract | P0 | Backlog | Define how local/demo data is generated for development while ensuring production features use real database-backed data and no hardcoded product results. |
+| [RAD-010](tasks/phase-0-foundation/rad-010-e2e-gate-1-foundation-smoke-test.md) | E2E Gate 1 — Foundation smoke test | P0 | Backlog | Run an end-to-end smoke test across install, local app launch, route navigation, CI commands, and basic UI rendering to confirm the foundation is stable before product work continues. |
+## Phase 1 — Auth and Workspaces
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-011](tasks/phase-1-auth-workspaces/rad-011-implement-supabase-authentication.md) | Implement Supabase authentication | P0 | Backlog | Wire Supabase Auth into the app with sign in, sign out, session loading, route protection, and server-side auth helpers. |
+| [RAD-012](tasks/phase-1-auth-workspaces/rad-012-create-workspace-and-membership-model.md) | Create workspace and membership model | P0 | Backlog | Implement workspaces and workspace_members tables plus creation flow so Radar is multi-tenant from the beginning. |
+| [RAD-013](tasks/phase-1-auth-workspaces/rad-013-implement-rbac-permission-guards.md) | Implement RBAC permission guards | P0 | Backlog | Add Admin, Editor, and Viewer roles with server-side and UI-level permission checks for create, edit, delete, rerun, and resolve actions. |
+| [RAD-014](tasks/phase-1-auth-workspaces/rad-014-build-minimal-authenticated-navigation.md) | Build minimal authenticated navigation | P0 | Backlog | Implement the left navigation and top bar for Command Center, Assertions, Findings, and Sources with active states, workspace selector placeholder, search affordance, and user menu. |
+| [RAD-015](tasks/phase-1-auth-workspaces/rad-015-add-workspace-settings-basics.md) | Add workspace settings basics | P0 | Backlog | Create a basic workspace settings page for name, slug, team visibility, and environment indicators without expanding into admin bloat. |
+| [RAD-016](tasks/phase-1-auth-workspaces/rad-016-add-audit-log-infrastructure.md) | Add audit log infrastructure | P0 | Backlog | Create audit log schema, write helper, and initial events for auth, workspace, source, assertion, run, and finding changes. |
+| [RAD-017](tasks/phase-1-auth-workspaces/rad-017-create-server-side-api-and-action-guardrails.md) | Create server-side API and action guardrails | P0 | Backlog | Standardize server actions/API handlers with auth, workspace resolution, input validation, error mapping, and response conventions. |
+| [RAD-018](tasks/phase-1-auth-workspaces/rad-018-implement-loading-empty-and-error-states.md) | Implement loading, empty, and error states | P0 | Backlog | Add reusable loading skeletons, empty states, error callouts, retry affordances, and not-found handling across the app shell. |
+| [RAD-019](tasks/phase-1-auth-workspaces/rad-019-seed-first-demo-workspace-and-users.md) | Seed first demo workspace and users | P0 | Backlog | Add a deterministic demo workspace seed that shows sample assertions, sources, findings, and activity for local development and demos. |
+| [RAD-020](tasks/phase-1-auth-workspaces/rad-020-e2e-gate-2-auth-and-workspace-isolation.md) | E2E Gate 2 — Auth and workspace isolation | P0 | Backlog | Run an end-to-end gate that signs in, creates/switches workspace context, verifies route protection, verifies RBAC, and confirms no cross-workspace data leakage. |
+## Phase 2 — Core Data Model
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-021](tasks/phase-2-data-model/rad-021-create-sources-documents-and-chunks-schema.md) | Create sources, documents, and chunks schema | P0 | Backlog | Add the database tables for sources, source_documents, source_chunks, versions, hashes, metadata, and sync state. |
+| [RAD-022](tasks/phase-2-data-model/rad-022-create-assertions-and-test-cases-schema.md) | Create assertions and test cases schema | P0 | Backlog | Add assertions, assertion_sources, assertion_templates, assertion_runs_schedule, and test_cases tables with required workspace ownership and status fields. |
+| [RAD-023](tasks/phase-2-data-model/rad-023-create-evaluation-runs-and-result-schema.md) | Create evaluation runs and result schema | P0 | Backlog | Add evaluation_runs and test_case_results tables with statuses, scores, confidence, evidence references, runner type, and execution metadata. |
+| [RAD-024](tasks/phase-2-data-model/rad-024-create-findings-and-evidence-schema.md) | Create findings and evidence schema | P0 | Backlog | Add findings, finding_evidence, finding_activity, finding_assignments, and resolution state fields. |
+| [RAD-025](tasks/phase-2-data-model/rad-025-implement-type-safe-repository-layer.md) | Implement type-safe repository layer | P0 | Backlog | Create typed data access functions for workspaces, sources, assertions, runs, findings, and evidence, avoiding scattered raw queries in UI components. |
+| [RAD-026](tasks/phase-2-data-model/rad-026-create-shared-zod-validation-schemas.md) | Create shared Zod validation schemas | P0 | Backlog | Define request/response schemas for sources, assertions, test cases, eval runs, findings, and workspace actions. |
+| [RAD-027](tasks/phase-2-data-model/rad-027-implement-supabase-rls-policies.md) | Implement Supabase RLS policies | P0 | Backlog | Add row-level security policies for all product tables and storage buckets based on workspace membership and role. |
+| [RAD-028](tasks/phase-2-data-model/rad-028-configure-storage-buckets-for-evidence-artifacts.md) | Configure storage buckets for evidence artifacts | P0 | Backlog | Set up private storage buckets and access helpers for uploaded documents, extracted source snapshots, screenshots, run artifacts, and report exports. |
+| [RAD-029](tasks/phase-2-data-model/rad-029-create-migration-and-seed-test-harness.md) | Create migration and seed test harness | P0 | Backlog | Add scripts/tests that apply migrations, seed representative records, and verify expected constraints, indexes, and RLS behaviours. |
+| [RAD-030](tasks/phase-2-data-model/rad-030-e2e-gate-3-core-data-model-crud-and-isolation.md) | E2E Gate 3 — Core data model CRUD and isolation | P0 | Backlog | Run a full data-model E2E gate covering create/read/update/delete for sources, assertions, test cases, runs, findings, and evidence across multiple workspaces. |
+## Phase 3 — Sources and Evidence
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-031](tasks/phase-3-sources-evidence/rad-031-build-sources-page-list-and-source-cards.md) | Build Sources page list and source cards | P0 | Backlog | Implement the Sources page using real database-backed data with source cards/list rows for URL, docs, uploads, manual text, API endpoint, and support bot endpoint. |
+| [RAD-032](tasks/phase-3-sources-evidence/rad-032-build-source-create-and-edit-flow.md) | Build source create and edit flow | P0 | Backlog | Create forms to add/edit URL sources, uploaded files, manual policy text, and endpoint-style sources with validation and workspace ownership. |
+| [RAD-033](tasks/phase-3-sources-evidence/rad-033-implement-url-crawler-and-text-extraction.md) | Implement URL crawler and text extraction | P0 | Backlog | Add a safe crawler for single URL and sitemap/page ingestion with content extraction, deduping, timeout handling, robots/limits policy, and metadata capture. |
+| [RAD-034](tasks/phase-3-sources-evidence/rad-034-implement-file-upload-and-text-extraction.md) | Implement file upload and text extraction | P0 | Backlog | Support PDF, Markdown, TXT, and basic document uploads with extraction, size limits, MIME validation, and failure feedback. |
+| [RAD-035](tasks/phase-3-sources-evidence/rad-035-implement-source-sync-jobs-and-versioning.md) | Implement source sync jobs and versioning | P0 | Backlog | Create background jobs to sync sources, calculate content hashes, detect changes, store versions, and update source health. |
+| [RAD-036](tasks/phase-3-sources-evidence/rad-036-build-chunking-and-embedding-pipeline.md) | Build chunking and embedding pipeline | P0 | Backlog | Chunk source documents, generate embeddings, store them with pgvector metadata, and support incremental re-indexing on changed content. |
+| [RAD-037](tasks/phase-3-sources-evidence/rad-037-create-evidence-retrieval-api.md) | Create evidence retrieval API | P0 | Backlog | Implement source search/retrieval endpoints that accept workspace, assertion/test case context, and return ranked evidence chunks with citations and source metadata. |
+| [RAD-038](tasks/phase-3-sources-evidence/rad-038-build-source-detail-page.md) | Build source detail page | P0 | Backlog | Create source detail views showing versions, sync history, extracted content preview, affected assertions, errors, and manual re-sync action. |
+| [RAD-039](tasks/phase-3-sources-evidence/rad-039-implement-affected-assertion-detection.md) | Implement affected assertion detection | P0 | Backlog | Link sources to assertions and identify which assertions should rerun when a source changes, including manual and auto-generated relationships. |
+| [RAD-040](tasks/phase-3-sources-evidence/rad-040-e2e-gate-4-source-ingestion-to-evidence-retrieval.md) | E2E Gate 4 — Source ingestion to evidence retrieval | P0 | Backlog | Run E2E coverage that creates sources, crawls/uploads content, indexes it, retrieves relevant evidence, shows source health, and prevents unauthorized access. |
+## Phase 4 — Assertions and Test Cases
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-041](tasks/phase-4-assertions-testcases/rad-041-build-assertions-page-table-and-filters.md) | Build Assertions page table and filters | P0 | Backlog | Implement the Assertions page with real data, filters by status/category/owner/priority/runner type, search, pagination, and empty states. |
+| [RAD-042](tasks/phase-4-assertions-testcases/rad-042-build-assertion-create-and-edit-flow.md) | Build assertion create and edit flow | P0 | Backlog | Create forms/drawers for assertion name, purpose, expected behaviour, category, priority, owner, schedule, runner type, and evidence sources. |
+| [RAD-043](tasks/phase-4-assertions-testcases/rad-043-build-assertion-detail-page-foundation.md) | Build assertion detail page foundation | P0 | Backlog | Create the assertion drill-down shell with summary, metadata, linked sources, test cases, run history placeholder, findings placeholder, and actions. |
+| [RAD-044](tasks/phase-4-assertions-testcases/rad-044-implement-assertion-source-linking.md) | Implement assertion-source linking | P0 | Backlog | Allow users to attach existing sources to assertions and show the minimum required source coverage for the assertion. |
+| [RAD-045](tasks/phase-4-assertions-testcases/rad-045-create-first-assertion-packs-and-templates.md) | Create first assertion packs and templates | P0 | Backlog | Implement V1 templates for Pricing & Plan Accuracy, Refund & Cancellation, Trial & Onboarding, Billing & Invoices, and Support Escalation. |
+| [RAD-046](tasks/phase-4-assertions-testcases/rad-046-implement-ai-suggested-assertion-generator.md) | Implement AI suggested assertion generator | P0 | Backlog | Use source content and workspace context to propose assertions with purpose, category, required sources, priority, and suggested runner type. |
+| [RAD-047](tasks/phase-4-assertions-testcases/rad-047-build-test-case-crud.md) | Build test case CRUD | P0 | Backlog | Allow users to create, edit, approve, disable, and delete test cases linked to assertions. |
+| [RAD-048](tasks/phase-4-assertions-testcases/rad-048-implement-ai-test-case-generator.md) | Implement AI test case generator | P0 | Backlog | Generate realistic customer questions and scenarios for approved assertions using source evidence and assertion purpose. |
+| [RAD-049](tasks/phase-4-assertions-testcases/rad-049-implement-schedules-and-manual-triggers.md) | Implement schedules and manual triggers | P0 | Backlog | Add schedule fields, run cadence options, source-change trigger flags, and manual run controls without executing full eval logic yet. |
+| [RAD-050](tasks/phase-4-assertions-testcases/rad-050-e2e-gate-5-assertions-to-runnable-test-cases.md) | E2E Gate 5 — Assertions to runnable test cases | P0 | Backlog | Run E2E coverage that creates sources, generates/approves assertions, generates/edits test cases, links sources, and verifies schedules and permissions. |
+## Phase 5 — Evaluation Engine and Knowledge Runner
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-051](tasks/phase-5-eval-knowledge-runner/rad-051-create-evaluation-job-orchestration.md) | Create evaluation job orchestration | P0 | Backlog | Implement Trigger.dev jobs or equivalent abstractions for queueing, running, retrying, and tracking assertion evaluation jobs. |
+| [RAD-052](tasks/phase-5-eval-knowledge-runner/rad-052-implement-llm-provider-abstraction-and-prompt-contracts.md) | Implement LLM provider abstraction and prompt contracts | P0 | Backlog | Create a server-only LLM adapter for generation, judging, summarization, and fix recommendations with strict prompt/version logging. |
+| [RAD-053](tasks/phase-5-eval-knowledge-runner/rad-053-implement-assertion-evidence-loading.md) | Implement assertion evidence loading | P0 | Backlog | Before each test, retrieve relevant evidence chunks and source snapshots based on assertion/test case context. |
+| [RAD-054](tasks/phase-5-eval-knowledge-runner/rad-054-build-target-endpoint-configuration.md) | Build target endpoint configuration | P0 | Backlog | Allow a workspace to configure AI support endpoints, generic HTTP targets, or uploaded answer sets required by a Knowledge Runner assertion. |
+| [RAD-055](tasks/phase-5-eval-knowledge-runner/rad-055-implement-knowledge-runner-execution-loop.md) | Implement Knowledge Runner execution loop | P0 | Backlog | Run question/test case inputs against the configured target, capture actual answers, attach evidence, and produce raw test outputs. |
+| [RAD-056](tasks/phase-5-eval-knowledge-runner/rad-056-implement-hybrid-evaluator-rubric.md) | Implement hybrid evaluator rubric | P0 | Backlog | Score answers using source-grounding, contradiction detection, completeness, refusal behaviour, citation validity, policy consistency, and LLM judge summary. |
+| [RAD-057](tasks/phase-5-eval-knowledge-runner/rad-057-persist-test-case-results-and-scoring.md) | Persist test case results and scoring | P0 | Backlog | Store per-test results with pass/warning/fail/inconclusive/error status, score, confidence, summaries, and evidence refs. |
+| [RAD-058](tasks/phase-5-eval-knowledge-runner/rad-058-build-eval-run-history-ui.md) | Build eval run history UI | P0 | Backlog | Show latest run state and historical run summaries on the assertion detail page, including pass rate and first failure markers. |
+| [RAD-059](tasks/phase-5-eval-knowledge-runner/rad-059-implement-manual-rerun-action.md) | Implement manual rerun action | P0 | Backlog | Add server-side action and UI button to rerun an assertion or specific failed test case with permission checks and run status feedback. |
+| [RAD-060](tasks/phase-5-eval-knowledge-runner/rad-060-e2e-gate-6-knowledge-eval-to-traceable-result.md) | E2E Gate 6 — Knowledge eval to traceable result | P0 | Backlog | Run E2E coverage where a source-backed assertion calls a target answer, detects mismatch, stores evidence-backed test results, and supports manual rerun. |
+## Phase 6 — Journey and Integration Runners
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-061](tasks/phase-6-journey-integration-runners/rad-061-create-shared-runner-interface.md) | Create shared runner interface | P1 | Backlog | Define a common runner contract for Knowledge, Journey, and Integration runners including inputs, outputs, status, errors, evidence artifacts, and retry semantics. |
+| [RAD-062](tasks/phase-6-journey-integration-runners/rad-062-implement-playwright-journey-runner-foundation.md) | Implement Playwright Journey Runner foundation | P1 | Backlog | Set up Playwright execution, browser contexts, screenshot capture, trace artifact storage, timeouts, and safe credential handling. |
+| [RAD-063](tasks/phase-6-journey-integration-runners/rad-063-create-journey-step-definition-schema.md) | Create journey step definition schema | P1 | Backlog | Define a simple schema for URL visits, clicks, text entry, assertions, waits, emails, screenshots, and success conditions without building a visual workflow canvas. |
+| [RAD-064](tasks/phase-6-journey-integration-runners/rad-064-build-trial-onboarding-journey-pack.md) | Build Trial & Onboarding journey pack | P1 | Backlog | Create the first Journey Runner template for signup/trial/onboarding checks using configurable URLs, test credentials, and expected success states. |
+| [RAD-065](tasks/phase-6-journey-integration-runners/rad-065-add-email-receipt-verification-utility.md) | Add email receipt verification utility | P1 | Backlog | Implement a test mailbox/webhook utility to verify whether expected emails such as welcome, invoice, or cancellation confirmations were received. |
+| [RAD-066](tasks/phase-6-journey-integration-runners/rad-066-implement-integration-runner-foundation.md) | Implement Integration Runner foundation | P1 | Backlog | Create the Integration Runner for basic API/webhook checks, including HTTP request execution, response validation, auth headers, and result capture. |
+| [RAD-067](tasks/phase-6-journey-integration-runners/rad-067-build-generic-webhook-and-api-assertion-checks.md) | Build generic webhook and API assertion checks | P1 | Backlog | Support assertions such as webhook fired, API returned expected state, ticket endpoint accepted request, or billing object updated. |
+| [RAD-068](tasks/phase-6-journey-integration-runners/rad-068-create-minimal-handoff-templates.md) | Create minimal handoff templates | P1 | Backlog | Add templates for email sent, support ticket created, CRM task created, webhook event received, and billing status changed using generic API or webhook evidence. |
+| [RAD-069](tasks/phase-6-journey-integration-runners/rad-069-harden-runner-credential-handling.md) | Harden runner credential handling | P1 | Backlog | Encrypt runner credentials, redact secrets from logs/artifacts, enforce workspace isolation, and add credential test actions. |
+| [RAD-070](tasks/phase-6-journey-integration-runners/rad-070-e2e-gate-7-runner-triad-smoke-test.md) | E2E Gate 7 — Runner triad smoke test | P1 | Backlog | Run E2E coverage across one Knowledge assertion, one Journey assertion, and one Integration assertion, proving shared runner contracts and artifacts work. |
+## Phase 7 — Findings and Recommended Fixes
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-071](tasks/phase-7-findings-fixes/rad-071-implement-findings-creation-engine.md) | Implement findings creation engine | P1 | Backlog | Convert failed/warning evaluation results into deduplicated findings with severity, confidence, impacted assertion, evidence, and first/last seen tracking. |
+| [RAD-072](tasks/phase-7-findings-fixes/rad-072-build-findings-inbox-page.md) | Build Findings inbox page | P1 | Backlog | Create the issue inbox with filters, severity chips, confidence, owner, status, affected assertion, customer impact, and searchable finding list. |
+| [RAD-073](tasks/phase-7-findings-fixes/rad-073-build-finding-detail-panel.md) | Build finding detail panel | P1 | Backlog | Show selected finding details with actual vs expected, source evidence, impacted assertions, run links, activity, owner, status, and actions. |
+| [RAD-074](tasks/phase-7-findings-fixes/rad-074-implement-evidence-diff-and-mismatch-highlighting.md) | Implement evidence diff and mismatch highlighting | P1 | Backlog | Render policy/source excerpts against actual answers or journey results with highlighted mismatches and citations. |
+| [RAD-075](tasks/phase-7-findings-fixes/rad-075-implement-severity-and-customer-impact-model.md) | Implement severity and customer impact model | P1 | Backlog | Add severity rules that combine assertion priority, failure type, affected journey, confidence, repeat count, and customer-facing impact. |
+| [RAD-076](tasks/phase-7-findings-fixes/rad-076-implement-recommended-fix-generator.md) | Implement recommended fix generator | P1 | Backlog | Generate concise recommended fixes based on evidence, failure type, source owner, and runner output with a no-hallucination guardrail. |
+| [RAD-077](tasks/phase-7-findings-fixes/rad-077-build-finding-lifecycle-workflow.md) | Build finding lifecycle workflow | P1 | Backlog | Support Open, Investigating, Fixed, Resolved, Ignored, and False Positive statuses with audit log events and permission checks. |
+| [RAD-078](tasks/phase-7-findings-fixes/rad-078-add-assignment-and-ownership-updates.md) | Add assignment and ownership updates | P1 | Backlog | Allow authorized users to assign findings to owners, change priority, add notes, and filter by owner/team. |
+| [RAD-079](tasks/phase-7-findings-fixes/rad-079-implement-rerun-after-fix-and-resolution-linking.md) | Implement rerun-after-fix and resolution linking | P1 | Backlog | Link reruns to findings and allow a passing rerun to suggest or complete resolution depending on workspace settings. |
+| [RAD-080](tasks/phase-7-findings-fixes/rad-080-e2e-gate-8-failure-to-fix-to-resolved.md) | E2E Gate 8 — Failure to fix to resolved | P1 | Backlog | Run E2E coverage where a failed assertion creates a finding, shows evidence, generates a fix, assigns owner, reruns after a simulated fix, and resolves. |
+## Phase 8 — Command Center, Reports, Alerts
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-081](tasks/phase-8-dashboard-reports-alerts/rad-081-build-command-center-kpi-summary.md) | Build Command Center KPI summary | P1 | Backlog | Create the executive summary cards for checks run, exceptions, critical issues, recommended fixes, pass rate, and trend indicators. |
+| [RAD-082](tasks/phase-8-dashboard-reports-alerts/rad-082-build-needs-attention-panel.md) | Build Needs Attention panel | P1 | Backlog | Show the most important open findings with severity, confidence, impact, affected assertion, and primary recommended fix. |
+| [RAD-083](tasks/phase-8-dashboard-reports-alerts/rad-083-build-assertion-health-by-category.md) | Build assertion health by category | P1 | Backlog | Create grouped health summaries for Pricing, Refund/Cancellation, Onboarding, Billing/Invoices, Support Escalation, and custom categories. |
+| [RAD-084](tasks/phase-8-dashboard-reports-alerts/rad-084-build-recent-activity-feed.md) | Build recent activity feed | P1 | Backlog | Add an activity feed for source syncs, assertions run, findings opened/resolved, reruns, and report generation. |
+| [RAD-085](tasks/phase-8-dashboard-reports-alerts/rad-085-implement-weekly-trust-report-generator.md) | Implement weekly trust report generator | P1 | Backlog | Generate a weekly report summary with checks run, pass rate, exceptions, resolved findings, risky categories, and recommended next actions. |
+| [RAD-086](tasks/phase-8-dashboard-reports-alerts/rad-086-build-report-page-and-export-scaffold.md) | Build report page and export scaffold | P1 | Backlog | Create a report detail page and export-ready data structure for future PDF/email delivery. |
+| [RAD-087](tasks/phase-8-dashboard-reports-alerts/rad-087-implement-email-notifications-with-resend.md) | Implement email notifications with Resend | P1 | Backlog | Send transactional notifications for critical findings, weekly report availability, failed source sync, and invited workspace users. |
+| [RAD-088](tasks/phase-8-dashboard-reports-alerts/rad-088-implement-slack-webhook-alerts.md) | Implement Slack webhook alerts | P1 | Backlog | Add optional Slack incoming webhook notifications for critical findings and daily summary without building full Slack OAuth yet. |
+| [RAD-089](tasks/phase-8-dashboard-reports-alerts/rad-089-add-product-analytics-and-event-taxonomy.md) | Add product analytics and event taxonomy | P1 | Backlog | Track key product events with PostHog or equivalent, including source added, assertion approved, run completed, finding opened, fix rerun, and report viewed. |
+| [RAD-090](tasks/phase-8-dashboard-reports-alerts/rad-090-e2e-gate-9-executive-dashboard-and-report-flow.md) | E2E Gate 9 — Executive dashboard and report flow | P1 | Backlog | Run E2E coverage from source/assertion/run/finding through Command Center summary, alert generation, and weekly report creation. |
+## Phase 9 — Production Readiness
+
+| ID | Task | Priority | Status | Description |
+|---|---|---|---|---|
+| [RAD-091](tasks/phase-9-production-readiness/rad-091-implement-stripe-billing-and-plan-gates.md) | Implement Stripe billing and plan gates | P0 | Backlog | Add Stripe customer/subscription flow, plan limits for assertions/sources/runs, billing portal access, and safe unpaid states. |
+| [RAD-092](tasks/phase-9-production-readiness/rad-092-build-onboarding-checklist-and-activation-flow.md) | Build onboarding checklist and activation flow | P0 | Backlog | Create a guided activation flow that helps users create first source, assertion, runner config, first run, and first finding/report. |
+| [RAD-093](tasks/phase-9-production-readiness/rad-093-add-sentry-error-monitoring-and-release-tracking.md) | Add Sentry error monitoring and release tracking | P0 | Backlog | Instrument frontend and backend errors, source maps, release versions, and key context without leaking secrets/source content. |
+| [RAD-094](tasks/phase-9-production-readiness/rad-094-add-langfuse-internal-llm-tracing.md) | Add Langfuse internal LLM tracing | P0 | Backlog | Instrument internal LLM calls for assertion generation, test case generation, judging, and fixes with prompt versions, costs, latency, and redacted metadata. |
+| [RAD-095](tasks/phase-9-production-readiness/rad-095-implement-rate-limits-quotas-and-abuse-controls.md) | Implement rate limits, quotas, and abuse controls | P0 | Backlog | Add per-workspace and per-user limits for source syncs, eval runs, AI calls, file sizes, runner duration, and API requests. |
+| [RAD-096](tasks/phase-9-production-readiness/rad-096-run-security-hardening-and-secrets-audit.md) | Run security hardening and secrets audit | P0 | Backlog | Review auth, RLS, server-only secrets, webhook validation, upload scanning, CSP/headers, dependency audit, and sensitive logging. |
+| [RAD-097](tasks/phase-9-production-readiness/rad-097-implement-data-deletion-export-and-retention-controls.md) | Implement data deletion, export, and retention controls | P0 | Backlog | Add source deletion, artifact cleanup, workspace export, retention settings, and documented data handling paths. |
+| [RAD-098](tasks/phase-9-production-readiness/rad-098-run-performance-and-load-testing.md) | Run performance and load testing | P0 | Backlog | Test source ingestion, embedding, eval runs, dashboard queries, and concurrent jobs against realistic pilot-scale workloads. |
+| [RAD-099](tasks/phase-9-production-readiness/rad-099-create-production-deployment-and-operations-runbook.md) | Create production deployment and operations runbook | P0 | Backlog | Document environments, deployment steps, rollback, migrations, cron/job operations, incident response, backups, and support procedures. |
+| [RAD-100](tasks/phase-9-production-readiness/rad-100-e2e-gate-10-production-launch-readiness.md) | E2E Gate 10 — Production launch readiness | P0 | Backlog | Run the final production-readiness gate covering full product flow, security, billing, observability, performance, alerts, rollback, and pilot customer acceptance. |
