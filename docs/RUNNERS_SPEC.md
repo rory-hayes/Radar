@@ -29,6 +29,11 @@ Examples:
 - Cancellation page is reachable.
 - Onboarding docs match visible product steps.
 
+RAD-062 adds the Playwright Journey Runner foundation in `src/lib/evaluation/journey-runner.ts`.
+Journey checks run in isolated headless Chromium browser contexts with no persisted storage state, bounded action/navigation/overall timeouts, screenshot capture, and Playwright trace capture. Screenshots are uploaded as private `screenshot` evidence artifacts, and trace zips are uploaded as private `run-artifact` evidence artifacts under the evaluation run id.
+
+Credential values are accepted only at execution time and must be redacted before entering artifact metadata, execution metadata, summaries, or errors. The foundation exposes redaction helpers, but concrete Journey steps are intentionally deferred to later Phase 6 tasks.
+
 ## Integration Runner
 
 The Integration Runner verifies downstream handoffs using API/webhook evidence.
