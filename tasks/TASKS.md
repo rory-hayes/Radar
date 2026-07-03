@@ -82,7 +82,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 | [RAD-047](tasks/phase-4-assertions-testcases/rad-047-build-test-case-crud.md) | Build test case CRUD | P0 | Done | Allow users to create, edit, approve, disable, and delete test cases linked to assertions. |
 | [RAD-048](tasks/phase-4-assertions-testcases/rad-048-implement-ai-test-case-generator.md) | Implement AI test case generator | P0 | Done | Generate realistic customer questions and scenarios for approved assertions using source evidence and assertion purpose. |
 | [RAD-049](tasks/phase-4-assertions-testcases/rad-049-implement-schedules-and-manual-triggers.md) | Implement schedules and manual triggers | P0 | Done | Add schedule fields, run cadence options, source-change trigger flags, and manual run controls without executing full eval logic yet. |
-| [RAD-050](tasks/phase-4-assertions-testcases/rad-050-e2e-gate-5-assertions-to-runnable-test-cases.md) | E2E Gate 5 — Assertions to runnable test cases | P0 | Backlog | Run E2E coverage that creates sources, generates/approves assertions, generates/edits test cases, links sources, and verifies schedules and permissions. |
+| [RAD-050](tasks/phase-4-assertions-testcases/rad-050-e2e-gate-5-assertions-to-runnable-test-cases.md) | E2E Gate 5 — Assertions to runnable test cases | P0 | Done | Run E2E coverage that creates sources, generates/approves assertions, generates/edits test cases, links sources, and verifies schedules and permissions. |
 ## Phase 5 — Evaluation Engine and Knowledge Runner
 
 | ID | Task | Priority | Status | Description |
