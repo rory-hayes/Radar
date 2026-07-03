@@ -67,8 +67,7 @@ test("RAD-033 persists crawl output as source versions documents chunks and sync
   assert.match(ingestion, /syncStatus: "synced"/);
   assert.match(ingestion, /contentHash: result\.contentHash/);
   assert.match(ingestion, /maxChunkCharacters/);
-  assert.match(ingestion, /estimateTokenCount/);
-  assert.match(ingestion, /hashText\(content\)/);
+  assert.match(ingestion, /chunkSourceText/);
   assert.match(repository, /getNextSourceVersionNumber/);
   assert.match(repository, /\.from\("source_versions"\)/);
   assert.match(repository, /\.order\("version_number", \{ ascending: false \}\)/);

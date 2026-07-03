@@ -63,6 +63,8 @@ Every source table has direct `workspace_id` ownership and RLS. Source content m
 
 RAD-033 adds the first URL ingestion boundary. The crawler accepts only safe `http` and `https` URLs, blocks local/private hosts, applies timeout and byte limits, checks robots.txt when available, keeps sitemap ingestion same-origin and capped, extracts bounded readable text, and stores stable SHA-256 content hashes. Persisted URL crawl output flows through `source_versions`, `source_documents`, and `source_chunks`; crawler metadata stays small and must not include credentials, raw headers, or unrelated site-wide crawl state.
 
+RAD-034 adds uploaded document extraction for PDF, Markdown, and TXT files. Upload processing validates MIME type, extension, and size, stores the original artifact under the private `uploaded-document` storage path, extracts bounded text, writes stable content hashes, and persists the extracted text through `source_documents` and `source_chunks`. Basic PDF extraction handles text-based PDFs only; failures are recorded on the source sync state instead of logging raw document content.
+
 ## Assertions and Test Cases
 
 RAD-022 adds the assertion-led verification layer:

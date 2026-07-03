@@ -8,7 +8,8 @@ import {
   updateSourceSyncState,
   type RadarRepositoryClient,
 } from "@/lib/repositories";
-import { hashText, type UrlCrawlPage, type UrlCrawlResult } from "@/lib/sources/url-crawler";
+import { chunkSourceText } from "@/lib/sources/text-chunking";
+import { type UrlCrawlResult } from "@/lib/sources/url-crawler";
 
 type PersistUrlCrawlOptions = {
   maxChunkCharacters?: number;
@@ -22,7 +23,7 @@ export async function persistUrlCrawlResult(
   options: PersistUrlCrawlOptions = {},
 ) {
   const maxChunkCharacters = options.maxChunkCharacters ?? 4000;
-  const chunks = result.pages.flatMap((page) => chunkPageText(page, maxChunkCharacters));
+  const chunks = result.pages.flatMap((page) => chunkSourceText(page.text, maxChunkCharacters));
   const versionNumber = await getNextSourceVersionNumber(client, workspaceId, sourceId);
   const sourceVersion = await createSourceVersion(client, workspaceId, {
     sourceId,
@@ -58,7 +59,7 @@ export async function persistUrlCrawlResult(
         fetchedAt: page.metadata.fetchedAt,
       },
     });
-    const pageChunks = chunkPageText(page, maxChunkCharacters);
+    const pageChunks = chunkSourceText(page.text, maxChunkCharacters);
 
     for (const chunk of pageChunks) {
       await createSourceChunk(client, workspaceId, {
@@ -70,7 +71,7 @@ export async function persistUrlCrawlResult(
         tokenCount: chunk.tokenCount,
         metadata: {
           sourceUrl: page.finalUrl,
-          pageChunkIndex: chunk.pageChunkIndex,
+          pageChunkIndex: chunk.chunkIndex,
         },
       });
       chunkCursor += 1;
@@ -88,55 +89,4 @@ export async function persistUrlCrawlResult(
     documentCount: result.pages.length,
     chunkCount: chunkCursor,
   };
-}
-
-function chunkPageText(page: UrlCrawlPage, maxChunkCharacters: number) {
-  const paragraphs = page.text.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
-  const chunks: string[] = [];
-  let current = "";
-
-  for (const paragraph of paragraphs) {
-    const next = current ? `${current}\n\n${paragraph}` : paragraph;
-
-    if (next.length <= maxChunkCharacters) {
-      current = next;
-      continue;
-    }
-
-    if (current) {
-      chunks.push(current);
-    }
-
-    if (paragraph.length > maxChunkCharacters) {
-      chunks.push(...splitLongParagraph(paragraph, maxChunkCharacters));
-      current = "";
-    } else {
-      current = paragraph;
-    }
-  }
-
-  if (current) {
-    chunks.push(current);
-  }
-
-  return chunks.map((content, pageChunkIndex) => ({
-    content,
-    contentHash: hashText(content),
-    tokenCount: estimateTokenCount(content),
-    pageChunkIndex,
-  }));
-}
-
-function splitLongParagraph(paragraph: string, maxChunkCharacters: number) {
-  const chunks: string[] = [];
-
-  for (let index = 0; index < paragraph.length; index += maxChunkCharacters) {
-    chunks.push(paragraph.slice(index, index + maxChunkCharacters));
-  }
-
-  return chunks;
-}
-
-function estimateTokenCount(content: string) {
-  return Math.max(1, Math.ceil(content.split(/\s+/).filter(Boolean).length * 1.3));
 }

@@ -39,6 +39,8 @@ Allowed artifact kinds:
 
 Clients should receive only signed upload or download URLs created by server-side helpers. Product records should store bounded paths and citations, not public URLs.
 
+RAD-034 processes uploaded PDF, Markdown, and TXT source documents server-side. Uploads are size- and MIME-validated, stored as private `uploaded-document` artifacts, extracted into source documents/chunks with stable content hashes, and marked failed on the source if extraction cannot produce text.
+
 ## Change detection
 
 Radar stores content hashes and source versions. When a source changes, Radar identifies affected assertions and reruns only those checks.

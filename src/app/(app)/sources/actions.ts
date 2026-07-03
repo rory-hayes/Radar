@@ -11,6 +11,7 @@ import {
   serverActionErrorState,
 } from "@/lib/server/guardrails";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { persistUploadedDocumentSource } from "@/lib/sources/file-ingestion";
 import { sourceTypes, type CreateSourceInput } from "@/lib/sources/schema";
 
 const endpointMethods = ["GET", "POST"] as const;
@@ -81,9 +82,10 @@ export async function createSourceAction(
   _previousState: SourceFormState,
   formData: FormData,
 ): Promise<SourceFormState> {
+  const uploadedFile = uploadedFileFromFormData(formData);
   const result = await runWorkspaceServerAction(
     {
-      input: sourceFormInputFromFormData("create", formData),
+      input: sourceFormInputFromFormData("create", formData, uploadedFile),
       permission: "source:create",
       schema: sourceFormActionSchema,
     },
@@ -94,7 +96,17 @@ export async function createSourceAction(
         throw serverActionError("Supabase is not configured for this environment.");
       }
 
-      return createSource(supabase, membership.workspace.id, user.id, buildCreateSourceInput(input));
+      const source = await createSource(supabase, membership.workspace.id, user.id, buildCreateSourceInput(input));
+
+      if (input.type === "uploaded_document" && uploadedFile) {
+        try {
+          await persistUploadedDocumentSource(supabase, membership.workspace.id, source.id, uploadedFile);
+        } catch (error) {
+          throw serverActionError(uploadFailureMessage(error));
+        }
+      }
+
+      return source;
     },
   );
 
@@ -112,9 +124,10 @@ export async function updateSourceAction(
   _previousState: SourceFormState,
   formData: FormData,
 ): Promise<SourceFormState> {
+  const uploadedFile = uploadedFileFromFormData(formData);
   const result = await runWorkspaceServerAction(
     {
-      input: sourceFormInputFromFormData("update", formData),
+      input: sourceFormInputFromFormData("update", formData, uploadedFile),
       permission: "source:edit",
       schema: sourceFormActionSchema,
     },
@@ -129,7 +142,17 @@ export async function updateSourceAction(
         throw serverActionError("Source id is required when updating a source.", "validation");
       }
 
-      return updateSource(supabase, membership.workspace.id, input.sourceId, buildUpdateSourceInput(input));
+      const source = await updateSource(supabase, membership.workspace.id, input.sourceId, buildUpdateSourceInput(input));
+
+      if (input.type === "uploaded_document" && uploadedFile) {
+        try {
+          await persistUploadedDocumentSource(supabase, membership.workspace.id, source.id, uploadedFile);
+        } catch (error) {
+          throw serverActionError(uploadFailureMessage(error));
+        }
+      }
+
+      return source;
     },
   );
 
@@ -143,9 +166,8 @@ export async function updateSourceAction(
   redirect("/sources");
 }
 
-function sourceFormInputFromFormData(mode: SourceFormInput["mode"], formData: FormData) {
-  const uploadedFile = formData.get("uploadedFile");
-  const uploadedFileMetadata = uploadedFile instanceof File && uploadedFile.size > 0
+function sourceFormInputFromFormData(mode: SourceFormInput["mode"], formData: FormData, uploadedFile: File | null) {
+  const uploadedFileMetadata = uploadedFile
     ? {
         uploadedFileName: uploadedFile.name,
         uploadedFileType: uploadedFile.type || undefined,
@@ -165,6 +187,16 @@ function sourceFormInputFromFormData(mode: SourceFormInput["mode"], formData: Fo
     endpointAuthMode: String(formData.get("endpointAuthMode") ?? "none"),
     ...uploadedFileMetadata,
   };
+}
+
+function uploadedFileFromFormData(formData: FormData) {
+  const uploadedFile = formData.get("uploadedFile");
+
+  return uploadedFile instanceof File && uploadedFile.size > 0 ? uploadedFile : null;
+}
+
+function uploadFailureMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Uploaded document extraction failed.";
 }
 
 function buildCreateSourceInput(input: SourceFormInput): CreateSourceInput {

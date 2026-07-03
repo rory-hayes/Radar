@@ -104,6 +104,31 @@ export async function createEvidenceArtifactDownloadUrl(
   });
 }
 
+export async function uploadEvidenceArtifact(
+  client: EvidenceStorageClient,
+  input: EvidenceArtifactPathRequest,
+  body: Blob,
+  options: {
+    contentType?: string;
+    upsert?: boolean;
+  } = {},
+) {
+  const storagePath = buildEvidenceArtifactPath(input);
+  const { data, error } = await client.storage
+    .from(evidenceArtifactsBucket)
+    .upload(storagePath, body, {
+      contentType: options.contentType,
+      upsert: options.upsert ?? false,
+    });
+
+  assertStorageSuccess(error, "Unable to upload evidence artifact.");
+
+  return {
+    bucket: evidenceArtifactsBucket,
+    storagePath: data?.path ?? storagePath,
+  };
+}
+
 export async function removeEvidenceArtifact(
   client: EvidenceStorageClient,
   workspaceId: string,
