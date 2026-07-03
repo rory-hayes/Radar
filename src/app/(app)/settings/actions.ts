@@ -30,6 +30,7 @@ export async function updateWorkspaceSettingsAction(
     teamVisibility: workspaceTeamVisibilities.includes(teamVisibility as WorkspaceTeamVisibility)
       ? (teamVisibility as WorkspaceTeamVisibility)
       : "private",
+    dataRetentionDays: String(formData.get("dataRetentionDays") ?? "180"),
   };
 
   const result = await runWorkspaceServerAction(

@@ -108,6 +108,10 @@ type SourceAssertionCountRow = {
   source_id: string;
 };
 
+type SourceDocumentStoragePathRow = {
+  storage_path: string | null;
+};
+
 type SourceVersionNumberRow = {
   version_number: number;
 };
@@ -276,6 +280,23 @@ export async function updateSource(
 export async function deleteSource(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {
   const { error } = await client.from("sources").delete().eq("workspace_id", workspaceId).eq("id", sourceId);
   assertRepositorySuccess(error, "Unable to delete source");
+}
+
+export async function listSourceDocumentStoragePaths(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+) {
+  const { data, error } = await client
+    .from("source_documents")
+    .select("storage_path")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .not("storage_path", "is", null)
+    .returns<SourceDocumentStoragePathRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source artifact paths");
+  return [...new Set((data ?? []).flatMap((row) => (row.storage_path ? [row.storage_path] : [])))];
 }
 
 export async function getNextSourceVersionNumber(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {

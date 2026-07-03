@@ -28,12 +28,15 @@ test("RAD-015 exposes typed workspace settings validation and update helper", as
   const repository = await readWorkspaceFile("src/lib/repositories/workspaces.ts");
 
   assert.match(schema, /workspaceTeamVisibilities = \["private", "workspace"\]/);
+  assert.match(schema, /workspaceDataRetentionDayOptions = \[30, 90, 180, 365\]/);
   assert.match(schema, /updateWorkspaceSettingsSchema/);
   assert.match(schema, /teamVisibility: z\.enum\(workspaceTeamVisibilities\)/);
+  assert.match(schema, /dataRetentionDays/);
   assert.match(server, /updateWorkspaceSettingsForCurrentUser/);
   assert.match(server, /membershipCan\(membership, "workspace:manage"\)/);
   assert.match(server, /updateWorkspaceSettings\(supabase, membership\.workspace\.id, parsedInput\)/);
   assert.match(repository, /team_visibility: parsedInput\.teamVisibility/);
+  assert.match(repository, /data_retention_days: parsedInput\.dataRetentionDays/);
   assert.match(server, /mapWorkspaceUpdateError/);
 });
 
@@ -62,6 +65,7 @@ test("RAD-015 replaces settings placeholder with guarded workspace settings UI",
   assert.match(form, /Workspace name/);
   assert.match(form, /Workspace slug/);
   assert.match(form, /Team visibility/);
+  assert.match(form, /Data retention/);
   assert.match(form, /Only workspace admins can update these settings/);
   assert.doesNotMatch(page, /RoutePlaceholder/);
 });

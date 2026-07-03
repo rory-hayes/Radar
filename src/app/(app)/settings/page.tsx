@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/app-shell";
 import { StatusBadge } from "@/components/radar/status-badge";
+import { WorkspaceDataLifecyclePanel } from "@/components/workspaces/workspace-data-lifecycle-panel";
 import { WorkspaceBillingPanel } from "@/components/workspaces/workspace-billing-panel";
 import { WorkspaceSettingsForm } from "@/components/workspaces/workspace-settings-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +51,7 @@ export default async function SettingsPage() {
             usage={workspaceUsage}
             canManage={canManageWorkspace}
           />
+          <WorkspaceDataLifecyclePanel workspace={membership.workspace} canManage={canManageWorkspace} />
         </div>
         <div className="flex flex-col gap-4">
           <Card>

@@ -140,6 +140,27 @@ export async function removeEvidenceArtifact(
   assertStorageSuccess(error, "Unable to remove evidence artifact.");
 }
 
+export async function removeEvidenceArtifacts(
+  client: EvidenceStorageClient,
+  workspaceId: string,
+  storagePaths: readonly string[],
+) {
+  const uniquePaths = [...new Set(storagePaths)];
+
+  if (uniquePaths.length === 0) {
+    return { removedCount: 0 };
+  }
+
+  for (const storagePath of uniquePaths) {
+    assertEvidenceArtifactPathForWorkspace(storagePath, workspaceId);
+  }
+
+  const { error } = await client.storage.from(evidenceArtifactsBucket).remove(uniquePaths);
+  assertStorageSuccess(error, "Unable to remove evidence artifacts.");
+
+  return { removedCount: uniquePaths.length };
+}
+
 export function evidenceArtifactKindLabel(kind: EvidenceArtifactKind) {
   const labels = {
     "uploaded-document": "Uploaded document",

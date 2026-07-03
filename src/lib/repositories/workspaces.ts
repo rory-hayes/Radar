@@ -6,6 +6,7 @@ import {
   type RadarWorkspace,
   type RadarWorkspaceMembership,
   type UpdateWorkspaceSettingsInput,
+  type WorkspaceDataRetentionDays,
   type WorkspaceMemberStatus,
   type WorkspaceRole,
   type WorkspaceStatus,
@@ -29,6 +30,7 @@ type WorkspaceRow = {
   slug: string;
   status: WorkspaceStatus;
   team_visibility: WorkspaceTeamVisibility;
+  data_retention_days: WorkspaceDataRetentionDays;
 };
 
 type WorkspaceMemberRow = {
@@ -46,7 +48,7 @@ type WorkspaceMemberListRow = {
 export async function getWorkspaceById(client: RadarRepositoryClient, workspaceId: string) {
   const { data, error } = await client
     .from("workspaces")
-    .select("id, name, slug, status, team_visibility")
+    .select("id, name, slug, status, team_visibility, data_retention_days")
     .eq("id", workspaceId)
     .maybeSingle<WorkspaceRow>();
 
@@ -60,7 +62,7 @@ export async function getFirstActiveWorkspaceMembershipForUser(
 ): Promise<RadarWorkspaceMembership | null> {
   const { data, error } = await client
     .from("workspace_members")
-    .select("role, status, workspace:workspaces(id, name, slug, status, team_visibility)")
+    .select("role, status, workspace:workspaces(id, name, slug, status, team_visibility, data_retention_days)")
     .eq("user_id", userId)
     .eq("status", "active")
     .order("created_at", { ascending: true })
@@ -125,9 +127,10 @@ export async function updateWorkspaceSettings(
       name: parsedInput.name,
       slug: parsedInput.slug,
       team_visibility: parsedInput.teamVisibility,
+      data_retention_days: parsedInput.dataRetentionDays,
     })
     .eq("id", workspaceId)
-    .select("id, name, slug, status, team_visibility")
+    .select("id, name, slug, status, team_visibility, data_retention_days")
     .single<WorkspaceRow>();
 
   assertRepositorySuccess(error, "Unable to update workspace settings");
@@ -141,6 +144,7 @@ function mapWorkspaceRow(row: WorkspaceRow): RadarWorkspace {
     slug: row.slug,
     status: row.status,
     teamVisibility: row.team_visibility,
+    dataRetentionDays: row.data_retention_days,
   });
 }
 

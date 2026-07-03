@@ -18,6 +18,7 @@ import {
   sourceSyncStatusTone,
   sourceTypeLabel,
 } from "@/components/sources/source-card";
+import { SourceDeletePanel } from "@/components/sources/source-delete-panel";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -107,6 +108,7 @@ export default async function SourceDetailPage({ params }: SourceDetailPageProps
   }
 
   const source = detail.source;
+  const canDeleteSource = membershipCan(membership, "source:delete");
 
   return (
     <SourceDetailShell
@@ -176,6 +178,13 @@ export default async function SourceDetailPage({ params }: SourceDetailPageProps
           <LinkedAssertions assertions={detail.linkedAssertions} />
         </TabsContent>
       </Tabs>
+
+      <SourceDeletePanel
+        sourceId={source.id}
+        sourceName={source.name}
+        linkedAssertionCount={detail.linkedAssertions.length}
+        canDelete={canDeleteSource}
+      />
     </SourceDetailShell>
   );
 }

@@ -130,7 +130,7 @@ export async function updateWorkspaceSettingsForCurrentUser(input: UpdateWorkspa
     resourceType: "workspace",
     resourceId: workspace.id,
     metadata: {
-      changedFields: ["name", "slug", "teamVisibility"],
+      changedFields: ["name", "slug", "teamVisibility", "dataRetentionDays"],
     },
   });
 

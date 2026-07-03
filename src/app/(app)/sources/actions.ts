@@ -7,8 +7,15 @@ import { z } from "zod";
 import { abusePayloadLimits } from "@/lib/abuse/limits";
 import { checkAndRecordAbuseLimit } from "@/lib/abuse/enforcement";
 import { trackProductEvent } from "@/lib/analytics/posthog";
+import { recordAuditEvent } from "@/lib/audit/server";
 import { getBillingGateResult } from "@/lib/billing/enforcement";
-import { createSource, updateSource } from "@/lib/repositories";
+import {
+  createSource,
+  deleteSource,
+  getSourceById,
+  listSourceDocumentStoragePaths,
+  updateSource,
+} from "@/lib/repositories";
 import {
   runWorkspaceServerAction,
   serverActionError,
@@ -18,6 +25,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { persistUploadedDocumentSource } from "@/lib/sources/file-ingestion";
 import { runSourceSyncJob } from "@/lib/sources/source-sync-jobs";
 import { sourceTypes, type CreateSourceInput } from "@/lib/sources/schema";
+import { removeEvidenceArtifacts } from "@/lib/storage";
 
 const endpointMethods = ["GET", "POST"] as const;
 const endpointAuthModes = ["none", "bearer", "basic", "custom_header"] as const;
@@ -81,10 +89,15 @@ type SourceFormInput = z.infer<typeof sourceFormActionSchema>;
 const sourceResyncActionSchema = z.object({
   sourceId: z.uuid(),
 });
+const sourceDeleteActionSchema = z.object({
+  sourceId: z.uuid(),
+  confirmationName: z.string().trim().min(1, "Type the source name to confirm deletion."),
+});
 
 export type SourceFormState = {
   error?: string;
 };
+export type SourceDeleteState = SourceFormState;
 
 export async function createSourceAction(
   _previousState: SourceFormState,
@@ -279,6 +292,72 @@ export async function resyncSourceAction(formData: FormData): Promise<void> {
     revalidatePath(`/sources/${sourceId}`);
   }
 
+}
+
+export async function deleteSourceAction(
+  _previousState: SourceDeleteState,
+  formData: FormData,
+): Promise<SourceDeleteState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        sourceId: String(formData.get("sourceId") ?? ""),
+        confirmationName: String(formData.get("confirmationName") ?? ""),
+      },
+      permission: "source:delete",
+      schema: sourceDeleteActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const source = await getSourceById(supabase, membership.workspace.id, input.sourceId);
+
+      if (!source) {
+        throw serverActionError("Source not found for this workspace.", "validation");
+      }
+
+      if (input.confirmationName !== source.name) {
+        throw serverActionError("Type the source name exactly to confirm deletion.", "validation");
+      }
+
+      const storagePaths = await listSourceDocumentStoragePaths(supabase, membership.workspace.id, source.id);
+      const storageCleanup = await removeEvidenceArtifacts(supabase, membership.workspace.id, storagePaths);
+
+      await deleteSource(supabase, membership.workspace.id, source.id);
+
+      const auditResult = await recordAuditEvent({
+        workspaceId: membership.workspace.id,
+        action: "source.deleted",
+        resourceType: "source",
+        resourceId: source.id,
+        metadata: {
+          sourceName: source.name,
+          sourceType: source.type,
+          removedArtifactCount: storageCleanup.removedCount,
+          deletedByUserId: user.id,
+        },
+      });
+
+      if (auditResult.error) {
+        throw serverActionError(auditResult.error);
+      }
+
+      return source;
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/sources");
+  redirect("/sources");
 }
 
 function sourceFormInputFromFormData(mode: SourceFormInput["mode"], formData: FormData, uploadedFile: File | null) {

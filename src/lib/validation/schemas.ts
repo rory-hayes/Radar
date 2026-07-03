@@ -79,6 +79,7 @@ export const workspaceResponseSchema = z.object({
   slug: z.string().min(1),
   status: z.enum(workspaceStatuses),
   teamVisibility: z.enum(workspaceTeamVisibilities),
+  dataRetentionDays: z.union([z.literal(30), z.literal(90), z.literal(180), z.literal(365)]),
 });
 
 export const workspaceMembershipResponseSchema = z.object({

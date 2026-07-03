@@ -4,11 +4,13 @@ export const workspaceRoles = ["admin", "editor", "viewer"] as const;
 export const workspaceStatuses = ["active", "suspended"] as const;
 export const workspaceMemberStatuses = ["active", "invited", "removed"] as const;
 export const workspaceTeamVisibilities = ["private", "workspace"] as const;
+export const workspaceDataRetentionDayOptions = [30, 90, 180, 365] as const;
 
 export type WorkspaceRole = (typeof workspaceRoles)[number];
 export type WorkspaceStatus = (typeof workspaceStatuses)[number];
 export type WorkspaceMemberStatus = (typeof workspaceMemberStatuses)[number];
 export type WorkspaceTeamVisibility = (typeof workspaceTeamVisibilities)[number];
+export type WorkspaceDataRetentionDays = (typeof workspaceDataRetentionDayOptions)[number];
 
 export type RadarWorkspace = {
   id: string;
@@ -16,6 +18,7 @@ export type RadarWorkspace = {
   slug: string;
   status: WorkspaceStatus;
   teamVisibility: WorkspaceTeamVisibility;
+  dataRetentionDays: WorkspaceDataRetentionDays;
 };
 
 export type RadarWorkspaceMembership = {
@@ -44,6 +47,12 @@ export const updateWorkspaceSettingsSchema = z.object({
     .max(80)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and single hyphens only."),
   teamVisibility: z.enum(workspaceTeamVisibilities),
+  dataRetentionDays: z.coerce.number().pipe(z.union([
+    z.literal(30),
+    z.literal(90),
+    z.literal(180),
+    z.literal(365),
+  ])),
 });
 
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;

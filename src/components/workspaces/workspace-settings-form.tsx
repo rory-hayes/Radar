@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { type RadarWorkspace } from "@/lib/workspaces/schema";
+import { workspaceDataRetentionDayOptions, type RadarWorkspace } from "@/lib/workspaces/schema";
 
 type WorkspaceSettingsFormProps = {
   workspace: RadarWorkspace;
@@ -95,6 +95,28 @@ export function WorkspaceSettingsForm({ workspace, canManage }: WorkspaceSetting
                 </SelectContent>
               </Select>
               <FieldDescription>Controls how broadly the workspace profile appears inside Radar.</FieldDescription>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="data-retention-days">Data retention</FieldLabel>
+              <Select
+                name="dataRetentionDays"
+                defaultValue={String(workspace.dataRetentionDays)}
+                disabled={isDisabled}
+              >
+                <SelectTrigger id="data-retention-days" className="w-full">
+                  <SelectValue placeholder="Select retention window" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {workspaceDataRetentionDayOptions.map((days) => (
+                      <SelectItem key={days} value={String(days)}>
+                        {days} days
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FieldDescription>Controls how long Radar keeps workspace-owned run and evidence records.</FieldDescription>
             </Field>
           </FieldGroup>
         </form>
