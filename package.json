@@ -7,9 +7,10 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "NAPI_RS_FORCE_WASI=true next dev --webpack",
-    "build": "NAPI_RS_FORCE_WASI=true next build --webpack",
+    "dev": "pnpm validate:env && NAPI_RS_FORCE_WASI=true next dev --webpack",
+    "build": "pnpm validate:env && NAPI_RS_FORCE_WASI=true next build --webpack",
     "start": "next start",
+    "validate:env": "node scripts/validate-env.mjs",
     "lint": "eslint .",
     "typecheck": "NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
     "test": "node --test tests/unit/*.test.mjs",

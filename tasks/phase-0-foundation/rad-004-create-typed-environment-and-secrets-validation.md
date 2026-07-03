@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -60,41 +60,65 @@ package/config/app shell/docs/test files as required by the task.
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant. This ticket adds startup/build validation, not a user-facing UI flow.
+- [x] Data persists correctly where applicable. No persistence path changed.
+- [x] Workspace authorization is enforced where applicable. No authorization path changed.
+- [x] No unrelated scope is introduced.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Capture screenshots for UI changes. Not applicable; no UI changed.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+Implemented typed environment and secrets validation:
+
+- Added `src/lib/env/schema.ts` with typed Radar environment resolution, public/server env key sets, strict-environment requirements, URL validation, and variable-name-only error formatting.
+- Added `src/lib/env/server.ts` as the server-side env loading entrypoint for future server modules.
+- Added `scripts/validate-env.mjs` and `pnpm validate:env`.
+- Wired `pnpm validate:env` into `pnpm dev` and `pnpm build` so startup/build fail before app work in strict environments.
+- Kept local/test permissive so early foundation work can build with empty placeholders.
+- Strict environments are `preview`, `staging`, and `production`, resolved from `RADAR_ENV`, `NEXT_PUBLIC_RADAR_ENV`, or Vercel env where available.
+- Updated `.env.example` with `RADAR_ENV`, `NEXT_PUBLIC_RADAR_ENV`, PostHog host, Sentry DSN, and Stripe publishable key placeholders.
+- Documented local vs strict env validation behavior in `README.md`.
+- Added `tests/unit/env-validation.test.mjs` to cover local pass, strict missing failure, complete production pass, invalid URL failure, and no secret value leakage.
+
+Commands run:
+
+- `pnpm validate:env` — passed for local.
+- `pnpm lint` — passed.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed, 11 unit tests.
+- `pnpm test:e2e` — passed, 3 smoke tests.
+- `pnpm build` — passed. Next still logs the known local SWC native-loader warning and falls back to WASM; Tailwind still runs through WASI.
+- `env -i PATH="..." RADAR_ENV=production node scripts/validate-env.mjs` — failed as expected with missing variable names only.
+
+Follow-ups:
+
+- Future service integration tickets should import `src/lib/env/server.ts` from server-only code paths and avoid reading `process.env` directly in UI components.

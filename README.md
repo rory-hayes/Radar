@@ -43,6 +43,7 @@ pnpm dev
 Quality checks:
 
 ```bash
+pnpm validate:env
 pnpm lint
 pnpm typecheck
 pnpm test
@@ -51,6 +52,12 @@ pnpm build
 ```
 
 The Next dev/build scripts force Tailwind's WASI path with `NAPI_RS_FORCE_WASI=true` so local Codex runs do not depend on unsigned native Tailwind binaries. Next may still log its SWC native-loader warning locally and fall back to WASM.
+
+## Environment validation
+
+Copy `.env.example` to `.env.local` for local development. `RADAR_ENV=local` allows empty service placeholders while early foundation work is still offline. `RADAR_ENV=preview`, `RADAR_ENV=staging`, `RADAR_ENV=production`, or Vercel preview/production environments require the Supabase, OpenAI, Trigger.dev, PostHog, Sentry, Resend, and Stripe variables before dev/build continues.
+
+Validation errors list variable names only. They do not print secret values.
 
 The initial app intentionally exposes only a clean Radar placeholder. Product routes for Command Center, Assertions, Findings, and Sources are introduced by later RAD tickets.
 
