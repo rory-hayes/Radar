@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import {
+  AssertionSuggestionError,
+  createOpenAIAssertionSuggestionProvider,
+  type AssertionSuggestionSourceContext,
+} from "@/lib/assertions/ai-suggestions";
+import {
   assertionCategories,
   assertionPriorities,
   assertionScheduleCadences,
@@ -15,6 +20,7 @@ import {
 import {
   createAssertion,
   getAssertionById,
+  listSourceChunksPreview,
   listSources,
   replaceAssertionSourcesForAssertion,
   updateAssertion,
@@ -72,6 +78,15 @@ const assertionSourceLinksActionSchema = z.object({
 export type AssertionSourceLinkingState = {
   error?: string;
   success?: string;
+};
+
+const assertionSuggestionActionSchema = z.object({
+  sourceIds: z.array(z.uuid()).min(1, "Select at least one source for AI suggestions.").max(5),
+  maxSuggestions: z.number().int().min(1).max(5).default(3),
+});
+
+export type AssertionSuggestionState = {
+  error?: string;
 };
 
 export async function createAssertionAction(
@@ -204,6 +219,119 @@ export async function updateAssertionSourceLinksAction(
   return {
     success: sourceCount === 1 ? "1 source linked to this assertion." : `${sourceCount} sources linked to this assertion.`,
   };
+}
+
+export async function generateSuggestedAssertionDraftsAction(
+  _previousState: AssertionSuggestionState,
+  formData: FormData,
+): Promise<AssertionSuggestionState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        sourceIds: formData.getAll("sourceIds").map(String),
+        maxSuggestions: Number(formData.get("maxSuggestions") ?? 3),
+      },
+      permission: "assertion:create",
+      schema: assertionSuggestionActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const workspaceSources = await listSources(supabase, membership.workspace.id);
+      const workspaceSourceIds = new Set(workspaceSources.map((source) => source.id));
+      const invalidSourceId = input.sourceIds.find((sourceId) => !workspaceSourceIds.has(sourceId));
+
+      if (invalidSourceId) {
+        throw serverActionError("One or more selected sources are not available in this workspace.", "validation");
+      }
+
+      const selectedSources = workspaceSources.filter((source) => input.sourceIds.includes(source.id));
+      const sourceContexts = await Promise.all(
+        selectedSources.map<Promise<AssertionSuggestionSourceContext>>(async (source) => {
+          const chunks = await listSourceChunksPreview(supabase, membership.workspace.id, source.id, { limit: 4 });
+
+          return {
+            id: source.id,
+            name: source.name,
+            description: source.description,
+            type: source.type,
+            originUri: source.originUri,
+            syncStatus: source.syncStatus,
+            excerpts: chunks.map((chunk) => chunk.content),
+          };
+        }),
+      );
+
+      if (!sourceContexts.some((source) => source.excerpts.length > 0 || source.description || source.originUri)) {
+        throw serverActionError("Selected sources do not have enough extracted context for AI suggestions.", "validation");
+      }
+
+      let provider: ReturnType<typeof createOpenAIAssertionSuggestionProvider>;
+      let suggestions: Awaited<ReturnType<typeof provider.generate>>;
+
+      try {
+        provider = createOpenAIAssertionSuggestionProvider();
+        suggestions = await provider.generate({
+          workspaceName: membership.workspace.name,
+          sources: sourceContexts,
+          maxSuggestions: input.maxSuggestions,
+        });
+      } catch (error) {
+        if (error instanceof AssertionSuggestionError) {
+          throw serverActionError(error.message);
+        }
+
+        throw error;
+      }
+
+      for (const suggestion of suggestions) {
+        const sourceIds = suggestion.requiredSourceIds.filter((sourceId) => workspaceSourceIds.has(sourceId));
+        const linkedSourceIds = sourceIds.length > 0 ? sourceIds : input.sourceIds;
+        const assertion = await createAssertion(supabase, membership.workspace.id, user.id, {
+          title: suggestion.title,
+          purpose: suggestion.purpose,
+          expectedBehavior: suggestion.expectedBehavior,
+          category: suggestion.category,
+          priority: suggestion.priority,
+          runnerType: suggestion.runnerType,
+          status: "draft",
+          metadata: {
+            generatedBy: "radar_ai_suggestion",
+            model: provider.model,
+            sourceIds: linkedSourceIds,
+            reasoning: suggestion.reasoning,
+          },
+        });
+
+        await replaceAssertionSourcesForAssertion(supabase, membership.workspace.id, assertion.id, linkedSourceIds);
+        await upsertAssertionRunSchedule(supabase, membership.workspace.id, {
+          assertionId: assertion.id,
+          cadence: "manual",
+          timezone: "UTC",
+          sourceChangeTrigger: true,
+          isEnabled: false,
+          metadata: {
+            generatedBy: "radar_ai_suggestion",
+          },
+        });
+      }
+
+      return suggestions.length;
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/assertions");
+  redirect("/assertions?status=draft");
 }
 
 function assertionFormInputFromFormData(mode: AssertionFormInput["mode"], formData: FormData) {

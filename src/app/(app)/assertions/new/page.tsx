@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { AssertionForm, AssertionTemplatePicker } from "@/components/assertions";
+import { AssertionForm, AssertionSuggestionGenerator, AssertionTemplatePicker } from "@/components/assertions";
 import { PageHeader } from "@/components/app-shell";
 import { ErrorState } from "@/components/radar";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,7 @@ export default async function NewAssertionPage({ searchParams }: NewAssertionPag
   return (
     <section className="flex flex-col gap-6">
       <AssertionCreateHeader />
+      <AssertionSuggestionGenerator sources={sources} />
       <AssertionTemplatePicker selectedSlug={selectedTemplate?.slug} />
       <div className="max-w-4xl">
         <AssertionForm

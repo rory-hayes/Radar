@@ -1,4 +1,5 @@
 export { AssertionForm } from "@/components/assertions/assertion-form";
+export { AssertionSuggestionGenerator } from "@/components/assertions/assertion-suggestion-generator";
 export { AssertionTemplatePicker } from "@/components/assertions/assertion-template-picker";
 export { AssertionDetailView } from "@/components/assertions/assertion-detail";
 export type { AssertionDetailViewProps, AssertionLinkedSource } from "@/components/assertions/assertion-detail";

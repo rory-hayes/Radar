@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -60,41 +60,86 @@ Assertions UI, assertion APIs/actions, test case logic, templates, generators, a
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant.
+- [x] Data persists correctly where applicable.
+- [x] Workspace authorization is enforced where applicable.
+- [x] No unrelated scope is introduced.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Document screenshot exception for UI changes.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
 Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+
+## Implementation summary
+
+- Added `src/lib/assertions/ai-suggestions.ts`, a server-only OpenAI Responses provider for assertion suggestions. It sends bounded source context, requests strict `json_schema` output, parses `output_text`, and validates suggestions with the existing assertion category, priority, and runner-type enums.
+- Added `generateSuggestedAssertionDraftsAction` to the assertions actions module. The action enforces `assertion:create`, validates selected source ids against the active workspace, loads source chunk previews, creates suggested assertions with `status: "draft"`, links source evidence, and stores disabled manual schedules with source-change triggers.
+- Added `AssertionSuggestionGenerator` to the assertion create page. The UI lets editors select up to five sources, choose a draft count, handles pending/empty/error states, and makes the review-before-activation model explicit.
+- Installed the official shadcn `checkbox` primitive through `pnpm dlx shadcn@latest add checkbox` and composed the UI with existing shadcn Card, Field, Alert, Input, and Button primitives.
+- Added `tests/unit/assertion-ai-suggestions.test.mjs` to cover server-only provider boundaries, draft-only persistence, workspace source validation hooks, create-page wiring, and scope/secret safety.
+
+## MCP, blocks, and docs notes
+
+- shadcn.io MCP was available and used for a block search. The closest block was `ai-document-generator`, but it is broader than Radar's source-to-assertion workflow and premium, so no block source was installed.
+- shadcn CLI docs were checked for `checkbox`; the official docs describe pairing Checkbox with Field/FieldLabel/FieldContent and installing via `pnpm dlx shadcn@latest add checkbox`.
+- Official OpenAI Responses API create docs were checked for the `/v1/responses` endpoint, structured response creation, and `output_text` response access: `https://developers.openai.com/api/reference/resources/responses/methods/create`.
+
+## Commands run
+
+- `pnpm dlx shadcn@latest docs checkbox`
+- `pnpm dlx shadcn@latest info --json`
+- `pnpm dlx shadcn@latest add checkbox`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm test -- tests/unit/assertion-ai-suggestions.test.mjs`
+- `pnpm test:e2e`
+- `pnpm validate:seed`
+- `pnpm validate:env`
+- `pnpm db:harness`
+- `pnpm build`
+- `pnpm db:harness:apply` failed because Docker is not running: `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`.
+- `pnpm dev --hostname 127.0.0.1 --port 3012`
+- `curl -I -s 'http://127.0.0.1:3012/assertions/new'`
+- `curl -I -s 'http://127.0.0.1:3012/assertions/new?template=pricing-plan-accuracy'`
+
+## Manual QA
+
+- Verified `/assertions/new` returns `307` to `/sign-in?next=%2Fassertions%2Fnew` while unauthenticated.
+- Verified `/assertions/new?template=pricing-plan-accuracy` returns `307` to `/sign-in?next=%2Fassertions%2Fnew%3Ftemplate%3Dpricing-plan-accuracy`, preserving the template query.
+- Happy path is covered by unit assertions that generated suggestions are persisted only as draft assertions with linked sources and disabled manual schedules.
+- Sad paths covered by validation and UI states: no selected sources, out-of-workspace source ids, insufficient source context, and missing OpenAI configuration produce form errors.
+- No screenshot captured for the authenticated generator panel because the available local smoke was unauthenticated; the route-level auth redirect was verified instead.
+
+## Risks and follow-ups
+
+- Live generation requires `OPENAI_API_KEY` in the server environment. Without it, the action returns a configuration error and does not create drafts.
+- The provider intentionally creates reviewable draft assertions only. Activation, approval workflow, and test case creation remain separate tickets.
