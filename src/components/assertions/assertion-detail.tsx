@@ -334,34 +334,67 @@ function AssertionRunHistory({ runs }: { runs: readonly RadarEvaluationRunSummar
     );
   }
 
+  const latestRun = runs[0];
+  const firstFailureRun = firstFailureInHistory(runs);
+  const currentPassRate = latestRun ? passRate(latestRun) : undefined;
+
   return (
     <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
       <CardHeader>
         <CardTitle>Run history</CardTitle>
-        <CardDescription>Recent assertion evaluations and result counts.</CardDescription>
+        <CardDescription>Recent assertion evaluations, pass rate, and first visible failure marker.</CardDescription>
+        <CardAction>
+          <StatusBadge tone={latestRun ? runStatusTone(latestRun.status) : "neutral"} label={latestRun ? formatRunStatus(latestRun.status) : "No runs"} />
+        </CardAction>
       </CardHeader>
-      <CardContent className="px-0">
+      <CardContent className="flex flex-col gap-4 px-0">
+        <div className="grid gap-3 px-(--card-spacing) md:grid-cols-3">
+          <RunHistorySummaryItem
+            label="Latest state"
+            value={latestRun ? formatRunStatus(latestRun.status) : "No runs"}
+            helper={latestRun ? `${formatResultMix(latestRun)} from ${latestRun.totalTestCases} test cases` : "No completed evaluation yet."}
+          />
+          <RunHistorySummaryItem
+            label="Latest pass rate"
+            value={typeof currentPassRate === "number" ? `${Math.round(currentPassRate * 100)}%` : "No rate"}
+            helper={latestRun ? `Score ${formatScore(latestRun.score)} · confidence ${formatScore(latestRun.confidence)}` : "Waiting for scored results."}
+          />
+          <RunHistorySummaryItem
+            label="First failure in view"
+            value={firstFailureRun ? formatOptionalTimestamp(firstFailureRun.completedAt ?? firstFailureRun.createdAt) : "None"}
+            helper={firstFailureRun ? `Run ${firstFailureRun.id.slice(0, 8)} introduced ${firstFailureRun.failedCount + firstFailureRun.errorCount} issue(s).` : "Visible runs have no failed or errored test cases."}
+          />
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="pl-(--card-spacing)">Run</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Trigger</TableHead>
+              <TableHead className="text-right">Pass rate</TableHead>
               <TableHead className="text-right">Score</TableHead>
-              <TableHead className="text-right">Failed</TableHead>
+              <TableHead className="text-right">Confidence</TableHead>
+              <TableHead>Result mix</TableHead>
               <TableHead className="pr-(--card-spacing)">Completed</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {runs.map((run) => (
               <TableRow key={run.id}>
-                <TableCell className="pl-(--card-spacing) font-mono text-xs">{run.id.slice(0, 8)}</TableCell>
+                <TableCell className="pl-(--card-spacing)">
+                  <div className="flex flex-col gap-1">
+                    <span className="font-mono text-xs">{run.id.slice(0, 8)}</span>
+                    {firstFailureRun?.id === run.id ? <Badge variant="destructive">First failure</Badge> : null}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <StatusBadge tone={runStatusTone(run.status)} label={formatRunStatus(run.status)} />
                 </TableCell>
                 <TableCell>{titleize(run.triggerType)}</TableCell>
+                <TableCell className="text-right">{formatPassRate(run)}</TableCell>
                 <TableCell className="text-right">{formatScore(run.score)}</TableCell>
-                <TableCell className="text-right">{run.failedCount + run.errorCount}</TableCell>
+                <TableCell className="text-right">{formatScore(run.confidence)}</TableCell>
+                <TableCell>{formatResultMix(run)}</TableCell>
                 <TableCell className="pr-(--card-spacing)">
                   {formatOptionalTimestamp(run.completedAt ?? run.createdAt)}
                 </TableCell>
@@ -371,6 +404,16 @@ function AssertionRunHistory({ runs }: { runs: readonly RadarEvaluationRunSummar
         </Table>
       </CardContent>
     </Card>
+  );
+}
+
+function RunHistorySummaryItem({ label, value, helper }: { label: string; value: string; helper: string }) {
+  return (
+    <div className="rounded-md border border-border/80 bg-muted/25 p-3">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-foreground">{value}</p>
+      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{helper}</p>
+    </div>
   );
 }
 
@@ -532,8 +575,26 @@ function formatRunStatus(status: RadarEvaluationRunSummary["status"]) {
   return titleize(status);
 }
 
+function firstFailureInHistory(runs: readonly RadarEvaluationRunSummary[]) {
+  return [...runs].reverse().find((run) => run.failedCount + run.errorCount > 0);
+}
+
+function passRate(run: RadarEvaluationRunSummary) {
+  return run.totalTestCases > 0 ? run.passedCount / run.totalTestCases : undefined;
+}
+
+function formatPassRate(run: RadarEvaluationRunSummary) {
+  const rate = passRate(run);
+
+  return typeof rate === "number" ? `${Math.round(rate * 100)}%` : "No rate";
+}
+
 function formatScore(score?: number) {
   return typeof score === "number" ? `${Math.round(score * 100)}%` : "No score";
+}
+
+function formatResultMix(run: RadarEvaluationRunSummary) {
+  return `${run.passedCount} pass · ${run.warningCount} warn · ${run.failedCount + run.errorCount} fail/error`;
 }
 
 function formatOptionalTimestamp(value?: string) {
