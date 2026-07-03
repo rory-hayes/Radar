@@ -54,7 +54,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 | [RAD-027](tasks/phase-2-data-model/rad-027-implement-supabase-rls-policies.md) | Implement Supabase RLS policies | P0 | Done | Add row-level security policies for all product tables and storage buckets based on workspace membership and role. |
 | [RAD-028](tasks/phase-2-data-model/rad-028-configure-storage-buckets-for-evidence-artifacts.md) | Configure storage buckets for evidence artifacts | P0 | Done | Set up private storage buckets and access helpers for uploaded documents, extracted source snapshots, screenshots, run artifacts, and report exports. |
 | [RAD-029](tasks/phase-2-data-model/rad-029-create-migration-and-seed-test-harness.md) | Create migration and seed test harness | P0 | Done | Add scripts/tests that apply migrations, seed representative records, and verify expected constraints, indexes, and RLS behaviours. |
-| [RAD-030](tasks/phase-2-data-model/rad-030-e2e-gate-3-core-data-model-crud-and-isolation.md) | E2E Gate 3 — Core data model CRUD and isolation | P0 | Backlog | Run a full data-model E2E gate covering create/read/update/delete for sources, assertions, test cases, runs, findings, and evidence across multiple workspaces. |
+| [RAD-030](tasks/phase-2-data-model/rad-030-e2e-gate-3-core-data-model-crud-and-isolation.md) | E2E Gate 3 — Core data model CRUD and isolation | P0 | Done | Run a full data-model E2E gate covering create/read/update/delete for sources, assertions, test cases, runs, findings, and evidence across multiple workspaces. |
 ## Phase 3 — Sources and Evidence
 
 | ID | Task | Priority | Status | Description |
