@@ -40,6 +40,8 @@ The Evaluation Engine decides whether a runner result satisfies an assertion.
 
 Radar must combine deterministic checks, evidence comparison, contradiction detection, schema assertions, runner outputs, and LLM-as-judge. LLM-as-judge should never be the only signal for critical findings.
 
+RAD-056 implements the hybrid evaluator rubric for Knowledge Runner answers. The rubric scores source grounding, contradiction detection, completeness, refusal behaviour, citation validity, and policy consistency before optionally blending an LLM judge result. Deterministic scoring remains the majority signal, and an evidence-free result stays inconclusive with no recommended finding even if an LLM judge would otherwise escalate it.
+
 ## LLM prompt contracts
 
 RAD-052 introduces a server-only LLM adapter for OpenAI Responses JSON calls. Prompt contracts are versioned in code with an id, version, task, instructions, strict JSON schema, and output-token limit. Runtime metadata must record provider, model, prompt id, prompt version, task, response format, input fingerprint, request time, and token usage when available. Do not persist raw prompts, raw source context, API keys, or bearer values in logs or client-visible metadata.
