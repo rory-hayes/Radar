@@ -122,6 +122,11 @@ const sourceSelect =
   "id, workspace_id, name, description, type, sync_status, origin_uri, content_hash, last_synced_at, last_sync_error, created_by";
 const sourceSyncTargetSelect = `${sourceSelect}, config, metadata`;
 
+export type RadarSourceSyncTarget = RadarSource & {
+  config: JsonRecord;
+  metadata: JsonRecord;
+};
+
 export async function listSources(client: RadarRepositoryClient, workspaceId: string) {
   const { data, error } = await client
     .from("sources")
@@ -171,6 +176,28 @@ export async function getSourceSyncTarget(client: RadarRepositoryClient, workspa
 
   assertRepositorySuccess(error, "Unable to load source sync target");
   return data ? mapSourceSyncTargetRow(data) : null;
+}
+
+export async function listSourceSyncTargetsForWorkspace(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceIds: readonly string[],
+) {
+  const uniqueSourceIds = [...new Set(sourceIds)];
+
+  if (uniqueSourceIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await client
+    .from("sources")
+    .select(sourceSyncTargetSelect)
+    .eq("workspace_id", workspaceId)
+    .in("id", uniqueSourceIds)
+    .returns<SourceSyncTargetRow[]>();
+
+  assertRepositorySuccess(error, "Unable to load source sync targets");
+  return (data ?? []).map(mapSourceSyncTargetRow);
 }
 
 export async function createSource(
@@ -600,7 +627,7 @@ function mapSourceRow(row: SourceRow): RadarSource {
   });
 }
 
-function mapSourceSyncTargetRow(row: SourceSyncTargetRow) {
+function mapSourceSyncTargetRow(row: SourceSyncTargetRow): RadarSourceSyncTarget {
   return {
     ...mapSourceRow(row),
     config: jsonRecord(row.config),

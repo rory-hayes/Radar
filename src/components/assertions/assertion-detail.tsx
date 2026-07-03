@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AssertionManualRunPanel } from "@/components/assertions/assertion-manual-run-panel";
 import { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";
 import { AssertionTestCaseManager } from "@/components/assertions/assertion-test-case-manager";
+import { KnowledgeTargetConfigurationPanel } from "@/components/assertions/knowledge-target-configuration-panel";
 import { EmptyState, MetricCard, SeverityBadge, StatusBadge, type StatusTone } from "@/components/radar";
 import {
   formatSourceTimestamp,
@@ -43,6 +44,7 @@ import type {
   RadarAssertionSource,
   RadarEvaluationRunSummary,
 } from "@/lib/repositories";
+import type { KnowledgeTargetConfigurationSet } from "@/lib/evaluation/knowledge-targets";
 import type { RadarSource } from "@/lib/sources/schema";
 
 export type AssertionLinkedSource = RadarSource & {
@@ -57,6 +59,7 @@ export type AssertionDetailViewProps = {
   testCases: readonly RadarTestCase[];
   runHistory: readonly RadarEvaluationRunSummary[];
   findings: readonly RadarFinding[];
+  knowledgeTargets?: KnowledgeTargetConfigurationSet;
   canEditSources: boolean;
   canEditTestCases: boolean;
   canRunAssertions: boolean;
@@ -70,6 +73,7 @@ export function AssertionDetailView({
   testCases,
   runHistory,
   findings,
+  knowledgeTargets,
   canEditSources,
   canEditTestCases,
   canRunAssertions,
@@ -110,6 +114,7 @@ export function AssertionDetailView({
             assertion={assertion}
             availableSources={availableSources}
             linkedSources={linkedSources}
+            knowledgeTargets={knowledgeTargets}
             canEditSources={canEditSources}
           />
         </TabsContent>
@@ -239,15 +244,18 @@ function AssertionSources({
   assertion,
   availableSources,
   linkedSources,
+  knowledgeTargets,
   canEditSources,
 }: {
   assertion: RadarAssertion;
   availableSources: readonly RadarSource[];
   linkedSources: readonly AssertionLinkedSource[];
+  knowledgeTargets?: KnowledgeTargetConfigurationSet;
   canEditSources: boolean;
 }) {
   return (
     <div className="flex flex-col gap-4">
+      <KnowledgeTargetConfigurationPanel configuration={knowledgeTargets} canEdit={canEditSources} />
       <AssertionSourceLinkingPanel
         assertion={assertion}
         availableSources={availableSources}

@@ -52,6 +52,12 @@ RAD-053 adds a server-only evaluation evidence loader that runs before judging. 
 
 Evidence loading is not a generic workspace search surface. It exists only to ground a specific assertion/test-case evaluation and must not copy full source documents or raw source context into logs, traces, or client-visible metadata.
 
+## Knowledge target configuration
+
+RAD-054 adds server-only Knowledge target configuration for assertion-linked sources. A Knowledge Runner assertion can use linked support bot endpoints, generic HTTP endpoints, uploaded answer sets, or manual answer sets as customer-facing answer targets. The configuration layer validates the assertion in the active workspace, loads only linked source records, classifies supported target types, and reports readiness before runner execution.
+
+Endpoint targets expose only URL, HTTP method, and credential mode. Credentials, bearer values, and API keys must stay outside target configuration records, UI summaries, logs, and evaluation metadata. Uploaded and manual answer-set targets are runnable only after synced content is available. The assertion detail Sources tab renders this readiness state so users can complete the minimum target setup without leaving Radar's assertion-led model.
+
 ## Evidence rule
 
 No evidence means no critical finding. Serious findings must include expected vs actual plus source evidence or runner artifact.

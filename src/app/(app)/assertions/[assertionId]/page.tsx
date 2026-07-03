@@ -10,6 +10,7 @@ import {
 import { PageHeader } from "@/components/app-shell";
 import { ErrorState } from "@/components/radar";
 import { Button } from "@/components/ui/button";
+import { loadKnowledgeTargetConfigurationsForAssertion } from "@/lib/evaluation/knowledge-targets";
 import {
   getAssertionById,
   listAssertionRunSchedules,
@@ -104,6 +105,7 @@ export default async function AssertionDetailPage({ params }: AssertionDetailPag
         testCases={detail.testCases}
         runHistory={detail.runHistory}
         findings={detail.findings}
+        knowledgeTargets={detail.knowledgeTargets}
         canEditSources={canEditAssertion}
         canEditTestCases={canEditAssertion}
         canRunAssertions={canRunAssertion}
@@ -118,14 +120,30 @@ async function loadAssertionDetail(
   assertionId: string,
 ) {
   try {
-    const [assertion, schedules, sourceLinks, sources, testCases, runHistory, findings] = await Promise.all([
-      getAssertionById(supabase, workspaceId, assertionId),
+    const assertion = await getAssertionById(supabase, workspaceId, assertionId);
+
+    if (!assertion) {
+      return {
+        assertion,
+        schedule: undefined,
+        availableSources: [],
+        linkedSources: [],
+        testCases: [],
+        runHistory: [],
+        findings: [],
+        knowledgeTargets: undefined,
+        error: null,
+      };
+    }
+
+    const [schedules, sourceLinks, sources, testCases, runHistory, findings, knowledgeTargets] = await Promise.all([
       listAssertionRunSchedules(supabase, workspaceId),
       listAssertionSourcesForAssertion(supabase, workspaceId, assertionId),
       listSources(supabase, workspaceId),
       listTestCasesForAssertion(supabase, workspaceId, assertionId),
       listEvaluationRunSummariesForAssertion(supabase, workspaceId, assertionId, { limit: 8 }),
       listFindingsForAssertion(supabase, workspaceId, assertionId, { limit: 8 }),
+      loadKnowledgeTargetConfigurationsForAssertion(supabase, { workspaceId, assertionId }),
     ]);
     const sourcesById = new Map(sources.map((source) => [source.id, source]));
 
@@ -141,6 +159,7 @@ async function loadAssertionDetail(
       testCases,
       runHistory,
       findings,
+      knowledgeTargets,
       error: null,
     };
   } catch (error) {
@@ -152,6 +171,7 @@ async function loadAssertionDetail(
       testCases: [],
       runHistory: [],
       findings: [],
+      knowledgeTargets: undefined,
       error: error instanceof Error ? error.message : "assertion_detail.repository_error",
     };
   }
