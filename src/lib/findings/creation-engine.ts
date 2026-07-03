@@ -6,10 +6,13 @@ import type { RadarAssertion, RadarTestCase } from "@/lib/assertions/schema";
 import type { FindingEvidenceInput, FindingInput, RadarFinding } from "@/lib/findings/schema";
 import type { EvaluationEvidenceRefInput, RadarTestCaseResult, TestCaseResultStatus } from "@/lib/evaluation/schema";
 import {
+  generateRecommendedFix,
+  recommendedFixGeneratorVersion,
+} from "@/lib/findings/recommended-fix-generator";
+import {
   assessSeverityAndImpact,
   nextFindingRepeatCount,
   severityImpactModelVersion,
-  type SeverityImpactAssessment,
 } from "@/lib/findings/severity-impact-model";
 import {
   addFindingEvidence,
@@ -124,6 +127,7 @@ export function findingInputFromResult(
 ): FindingInput {
   const confidence = boundedConfidence(input.result.confidence ?? input.result.score ?? 0.65);
   const actual = actualTextFromResult(input.result.actualOutput);
+  const recommendedFix = generateRecommendedFix(input);
 
   return {
     assertionId: input.assertion.id,
@@ -140,7 +144,7 @@ export function findingInputFromResult(
     status: "open",
     confidence,
     customerImpact: risk.customerImpact,
-    recommendedFix: "Review the failing assertion evidence, update the source of truth or customer-facing handoff, then rerun the assertion.",
+    recommendedFix: recommendedFix.recommendedFix,
     dedupeKey: findingDedupeKey(input),
     firstSeenAt: now,
     lastSeenAt: now,
@@ -154,6 +158,14 @@ export function findingInputFromResult(
       impactLevel: risk.impactLevel,
       repeatCount: risk.repeatCount,
       riskFactors: risk.factors,
+      recommendedFixGeneratorVersion,
+      recommendedFixGuardrail: recommendedFix.guardrail,
+      recommendedFixFailureType: recommendedFix.failureType,
+      recommendedFixEvidenceCount: recommendedFix.evidenceCount,
+      recommendedFixSourceEvidenceCount: recommendedFix.sourceEvidenceCount,
+      recommendedFixArtifactEvidenceCount: recommendedFix.artifactEvidenceCount,
+      recommendedFixRationale: recommendedFix.rationale,
+      recommendedFixSourceOwnerUserId: recommendedFix.sourceOwnerUserId ?? null,
     },
   };
 }

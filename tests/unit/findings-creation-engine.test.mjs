@@ -74,7 +74,8 @@ test("RAD-071 maps severity confidence impact and evidence", async () => {
   assert.match(engine, /boundedConfidence/);
   assert.match(engine, /customerImpact: risk\.customerImpact/);
   assert.match(engine, /repeatCount: risk\.repeatCount/);
-  assert.match(engine, /recommendedFix: "Review the failing assertion evidence/);
+  assert.match(engine, /generateRecommendedFix/);
+  assert.match(engine, /recommendedFix: recommendedFix\.recommendedFix/);
   assert.match(engine, /addFindingEvidence/);
   assert.match(engine, /recordFindingActivity/);
   assert.match(engine, /evidenceType: "run_output"/);

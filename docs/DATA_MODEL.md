@@ -111,6 +111,8 @@ RAD-071 keeps duplicate runner failures from flooding the inbox by looking up fi
 
 RAD-075 records severity-impact metadata on findings, including model version, impact level, repeat count, and the bounded risk factors used to derive severity and customer-impact text. The metadata supports repeat-aware prioritization while preserving the customer-readable `severity`, `confidence`, and `customer_impact` fields as the product-facing contract.
 
+RAD-076 stores recommended-fix generator metadata on findings, including generator version, guardrail state, inferred failure type, evidence counts, bounded rationale, and the known assertion owner when present. The product-facing `recommended_fix` field remains concise and business-readable while the metadata explains which captured evidence and runner output grounded the recommendation.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.
