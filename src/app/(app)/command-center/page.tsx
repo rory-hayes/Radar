@@ -33,7 +33,15 @@ export default function CommandCenterPage() {
   return (
     <section className="flex flex-col gap-6">
       <PageHeader title={route?.title ?? "Command Center"} description={route?.description ?? ""} />
-      <RoutePlaceholder panels={panels} />
+      <RoutePlaceholder
+        panels={panels}
+        emptyState={{
+          title: "No verification activity yet",
+          description:
+            "Command Center will populate after assertions have approved sources, runner coverage, and evaluation runs.",
+          details: ["Create assertions", "Attach required sources", "Run checks"],
+        }}
+      />
     </section>
   );
 }

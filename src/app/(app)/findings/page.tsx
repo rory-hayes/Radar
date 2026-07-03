@@ -33,7 +33,15 @@ export default function FindingsPage() {
   return (
     <section className="flex flex-col gap-6">
       <PageHeader title={route?.title ?? "Findings"} description={route?.description ?? ""} />
-      <RoutePlaceholder panels={panels} />
+      <RoutePlaceholder
+        panels={panels}
+        emptyState={{
+          title: "No evidence-backed findings yet",
+          description:
+            "Findings will appear when a check detects a broken customer-facing promise with expected versus actual evidence.",
+          details: ["Expected behavior", "Actual result", "Recommended fix"],
+        }}
+      />
     </section>
   );
 }

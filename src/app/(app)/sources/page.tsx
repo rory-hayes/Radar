@@ -33,7 +33,15 @@ export default function SourcesPage() {
   return (
     <section className="flex flex-col gap-6">
       <PageHeader title={route?.title ?? "Sources"} description={route?.description ?? ""} />
-      <RoutePlaceholder panels={panels} />
+      <RoutePlaceholder
+        panels={panels}
+        emptyState={{
+          title: "No sources are required yet",
+          description:
+            "Sources are connected after an assertion needs evidence from a URL, document, manual policy, endpoint, or customer journey.",
+          details: ["Source type", "Sync health", "Affected assertions"],
+        }}
+      />
     </section>
   );
 }

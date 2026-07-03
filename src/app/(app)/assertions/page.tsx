@@ -33,7 +33,15 @@ export default function AssertionsPage() {
   return (
     <section className="flex flex-col gap-6">
       <PageHeader title={route?.title ?? "Assertions"} description={route?.description ?? ""} />
-      <RoutePlaceholder panels={panels} />
+      <RoutePlaceholder
+        panels={panels}
+        emptyState={{
+          title: "No assertions are being verified yet",
+          description:
+            "Assertions will appear here once the workspace defines the customer-facing promises Radar should monitor.",
+          details: ["Business truth", "Required sources", "Runner type"],
+        }}
+      />
     </section>
   );
 }

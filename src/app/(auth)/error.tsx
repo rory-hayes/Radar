@@ -3,7 +3,7 @@
 import { ErrorState } from "@/components/radar";
 import { Button } from "@/components/ui/button";
 
-export default function Error({
+export default function AuthError({
   error,
   reset,
 }: {
@@ -11,17 +11,17 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-6xl flex-col justify-center p-6">
+    <div className="w-full max-w-md">
       <ErrorState
-        title="Radar could not load"
-        description="Radar hit an unexpected runtime error. Try again, and keep the reference if the issue repeats."
+        title="Authentication could not load."
+        description="Retry the form. If it fails again, keep the reference and check the auth configuration."
         reference={error.digest}
         action={
           <Button type="button" onClick={reset}>
-            Try again
+            Retry
           </Button>
         }
       />
-    </main>
+    </div>
   );
 }

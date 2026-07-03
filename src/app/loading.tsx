@@ -1,10 +1,9 @@
+import { LoadingState } from "@/components/radar";
+
 export default function Loading() {
   return (
-    <main className="site-shell">
-      <section className="status-panel" aria-busy="true" aria-live="polite">
-        <h1>Loading Radar</h1>
-        <p>Preparing the assertion-led workspace foundation.</p>
-      </section>
+    <main className="mx-auto flex min-h-svh w-full max-w-6xl flex-col justify-center p-6">
+      <LoadingState title="Loading Radar" description="Preparing the assertion-led workspace foundation." />
     </main>
   );
 }
