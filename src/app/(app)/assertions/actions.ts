@@ -27,6 +27,7 @@ import {
 import {
   approveTestCase,
   createAssertion,
+  createEvaluationRun,
   createTestCase,
   deleteTestCase,
   disableTestCase,
@@ -141,6 +142,15 @@ const testCaseSuggestionActionSchema = z.object({
 });
 
 export type TestCaseSuggestionState = {
+  error?: string;
+  success?: string;
+};
+
+const manualRunActionSchema = z.object({
+  assertionId: z.uuid(),
+});
+
+export type ManualRunState = {
   error?: string;
   success?: string;
 };
@@ -479,6 +489,65 @@ export async function generateSuggestedTestCasesAction(
   return {
     success: count === 1 ? "1 draft test case generated." : `${count} draft test cases generated.`,
   };
+}
+
+export async function queueManualAssertionRunAction(
+  _previousState: ManualRunState,
+  formData: FormData,
+): Promise<ManualRunState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        assertionId: String(formData.get("assertionId") ?? ""),
+      },
+      permission: "run:rerun",
+      schema: manualRunActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const assertion = await requireWorkspaceAssertion(supabase, membership.workspace.id, input.assertionId);
+      const testCases = await listTestCasesForAssertion(supabase, membership.workspace.id, input.assertionId);
+      const approvedTestCases = testCases.filter((testCase) => testCase.status === "approved");
+
+      if (approvedTestCases.length === 0) {
+        throw serverActionError("Approve at least one test case before queueing a manual run.", "validation");
+      }
+
+      return createEvaluationRun(supabase, membership.workspace.id, {
+        assertionId: assertion.id,
+        runnerType: assertion.runnerType,
+        status: "queued",
+        triggerType: "manual",
+        triggeredByUserId: user.id,
+        totalTestCases: approvedTestCases.length,
+        passedCount: 0,
+        warningCount: 0,
+        failedCount: 0,
+        errorCount: 0,
+        skippedCount: 0,
+        evidenceRefs: [],
+        executionMetadata: {
+          queuedBy: "rad-049_manual_trigger",
+          executionState: "placeholder_until_runner_orchestration",
+        },
+      });
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/assertions");
+  revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
+  return { success: "Manual verification queued. Runner execution will attach results in a later phase." };
 }
 
 export async function generateSuggestedAssertionDraftsAction(

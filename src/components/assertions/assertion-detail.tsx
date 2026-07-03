@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AssertionManualRunPanel } from "@/components/assertions/assertion-manual-run-panel";
 import { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";
 import { AssertionTestCaseManager } from "@/components/assertions/assertion-test-case-manager";
 import { EmptyState, MetricCard, SeverityBadge, StatusBadge, type StatusTone } from "@/components/radar";
@@ -58,6 +59,7 @@ export type AssertionDetailViewProps = {
   findings: readonly RadarFinding[];
   canEditSources: boolean;
   canEditTestCases: boolean;
+  canRunAssertions: boolean;
 };
 
 export function AssertionDetailView({
@@ -70,9 +72,11 @@ export function AssertionDetailView({
   findings,
   canEditSources,
   canEditTestCases,
+  canRunAssertions,
 }: AssertionDetailViewProps) {
   const latestRun = runHistory[0];
   const openFindings = findings.filter((finding) => finding.status !== "resolved" && finding.status !== "ignored").length;
+  const approvedTestCaseCount = testCases.filter((testCase) => testCase.status === "approved").length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -93,7 +97,13 @@ export function AssertionDetailView({
           <TabsTrigger value="findings">Findings</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-          <AssertionOverview assertion={assertion} schedule={schedule} latestRun={latestRun} />
+          <AssertionOverview
+            assertion={assertion}
+            schedule={schedule}
+            latestRun={latestRun}
+            approvedTestCaseCount={approvedTestCaseCount}
+            canRunAssertions={canRunAssertions}
+          />
         </TabsContent>
         <TabsContent value="sources">
           <AssertionSources
@@ -168,10 +178,14 @@ function AssertionOverview({
   assertion,
   schedule,
   latestRun,
+  approvedTestCaseCount,
+  canRunAssertions,
 }: {
   assertion: RadarAssertion;
   schedule?: RadarAssertionRunSchedule;
   latestRun?: RadarEvaluationRunSummary;
+  approvedTestCaseCount: number;
+  canRunAssertions: boolean;
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]">
@@ -210,6 +224,13 @@ function AssertionOverview({
           </dl>
         </CardContent>
       </Card>
+      <div className="lg:col-span-2">
+        <AssertionManualRunPanel
+          assertion={assertion}
+          approvedTestCaseCount={approvedTestCaseCount}
+          canRun={canRunAssertions}
+        />
+      </div>
     </div>
   );
 }

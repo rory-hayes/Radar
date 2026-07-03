@@ -3,6 +3,7 @@ export { AssertionSuggestionGenerator } from "@/components/assertions/assertion-
 export { AssertionTemplatePicker } from "@/components/assertions/assertion-template-picker";
 export { AssertionDetailView } from "@/components/assertions/assertion-detail";
 export type { AssertionDetailViewProps, AssertionLinkedSource } from "@/components/assertions/assertion-detail";
+export { AssertionManualRunPanel } from "@/components/assertions/assertion-manual-run-panel";
 export { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";
 export { AssertionTestCaseManager } from "@/components/assertions/assertion-test-case-manager";
 export { AssertionTable } from "@/components/assertions/assertion-table";

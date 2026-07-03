@@ -38,6 +38,7 @@ export default async function AssertionDetailPage({ params }: AssertionDetailPag
   const membership = await requireActiveWorkspace();
   const supabase = await createSupabaseServerClient();
   const canEditAssertion = membershipCan(membership, "assertion:edit");
+  const canRunAssertion = membershipCan(membership, "run:rerun");
 
   if (!supabase) {
     return (
@@ -105,6 +106,7 @@ export default async function AssertionDetailPage({ params }: AssertionDetailPag
         findings={detail.findings}
         canEditSources={canEditAssertion}
         canEditTestCases={canEditAssertion}
+        canRunAssertions={canRunAssertion}
       />
     </AssertionDetailShell>
   );
