@@ -5,35 +5,22 @@ import { redirect } from "next/navigation";
 import { defaultAuthenticatedPath } from "@/lib/auth/redirects";
 import { getAuthenticatedUser } from "@/lib/auth/session";
 import { recordAuditEvent } from "@/lib/audit/server";
+import {
+  createWorkspaceWithAdminMembership,
+  getFirstActiveWorkspaceMembershipForUser,
+  updateWorkspaceSettings,
+  RadarRepositoryError,
+} from "@/lib/repositories";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   createWorkspaceSchema,
   createWorkspaceSlug,
   updateWorkspaceSettingsSchema,
   type CreateWorkspaceInput,
-  type RadarWorkspace,
   type RadarWorkspaceMembership,
   type UpdateWorkspaceSettingsInput,
-  type WorkspaceMemberStatus,
-  type WorkspaceRole,
-  type WorkspaceStatus,
-  type WorkspaceTeamVisibility,
 } from "@/lib/workspaces/schema";
 import { membershipCan } from "@/lib/workspaces/permissions";
-
-type WorkspaceMemberRow = {
-  role: WorkspaceRole;
-  status: WorkspaceMemberStatus;
-  workspace: WorkspaceRow | WorkspaceRow[] | null;
-};
-
-type WorkspaceRow = {
-  id: string;
-  name: string;
-  slug: string;
-  status: WorkspaceStatus;
-  team_visibility?: WorkspaceTeamVisibility;
-};
 
 export async function getActiveWorkspaceForCurrentUser(): Promise<RadarWorkspaceMembership | null> {
   const user = await getAuthenticatedUser();
@@ -43,34 +30,7 @@ export async function getActiveWorkspaceForCurrentUser(): Promise<RadarWorkspace
     return null;
   }
 
-  const { data, error } = await supabase
-    .from("workspace_members")
-    .select("role, status, workspace:workspaces(id, name, slug, status, team_visibility)")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle<WorkspaceMemberRow>();
-
-  if (error) {
-    throw new Error(`Unable to load workspace membership: ${error.message}`);
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  const workspace = Array.isArray(data.workspace) ? data.workspace[0] : data.workspace;
-
-  if (!workspace) {
-    return null;
-  }
-
-  return {
-    workspace: mapWorkspaceRow(workspace),
-    role: data.role,
-    memberStatus: data.status,
-  };
+  return getFirstActiveWorkspaceMembershipForUser(supabase, user.id);
 }
 
 export async function requireActiveWorkspace() {
@@ -97,19 +57,20 @@ export async function createWorkspaceForCurrentUser(input: CreateWorkspaceInput)
 
   const baseSlug = createWorkspaceSlug(parsedInput.name);
   const slug = `${baseSlug}-${user.id.slice(0, 8)}`;
-  const { data, error } = await supabase.rpc("create_workspace_with_admin_membership", {
-    workspace_name: parsedInput.name,
-    workspace_slug: slug,
-  });
+  let workspace;
 
-  if (error) {
+  try {
+    workspace = await createWorkspaceWithAdminMembership(supabase, {
+      name: parsedInput.name,
+      slug,
+    });
+  } catch (error) {
     return {
       workspace: null,
-      error: mapWorkspaceCreateError(error.message),
+      error: mapWorkspaceCreateError(error),
     };
   }
 
-  const workspace = mapWorkspaceRow(data as WorkspaceRow);
   const auditResult = await recordAuditEvent({
     workspaceId: workspace.id,
     action: "workspace.created",
@@ -152,25 +113,17 @@ export async function updateWorkspaceSettingsForCurrentUser(input: UpdateWorkspa
     };
   }
 
-  const { data, error } = await supabase
-    .from("workspaces")
-    .update({
-      name: parsedInput.name,
-      slug: parsedInput.slug,
-      team_visibility: parsedInput.teamVisibility,
-    })
-    .eq("id", membership.workspace.id)
-    .select("id, name, slug, status, team_visibility")
-    .single<WorkspaceRow>();
+  let workspace;
 
-  if (error) {
+  try {
+    workspace = await updateWorkspaceSettings(supabase, membership.workspace.id, parsedInput);
+  } catch (error) {
     return {
       workspace: null,
-      error: mapWorkspaceUpdateError(error.message),
+      error: mapWorkspaceUpdateError(error),
     };
   }
 
-  const workspace = mapWorkspaceRow(data);
   const auditResult = await recordAuditEvent({
     workspaceId: workspace.id,
     action: "workspace.updated",
@@ -198,17 +151,9 @@ export function redirectToWorkspaceHome() {
   redirect(defaultAuthenticatedPath);
 }
 
-function mapWorkspaceRow(row: WorkspaceRow): RadarWorkspace {
-  return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    status: row.status,
-    teamVisibility: row.team_visibility ?? "private",
-  };
-}
+function mapWorkspaceCreateError(error: unknown) {
+  const message = repositoryErrorMessage(error);
 
-function mapWorkspaceCreateError(message: string) {
   if (/duplicate key|unique/i.test(message)) {
     return "That workspace slug already exists. Try a more specific workspace name.";
   }
@@ -220,7 +165,9 @@ function mapWorkspaceCreateError(message: string) {
   return "Radar could not create the workspace. Try again.";
 }
 
-function mapWorkspaceUpdateError(message: string) {
+function mapWorkspaceUpdateError(error: unknown) {
+  const message = repositoryErrorMessage(error);
+
   if (/duplicate key|unique/i.test(message)) {
     return "That workspace slug already exists. Try another slug.";
   }
@@ -230,4 +177,8 @@ function mapWorkspaceUpdateError(message: string) {
   }
 
   return "Radar could not update workspace settings. Try again.";
+}
+
+function repositoryErrorMessage(error: unknown) {
+  return error instanceof RadarRepositoryError ? error.message : "Unknown repository error";
 }

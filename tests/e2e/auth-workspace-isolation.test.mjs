@@ -26,15 +26,17 @@ test("RAD-020 gate protects app routes and preserves auth redirects", async () =
 
 test("RAD-020 gate verifies workspace isolation and RBAC mutation boundaries", async () => {
   const workspaceServer = await readWorkspaceFile("src/lib/workspaces/server.ts");
+  const workspaceRepository = await readWorkspaceFile("src/lib/repositories/workspaces.ts");
   const workspaceGuards = await readWorkspaceFile("src/lib/workspaces/guards.ts");
   const permissions = await readWorkspaceFile("src/lib/workspaces/permissions.ts");
   const settingsAction = await readWorkspaceFile("src/app/(app)/settings/actions.ts");
   const settingsPage = await readWorkspaceFile("src/app/(app)/settings/page.tsx");
   const guardrails = await readWorkspaceFile("src/lib/server/guardrails.ts");
 
-  assert.match(workspaceServer, /\.from\("workspace_members"\)/);
-  assert.match(workspaceServer, /\.eq\("user_id", user\.id\)/);
-  assert.match(workspaceServer, /\.eq\("status", "active"\)/);
+  assert.match(workspaceServer, /getFirstActiveWorkspaceMembershipForUser\(supabase, user\.id\)/);
+  assert.match(workspaceRepository, /\.from\("workspace_members"\)/);
+  assert.match(workspaceRepository, /\.eq\("user_id", userId\)/);
+  assert.match(workspaceRepository, /\.eq\("status", "active"\)/);
   assert.match(workspaceServer, /redirect\("\/workspace\/new"\)/);
   assert.match(workspaceGuards, /requireWorkspacePermission/);
   assert.match(workspaceGuards, /membershipCan\(membership, permission\)/);

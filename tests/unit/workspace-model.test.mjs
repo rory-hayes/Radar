@@ -36,12 +36,17 @@ test("RAD-012 enforces workspace access with initial RLS and transactional creat
 });
 
 test("RAD-012 adds typed workspace helpers and slug validation", async () => {
-  for (const helperPath of ["src/lib/workspaces/schema.ts", "src/lib/workspaces/server.ts"]) {
+  for (const helperPath of [
+    "src/lib/workspaces/schema.ts",
+    "src/lib/workspaces/server.ts",
+    "src/lib/repositories/workspaces.ts",
+  ]) {
     await fileExists(helperPath);
   }
 
   const schema = await readWorkspaceFile("src/lib/workspaces/schema.ts");
   const server = await readWorkspaceFile("src/lib/workspaces/server.ts");
+  const repository = await readWorkspaceFile("src/lib/repositories/workspaces.ts");
 
   assert.match(schema, /createWorkspaceSchema/);
   assert.match(schema, /createWorkspaceSlug/);
@@ -49,8 +54,9 @@ test("RAD-012 adds typed workspace helpers and slug validation", async () => {
   assert.match(server, /getActiveWorkspaceForCurrentUser/);
   assert.match(server, /requireActiveWorkspace/);
   assert.match(server, /createWorkspaceForCurrentUser/);
-  assert.match(server, /supabase\.rpc\("create_workspace_with_admin_membership"/);
-  assert.match(server, /team_visibility/);
+  assert.match(server, /createWorkspaceWithAdminMembership/);
+  assert.match(repository, /client\.rpc\("create_workspace_with_admin_membership"/);
+  assert.match(repository, /team_visibility/);
 });
 
 test("RAD-012 adds an authenticated first-workspace creation flow", async () => {

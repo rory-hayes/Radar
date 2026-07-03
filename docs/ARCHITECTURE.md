@@ -34,6 +34,12 @@ Radar must not connect every system up front. Each assertion declares the minimu
 
 RAD-017 adds a server-only guardrail layer for backend entrypoints. Server actions and JSON route handlers use standardized action and JSON API response envelopes, Zod-backed input validation, authenticated-user resolution, workspace membership resolution, and permission checks before repositories or Supabase writes run. Product tables remain assertion-led and workspace-owned; guardrails prevent future source, assertion, run, and finding mutations from trusting client-provided workspace context.
 
+## Repository layer
+
+RAD-025 adds server-only typed repositories under `src/lib/repositories`. Product routes, server actions, route handlers, and runner code should use these modules instead of scattering raw Supabase table queries through UI or workflow files. Repositories accept a Supabase client, require explicit `workspaceId` for workspace-owned records, parse mutation input with the shared Zod schemas, and map database rows into Radar domain types.
+
+The repository layer is not an authorization substitute. Server actions and APIs must still use the guardrail layer to resolve the authenticated user, active workspace, and permission before calling repositories.
+
 ## Bootstrap stack
 
 - Next.js and Vercel for the web app.

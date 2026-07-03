@@ -25,13 +25,15 @@ test("RAD-015 adds persistent workspace settings fields and update RLS", async (
 test("RAD-015 exposes typed workspace settings validation and update helper", async () => {
   const schema = await readWorkspaceFile("src/lib/workspaces/schema.ts");
   const server = await readWorkspaceFile("src/lib/workspaces/server.ts");
+  const repository = await readWorkspaceFile("src/lib/repositories/workspaces.ts");
 
   assert.match(schema, /workspaceTeamVisibilities = \["private", "workspace"\]/);
   assert.match(schema, /updateWorkspaceSettingsSchema/);
   assert.match(schema, /teamVisibility: z\.enum\(workspaceTeamVisibilities\)/);
   assert.match(server, /updateWorkspaceSettingsForCurrentUser/);
   assert.match(server, /membershipCan\(membership, "workspace:manage"\)/);
-  assert.match(server, /team_visibility: parsedInput\.teamVisibility/);
+  assert.match(server, /updateWorkspaceSettings\(supabase, membership\.workspace\.id, parsedInput\)/);
+  assert.match(repository, /team_visibility: parsedInput\.teamVisibility/);
   assert.match(server, /mapWorkspaceUpdateError/);
 });
 

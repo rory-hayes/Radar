@@ -1,0 +1,347 @@
+import "server-only";
+
+import {
+  findingActivitySchema,
+  findingAssignmentSchema,
+  findingEvidenceSchema,
+  findingSchema,
+  type FindingActivityInput,
+  type FindingActivityType,
+  type FindingAssignmentInput,
+  type FindingEvidenceInput,
+  type FindingEvidenceType,
+  type FindingInput,
+  type FindingSeverity,
+  type FindingStatus,
+  type RadarFinding,
+  type RadarFindingEvidence,
+} from "@/lib/findings/schema";
+import {
+  assertRepositorySuccess,
+  optionalNumber,
+  optionalString,
+  requireRepositoryRow,
+  type RadarRepositoryClient,
+} from "@/lib/repositories/client";
+
+type FindingRow = {
+  id: string;
+  workspace_id: string;
+  assertion_id: string;
+  evaluation_run_id: string | null;
+  test_case_result_id: string | null;
+  title: string;
+  summary: string;
+  expected: string;
+  actual: string;
+  severity: FindingSeverity;
+  status: FindingStatus;
+  confidence: number;
+  customer_impact: string;
+  recommended_fix: string;
+  owner_user_id: string | null;
+  dedupe_key: string;
+};
+
+type FindingEvidenceRow = {
+  id: string;
+  workspace_id: string;
+  finding_id: string;
+  evidence_type: FindingEvidenceType;
+  source_id: string | null;
+  source_document_id: string | null;
+  source_chunk_id: string | null;
+  evaluation_run_id: string | null;
+  test_case_result_id: string | null;
+  quote: string | null;
+  citation: string | null;
+  confidence: number | null;
+};
+
+type FindingAssignmentRow = {
+  id: string;
+  workspace_id: string;
+  finding_id: string;
+  assignee_user_id: string;
+  assigned_by_user_id: string | null;
+  note: string | null;
+  assigned_at: string;
+  unassigned_at: string | null;
+};
+
+type FindingActivityRow = {
+  id: string;
+  workspace_id: string;
+  finding_id: string;
+  actor_user_id: string | null;
+  activity_type: FindingActivityType;
+  from_status: FindingStatus | null;
+  to_status: FindingStatus | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type RadarFindingAssignment = {
+  id: string;
+  workspaceId: string;
+  findingId: string;
+  assigneeUserId: string;
+  assignedByUserId?: string;
+  note?: string;
+  assignedAt: string;
+  unassignedAt?: string;
+};
+
+export type RadarFindingActivity = {
+  id: string;
+  workspaceId: string;
+  findingId: string;
+  actorUserId?: string;
+  activityType: FindingActivityType;
+  fromStatus?: FindingStatus;
+  toStatus?: FindingStatus;
+  note?: string;
+  createdAt: string;
+};
+
+const findingSelect =
+  "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key";
+
+const findingEvidenceSelect =
+  "id, workspace_id, finding_id, evidence_type, source_id, source_document_id, source_chunk_id, evaluation_run_id, test_case_result_id, quote, citation, confidence";
+
+export async function listFindings(client: RadarRepositoryClient, workspaceId: string) {
+  const { data, error } = await client
+    .from("findings")
+    .select(findingSelect)
+    .eq("workspace_id", workspaceId)
+    .order("last_seen_at", { ascending: false })
+    .returns<FindingRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list findings");
+  return (data ?? []).map(mapFindingRow);
+}
+
+export async function getFindingById(client: RadarRepositoryClient, workspaceId: string, findingId: string) {
+  const { data, error } = await client
+    .from("findings")
+    .select(findingSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("id", findingId)
+    .maybeSingle<FindingRow>();
+
+  assertRepositorySuccess(error, "Unable to load finding");
+  return data ? mapFindingRow(data) : null;
+}
+
+export async function createFinding(client: RadarRepositoryClient, workspaceId: string, input: FindingInput) {
+  const parsedInput = findingSchema.parse(input);
+  const { data, error } = await client
+    .from("findings")
+    .insert({
+      workspace_id: workspaceId,
+      assertion_id: parsedInput.assertionId,
+      evaluation_run_id: parsedInput.evaluationRunId ?? null,
+      test_case_result_id: parsedInput.testCaseResultId ?? null,
+      title: parsedInput.title,
+      summary: parsedInput.summary,
+      expected: parsedInput.expected,
+      actual: parsedInput.actual,
+      severity: parsedInput.severity,
+      status: parsedInput.status,
+      confidence: parsedInput.confidence,
+      customer_impact: parsedInput.customerImpact,
+      recommended_fix: parsedInput.recommendedFix,
+      owner_user_id: parsedInput.ownerUserId ?? null,
+      dedupe_key: parsedInput.dedupeKey,
+      first_seen_at: parsedInput.firstSeenAt,
+      last_seen_at: parsedInput.lastSeenAt,
+      resolved_at: parsedInput.resolvedAt ?? null,
+      resolved_by_user_id: parsedInput.resolvedByUserId ?? null,
+      resolution_summary: parsedInput.resolutionSummary ?? null,
+      ignored_until: parsedInput.ignoredUntil ?? null,
+      metadata: parsedInput.metadata,
+    })
+    .select(findingSelect)
+    .single<FindingRow>();
+
+  assertRepositorySuccess(error, "Unable to create finding");
+  return mapFindingRow(requireRepositoryRow(data, "Finding insert returned no row"));
+}
+
+export async function updateFindingStatus(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  findingId: string,
+  status: FindingStatus,
+) {
+  const { data, error } = await client
+    .from("findings")
+    .update({ status })
+    .eq("workspace_id", workspaceId)
+    .eq("id", findingId)
+    .select(findingSelect)
+    .single<FindingRow>();
+
+  assertRepositorySuccess(error, "Unable to update finding status");
+  return mapFindingRow(requireRepositoryRow(data, "Finding update returned no row"));
+}
+
+export async function addFindingEvidence(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  input: FindingEvidenceInput,
+) {
+  const parsedInput = findingEvidenceSchema.parse(input);
+  const { data, error } = await client
+    .from("finding_evidence")
+    .insert({
+      workspace_id: workspaceId,
+      finding_id: parsedInput.findingId,
+      evidence_type: parsedInput.evidenceType,
+      source_id: parsedInput.sourceId ?? null,
+      source_document_id: parsedInput.sourceDocumentId ?? null,
+      source_chunk_id: parsedInput.sourceChunkId ?? null,
+      evaluation_run_id: parsedInput.evaluationRunId ?? null,
+      test_case_result_id: parsedInput.testCaseResultId ?? null,
+      quote: parsedInput.quote ?? null,
+      artifact_path: parsedInput.artifactPath ?? null,
+      citation: parsedInput.citation ?? null,
+      confidence: parsedInput.confidence ?? null,
+      metadata: parsedInput.metadata,
+    })
+    .select(findingEvidenceSelect)
+    .single<FindingEvidenceRow>();
+
+  assertRepositorySuccess(error, "Unable to add finding evidence");
+  return mapFindingEvidenceRow(requireRepositoryRow(data, "Finding evidence insert returned no row"));
+}
+
+export async function listFindingEvidence(client: RadarRepositoryClient, workspaceId: string, findingId: string) {
+  const { data, error } = await client
+    .from("finding_evidence")
+    .select(findingEvidenceSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("finding_id", findingId)
+    .order("created_at", { ascending: true })
+    .returns<FindingEvidenceRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list finding evidence");
+  return (data ?? []).map(mapFindingEvidenceRow);
+}
+
+export async function assignFinding(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  input: FindingAssignmentInput,
+) {
+  const parsedInput = findingAssignmentSchema.parse(input);
+  const { data, error } = await client
+    .from("finding_assignments")
+    .insert({
+      workspace_id: workspaceId,
+      finding_id: parsedInput.findingId,
+      assignee_user_id: parsedInput.assigneeUserId,
+      assigned_by_user_id: parsedInput.assignedByUserId ?? null,
+      note: parsedInput.note ?? null,
+      unassigned_at: parsedInput.unassignedAt ?? null,
+      metadata: parsedInput.metadata,
+    })
+    .select("id, workspace_id, finding_id, assignee_user_id, assigned_by_user_id, note, assigned_at, unassigned_at")
+    .single<FindingAssignmentRow>();
+
+  assertRepositorySuccess(error, "Unable to assign finding");
+  return mapFindingAssignmentRow(requireRepositoryRow(data, "Finding assignment insert returned no row"));
+}
+
+export async function recordFindingActivity(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  input: FindingActivityInput,
+) {
+  const parsedInput = findingActivitySchema.parse(input);
+  const { data, error } = await client
+    .from("finding_activity")
+    .insert({
+      workspace_id: workspaceId,
+      finding_id: parsedInput.findingId,
+      actor_user_id: parsedInput.actorUserId ?? null,
+      activity_type: parsedInput.activityType,
+      from_status: parsedInput.fromStatus ?? null,
+      to_status: parsedInput.toStatus ?? null,
+      from_assignee_user_id: parsedInput.fromAssigneeUserId ?? null,
+      to_assignee_user_id: parsedInput.toAssigneeUserId ?? null,
+      note: parsedInput.note ?? null,
+      metadata: parsedInput.metadata,
+    })
+    .select("id, workspace_id, finding_id, actor_user_id, activity_type, from_status, to_status, note, created_at")
+    .single<FindingActivityRow>();
+
+  assertRepositorySuccess(error, "Unable to record finding activity");
+  return mapFindingActivityRow(requireRepositoryRow(data, "Finding activity insert returned no row"));
+}
+
+function mapFindingRow(row: FindingRow): RadarFinding {
+  return {
+    id: row.id,
+    workspaceId: row.workspace_id,
+    assertionId: row.assertion_id,
+    evaluationRunId: optionalString(row.evaluation_run_id),
+    testCaseResultId: optionalString(row.test_case_result_id),
+    title: row.title,
+    summary: row.summary,
+    expected: row.expected,
+    actual: row.actual,
+    severity: row.severity,
+    status: row.status,
+    confidence: row.confidence,
+    customerImpact: row.customer_impact,
+    recommendedFix: row.recommended_fix,
+    ownerUserId: optionalString(row.owner_user_id),
+    dedupeKey: row.dedupe_key,
+  };
+}
+
+function mapFindingEvidenceRow(row: FindingEvidenceRow): RadarFindingEvidence {
+  return {
+    id: row.id,
+    workspaceId: row.workspace_id,
+    findingId: row.finding_id,
+    evidenceType: row.evidence_type,
+    sourceId: optionalString(row.source_id),
+    sourceDocumentId: optionalString(row.source_document_id),
+    sourceChunkId: optionalString(row.source_chunk_id),
+    evaluationRunId: optionalString(row.evaluation_run_id),
+    testCaseResultId: optionalString(row.test_case_result_id),
+    quote: optionalString(row.quote),
+    citation: optionalString(row.citation),
+    confidence: optionalNumber(row.confidence),
+  };
+}
+
+function mapFindingAssignmentRow(row: FindingAssignmentRow): RadarFindingAssignment {
+  return {
+    id: row.id,
+    workspaceId: row.workspace_id,
+    findingId: row.finding_id,
+    assigneeUserId: row.assignee_user_id,
+    assignedByUserId: optionalString(row.assigned_by_user_id),
+    note: optionalString(row.note),
+    assignedAt: row.assigned_at,
+    unassignedAt: optionalString(row.unassigned_at),
+  };
+}
+
+function mapFindingActivityRow(row: FindingActivityRow): RadarFindingActivity {
+  return {
+    id: row.id,
+    workspaceId: row.workspace_id,
+    findingId: row.finding_id,
+    actorUserId: optionalString(row.actor_user_id),
+    activityType: row.activity_type,
+    fromStatus: row.from_status ?? undefined,
+    toStatus: row.to_status ?? undefined,
+    note: optionalString(row.note),
+    createdAt: row.created_at,
+  };
+}

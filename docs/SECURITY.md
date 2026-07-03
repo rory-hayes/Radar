@@ -40,6 +40,10 @@ RAD-017 standardizes mutation entrypoints in `src/lib/server/guardrails.ts`. Ser
 
 Future source, assertion, run, and finding mutations must enter through these guardrails before touching repositories or calling Supabase. Client-provided `workspace_id` values are not authorization; workspace context must come from server-side membership resolution.
 
+## Repository Boundary
+
+RAD-025 centralizes typed data access in `src/lib/repositories`. Repository functions must stay server-only, accept explicit workspace scope for customer-owned tables, validate mutation inputs with shared schemas, and return mapped domain types. They do not grant permissions by themselves; callers must enforce RBAC through server guardrails before invoking write functions.
+
 ## Audit Logging
 
 RAD-016 records security-relevant actions in `audit_logs` with actor, workspace, action, resource, metadata, and timestamp. Server-side mutation helpers should call `recordAuditEvent(...)` after successful writes. Metadata must stay small and must not include raw source content, runner credentials, provider secrets, or customer-sensitive evidence bodies.
