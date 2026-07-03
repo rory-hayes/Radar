@@ -39,6 +39,11 @@ The schema supports URL visits, clicks, text entry, assertions, waits, email che
 
 Journey definitions are plain data with unique step ids, bounded step counts, bounded selectors, and optional success conditions. They are designed for human review and runner execution only; they are not a visual workflow canvas.
 
+RAD-064 adds the first Journey pack for Trial & Onboarding in `src/lib/evaluation/journey-packs.ts`.
+The pack creates a RAD-063 journey definition from a configurable signup URL, credential names, submit button label, and expected success states. It visits the signup URL, fills email and password fields via credential references, submits the trial form, waits for the onboarding destination, captures a screenshot, and records success conditions.
+
+The pack is declarative and workspace-configured. It does not store test credential values, hardcode a customer URL, or create custom code per workspace.
+
 ## Integration Runner
 
 The Integration Runner verifies downstream handoffs using API/webhook evidence.
