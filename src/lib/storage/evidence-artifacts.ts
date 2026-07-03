@@ -146,6 +146,7 @@ export function evidenceArtifactKindLabel(kind: EvidenceArtifactKind) {
     "source-snapshot": "Source snapshot",
     screenshot: "Screenshot",
     "run-artifact": "Run artifact",
+    "email-receipt": "Email receipt",
     "report-export": "Report export",
   } satisfies Record<EvidenceArtifactKind, string>;
 

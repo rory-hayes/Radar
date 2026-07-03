@@ -58,6 +58,7 @@ export const evidenceArtifactKinds = [
   "source-snapshot",
   "screenshot",
   "run-artifact",
+  "email-receipt",
   "report-export",
 ] as const;
 

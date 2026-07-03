@@ -44,6 +44,9 @@ The pack creates a RAD-063 journey definition from a configurable signup URL, cr
 
 The pack is declarative and workspace-configured. It does not store test credential values, hardcode a customer URL, or create custom code per workspace.
 
+RAD-065 adds a server-only email receipt verification utility in `src/lib/evaluation/email-receipts.ts`.
+The utility normalizes test mailbox and webhook receipt payloads, matches expected recipient, subject, body, receipt window, and source kind, then returns runner-ready actual output plus redacted `email_receipt` evidence artifacts. Receipt evidence stores hashes, timestamps, match booleans, and redacted previews instead of raw email bodies, bearer tokens, magic links, or full recipient addresses.
+
 ## Integration Runner
 
 The Integration Runner verifies downstream handoffs using API/webhook evidence.
