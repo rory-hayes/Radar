@@ -29,6 +29,13 @@ This file defines the core database entities Radar needs from MVP through produc
 
 Every product table that contains customer data must include workspace_id directly or be reachable through a workspace-owned parent with enforced RLS.
 
+RAD-012 establishes the first tenant boundary:
+
+- `workspaces` owns customer-facing assertions, sources, runner configurations, runs, findings, reports, and future billing records.
+- `workspace_members` maps Supabase Auth users to a workspace with `admin`, `editor`, or `viewer` role values.
+- First-workspace creation happens through `create_workspace_with_admin_membership(...)` so the workspace row and initial admin membership are created in one database transaction.
+- Initial RLS allows authenticated workspace members to read their workspaces and memberships. Broader product-table policies are added with each data-model ticket and hardened in the RLS phase.
+
 ## Evidence references
 
 Evaluation results and findings should reference source documents/chunks and artifact files rather than copying unbounded content into many records.

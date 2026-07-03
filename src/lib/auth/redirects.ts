@@ -1,7 +1,7 @@
 import { appRoutes } from "@/lib/radar-routes";
 
 const authRoutes = ["/sign-in", "/sign-up"] as const;
-const protectedAppPaths = appRoutes.map((route) => route.href);
+const protectedAppPaths = [...appRoutes.map((route) => route.href), "/workspace"] as const;
 
 export const defaultAuthenticatedPath = "/command-center";
 

@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/app-shell";
 import { requireAuthenticatedUser } from "@/lib/auth/session";
+import { requireActiveWorkspace } from "@/lib/workspaces/server";
 
 export default async function AppGroupLayout({
   children,
@@ -7,6 +8,11 @@ export default async function AppGroupLayout({
   children: React.ReactNode;
 }>) {
   const user = await requireAuthenticatedUser();
+  const membership = await requireActiveWorkspace();
 
-  return <AppShell user={user}>{children}</AppShell>;
+  return (
+    <AppShell user={user} workspace={membership.workspace}>
+      {children}
+    </AppShell>
+  );
 }

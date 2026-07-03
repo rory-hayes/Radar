@@ -49,6 +49,8 @@ pnpm supabase:migration:new <snake_case_name>
 
 Write SQL into the generated file under `supabase/migrations`. For Radar product tables, include workspace ownership and RLS in the same schema change unless the ticket explicitly splits the work. Do not create product tables without a workspace isolation plan.
 
+RAD-012 adds `workspaces`, `workspace_members`, workspace role/status enums, starter RLS policies, and the transactional `create_workspace_with_admin_membership(...)` function used by the first-workspace setup flow.
+
 ## Reset and Seed
 
 Reset the local database with:
