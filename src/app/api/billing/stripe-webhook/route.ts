@@ -29,7 +29,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid Stripe signature." }, { status: 400 });
   }
 
-  const event = JSON.parse(payload) as StripeEvent;
+  const event = parseStripeEventPayload(payload);
+
+  if (!event) {
+    return NextResponse.json({ error: "Invalid Stripe payload." }, { status: 400 });
+  }
+
   const supabase = createSupabaseServiceRoleClient();
 
   if (!supabase) {
@@ -49,6 +54,16 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+function parseStripeEventPayload(payload: string): StripeEvent | null {
+  try {
+    const event = JSON.parse(payload) as StripeEvent;
+
+    return typeof event.id === "string" && typeof event.type === "string" ? event : null;
+  } catch {
+    return null;
+  }
 }
 
 async function handleCheckoutSessionCompleted(

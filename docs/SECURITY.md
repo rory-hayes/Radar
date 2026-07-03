@@ -104,6 +104,16 @@ Payload ceilings live in the same module, including uploaded document size, manu
 
 Server actions call `checkAndRecordAbuseLimit` before expensive operations. Workspace JSON APIs use the shared guardrail `rateLimit` option and return `rate_limited` with HTTP 429 when a window is exceeded.
 
+## Security Hardening Audit
+
+RAD-096 hardens launch defaults and records the security audit scope:
+
+- Next.js sends global security headers from `next.config.ts`: CSP report-only, frame denial, content-type sniffing protection, referrer policy, and a restricted permissions policy.
+- Supabase local auth defaults require 12-character mixed passwords, secure password-change reauthentication, slower email resend frequency, 8-character OTPs, and shorter OTP expiry.
+- Stripe webhooks require a verified `stripe-signature` before parsing and reject malformed signed payloads with a controlled 400 response.
+- Uploaded TXT, Markdown, and PDF documents pass a content safety scan before extraction. Executable signatures, script-like text payloads, and executable/script extensions are rejected.
+- Sensitive logging remains restricted to scripts/tests; application runtime code must not log secrets, source bodies, prompts, completions, webhook bodies, cookies, or credentials.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.

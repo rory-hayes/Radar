@@ -55,11 +55,19 @@ export async function extractUploadedDocument(
   }
 
   const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  scanUploadedDocumentBuffer(buffer, {
+    fileName,
+    mimeType,
+    extension,
+  });
+
   const extractionMethod = supportedMimeTypes[mimeType as keyof typeof supportedMimeTypes];
   const text = normalizeExtractedText(
     extractionMethod === "basic_pdf"
-      ? extractBasicPdfText(Buffer.from(arrayBuffer))
-      : extractTextDocument(Buffer.from(arrayBuffer), extractionMethod),
+      ? extractBasicPdfText(buffer)
+      : extractTextDocument(buffer, extractionMethod),
   );
 
   if (!text) {
@@ -80,7 +88,7 @@ export async function extractUploadedDocument(
 }
 
 export class FileExtractionError extends Error {
-  readonly code: "empty_file" | "size_limit" | "unsupported_type" | "empty_text" | "pdf_text_unavailable";
+  readonly code: "empty_file" | "size_limit" | "unsupported_type" | "unsafe_file" | "empty_text" | "pdf_text_unavailable";
 
   constructor(code: FileExtractionError["code"], message: string) {
     super(message);
@@ -98,6 +106,49 @@ export function sanitizeUploadedFileName(fileName: string) {
     .toLowerCase();
 
   return cleaned || "uploaded-document";
+}
+
+export function scanUploadedDocumentBuffer(
+  buffer: Buffer,
+  input: {
+    fileName: string;
+    mimeType: string;
+    extension: string;
+  },
+) {
+  const signature = buffer.subarray(0, 8);
+
+  if (hasBlockedBinarySignature(signature)) {
+    throw new FileExtractionError("unsafe_file", "Uploaded document failed the safety scan.");
+  }
+
+  if (input.mimeType !== "application/pdf" && looksLikeHtmlOrScript(buffer)) {
+    throw new FileExtractionError("unsafe_file", "Uploaded text document contains unsafe HTML or script content.");
+  }
+
+  if (/^(exe|dll|dmg|pkg|app|sh|bat|cmd|ps1|js|mjs|vbs)$/i.test(input.extension)) {
+    throw new FileExtractionError("unsafe_file", "Upload a PDF, Markdown, or TXT document.");
+  }
+}
+
+function hasBlockedBinarySignature(signature: Buffer) {
+  const hex = signature.toString("hex");
+
+  return (
+    hex.startsWith("4d5a") ||
+    hex.startsWith("7f454c46") ||
+    hex.startsWith("cafebabe") ||
+    hex.startsWith("feedface") ||
+    hex.startsWith("feedfacf") ||
+    hex.startsWith("cefaedfe") ||
+    hex.startsWith("cffaedfe")
+  );
+}
+
+function looksLikeHtmlOrScript(buffer: Buffer) {
+  const preview = buffer.subarray(0, 4096).toString("utf8").toLowerCase();
+
+  return /<\s*script\b|<\s*iframe\b|javascript:|onerror\s*=|onload\s*=|<!doctype\s+html|<\s*html\b/.test(preview);
 }
 
 function extractTextDocument(buffer: Buffer, method: "plain_text" | "markdown") {
