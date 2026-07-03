@@ -21,9 +21,9 @@ export function WeeklyTrustReportPanel({ report }: WeeklyTrustReportPanelProps) 
             <CardDescription>{report.period.label}</CardDescription>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link href="/findings">
+            <Link href="/reports/weekly">
               <FileTextIcon data-icon="inline-start" />
-              Review findings
+              Open report
             </Link>
           </Button>
         </div>

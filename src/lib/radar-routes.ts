@@ -33,7 +33,15 @@ export const settingsRoute = {
   hiddenFromPrimaryNav: true,
 } as const;
 
-export const appRoutes = [...primaryAppRoutes, settingsRoute] as const;
+export const weeklyReportRoute = {
+  id: "weekly-report",
+  title: "Weekly trust report",
+  href: "/reports/weekly",
+  description: "Workspace trust report kept outside primary V1 navigation.",
+  hiddenFromPrimaryNav: true,
+} as const;
+
+export const appRoutes = [...primaryAppRoutes, settingsRoute, weeklyReportRoute] as const;
 
 export type PrimaryAppRoute = (typeof primaryAppRoutes)[number];
 export type AppRoute = (typeof appRoutes)[number];
