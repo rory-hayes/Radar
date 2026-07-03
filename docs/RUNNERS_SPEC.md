@@ -67,6 +67,9 @@ Integration evidence is captured as redacted `http_exchange` artifacts and runne
 RAD-067 adds generic Integration check definitions in `src/lib/evaluation/integration-checks.ts`.
 The supported checks are `webhook_fired`, `api_expected_state`, `ticket_endpoint_accepted`, and `billing_object_updated`. Each definition compiles to the RAD-066 `integration_check` input shape, so generic API and webhook assertions reuse the same bounded HTTP execution, response validation, credential handling, and redacted evidence capture.
 
+RAD-068 adds minimal handoff templates in `src/lib/evaluation/handoff-templates.ts`.
+The templates cover `email-sent`, `support-ticket-created`, `crm-task-created`, `webhook-event-received`, and `billing-status-changed`. They only collect the endpoint, optional auth/header configuration, expected status, optional text matcher, and optional JSON state matcher needed by the assertion; each template compiles to a RAD-067 generic check and then to the RAD-066 Integration Runner input.
+
 ## Shared runner contract
 
 RAD-061 defines the shared runner contract in `src/lib/evaluation/runner-contract.ts`.
