@@ -1,4 +1,4 @@
-import type { RadarAssertion } from "@/lib/assertions/schema";
+import { assertionCategories, type AssertionCategory, type RadarAssertion } from "@/lib/assertions/schema";
 import type { RadarFinding, FindingStatus } from "@/lib/findings/schema";
 import type { RadarEvaluationRunSummary } from "@/lib/repositories";
 
@@ -17,8 +17,20 @@ export type CommandCenterKpiSummary = {
   passRate: number | null;
   monitoredAssertions: number;
   needsAttention: CommandCenterNeedsAttentionItem[];
+  categoryHealth: CommandCenterCategoryHealth[];
   trends: CommandCenterTrend[];
   hasActivity: boolean;
+};
+
+export type CommandCenterCategoryHealth = {
+  category: AssertionCategory;
+  label: string;
+  totalAssertions: number;
+  activeAssertions: number;
+  activeFindings: number;
+  criticalFindings: number;
+  passRate: number | null;
+  tone: "pass" | "warning" | "fail" | "neutral";
 };
 
 export type CommandCenterNeedsAttentionItem = {
@@ -70,6 +82,7 @@ export function buildCommandCenterKpiSummary({
     passRate,
     monitoredAssertions: assertions.filter((assertion) => assertion.status === "active").length,
     needsAttention: selectNeedsAttentionFindings(activeFindings, assertionTitles),
+    categoryHealth: buildAssertionCategoryHealth({ assertions, activeFindings, runs: terminalRuns }),
     hasActivity: assertions.length > 0 || findings.length > 0 || terminalRuns.length > 0,
     trends: [
       {
@@ -92,6 +105,41 @@ export function buildCommandCenterKpiSummary({
       },
     ],
   };
+}
+
+export function buildAssertionCategoryHealth({
+  assertions,
+  activeFindings,
+  runs,
+}: {
+  assertions: readonly RadarAssertion[];
+  activeFindings: readonly RadarFinding[];
+  runs: readonly RadarEvaluationRunSummary[];
+}): CommandCenterCategoryHealth[] {
+  return assertionCategories.map((category) => {
+    const categoryAssertions = assertions.filter((assertion) => assertion.category === category);
+    const assertionIds = new Set(categoryAssertions.map((assertion) => assertion.id));
+    const categoryFindings = activeFindings.filter((finding) => assertionIds.has(finding.assertionId));
+    const categoryRuns = runs.filter((run) => assertionIds.has(run.assertionId));
+    const passRate = passRateForRuns(categoryRuns);
+    const criticalFindings = categoryFindings.filter((finding) => finding.severity === "critical").length;
+
+    return {
+      category,
+      label: categoryLabel(category),
+      totalAssertions: categoryAssertions.length,
+      activeAssertions: categoryAssertions.filter((assertion) => assertion.status === "active").length,
+      activeFindings: categoryFindings.length,
+      criticalFindings,
+      passRate,
+      tone: categoryHealthTone({
+        activeAssertions: categoryAssertions.filter((assertion) => assertion.status === "active").length,
+        activeFindings: categoryFindings.length,
+        criticalFindings,
+        passRate,
+      }),
+    };
+  });
 }
 
 export function selectNeedsAttentionFindings(
@@ -119,6 +167,19 @@ export function selectNeedsAttentionFindings(
       customerImpact: finding.customerImpact,
       recommendedFix: finding.recommendedFix,
     }));
+}
+
+export function categoryLabel(category: AssertionCategory) {
+  const labels: Record<AssertionCategory, string> = {
+    pricing: "Pricing",
+    refund_cancellation: "Refund / cancellation",
+    trial_onboarding: "Trial onboarding",
+    billing_invoices: "Billing / invoices",
+    support_escalation: "Support escalation",
+    custom: "Custom",
+  };
+
+  return labels[category];
 }
 
 function passRateForRuns(runs: readonly RadarEvaluationRunSummary[]) {
@@ -155,6 +216,19 @@ function passRateTone(passRate: number | null): CommandCenterTrend["tone"] {
   if (passRate >= 95) return "pass";
   if (passRate >= 80) return "warning";
   return "fail";
+}
+
+function categoryHealthTone(input: {
+  activeAssertions: number;
+  activeFindings: number;
+  criticalFindings: number;
+  passRate: number | null;
+}): CommandCenterCategoryHealth["tone"] {
+  if (input.criticalFindings > 0) return "fail";
+  if (input.activeFindings > 0) return "warning";
+  if (input.passRate !== null && input.passRate < 80) return "warning";
+  if (input.activeAssertions === 0) return "neutral";
+  return "pass";
 }
 
 function severityRank(severity: RadarFinding["severity"]) {

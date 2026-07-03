@@ -5,6 +5,7 @@ import { EmptyState, MetricCard, StatusBadge, type StatusTone } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { AssertionHealthPanel } from "@/components/command-center/assertion-health-panel";
 import { NeedsAttentionPanel } from "@/components/command-center/needs-attention-panel";
 import type { CommandCenterKpiSummary as CommandCenterKpiSummaryData } from "@/lib/command-center/kpi-summary";
 
@@ -92,6 +93,8 @@ export function CommandCenterKpiSummary({ summary }: CommandCenterKpiSummaryProp
       </Card>
 
       <NeedsAttentionPanel findings={summary.needsAttention} />
+
+      <AssertionHealthPanel categories={summary.categoryHealth} />
 
       {!summary.hasActivity ? (
         <EmptyState
