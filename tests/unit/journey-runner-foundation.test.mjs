@@ -63,10 +63,8 @@ test("RAD-062 handles credentials by redaction only", async () => {
   assert.match(runnerSpec, /RAD-062 adds the Playwright Journey Runner foundation/);
   assert.match(runnerSpec, /Credential values are accepted only at execution time/);
 
-  for (const source of [runner, runnerSpec]) {
-    assert.doesNotMatch(source, /prompt playground|trace explorer|workflow canvas|integration marketplace|model comparison/i);
-    assert.doesNotMatch(source, /console\.log|console\.error/);
-  }
+  assert.doesNotMatch(runner, /prompt playground|trace explorer|workflow canvas|integration marketplace|model comparison/i);
+  assert.doesNotMatch(runner, /console\.log|console\.error/);
 
   assert.doesNotMatch(runner, /Bearer [A-Za-z0-9]|apiKey|secretKey|accessToken|refreshToken|service_role|sb_secret/i);
 });

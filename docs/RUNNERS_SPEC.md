@@ -34,6 +34,11 @@ Journey checks run in isolated headless Chromium browser contexts with no persis
 
 Credential values are accepted only at execution time and must be redacted before entering artifact metadata, execution metadata, summaries, or errors. The foundation exposes redaction helpers, but concrete Journey steps are intentionally deferred to later Phase 6 tasks.
 
+RAD-063 defines a declarative journey step schema in `src/lib/evaluation/journey-schema.ts`.
+The schema supports URL visits, clicks, text entry, assertions, waits, email checks, screenshots, and success conditions. Text entry values are either bounded literals or credential references, so sensitive credentials can be supplied at execution time without being stored in reusable journey definitions.
+
+Journey definitions are plain data with unique step ids, bounded step counts, bounded selectors, and optional success conditions. They are designed for human review and runner execution only; they are not a visual workflow canvas.
+
 ## Integration Runner
 
 The Integration Runner verifies downstream handoffs using API/webhook evidence.

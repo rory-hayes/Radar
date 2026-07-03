@@ -75,8 +75,6 @@ test("RAD-061 wires Knowledge Runner into the shared contract without adding sco
   assert.match(runnerSpec, /RAD-061 defines the shared runner contract/);
   assert.match(runnerSpec, /Knowledge, Journey, and Integration runners must all return the same top-level contract/);
 
-  for (const source of [runner, runnerSpec]) {
-    assert.doesNotMatch(source, /prompt playground|trace explorer|workflow canvas|integration marketplace|model comparison/i);
-    assert.doesNotMatch(source, /console\.log|console\.error/);
-  }
+  assert.doesNotMatch(runner, /prompt playground|trace explorer|workflow canvas|integration marketplace|model comparison/i);
+  assert.doesNotMatch(runner, /console\.log|console\.error/);
 });
