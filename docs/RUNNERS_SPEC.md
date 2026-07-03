@@ -64,6 +64,9 @@ The runner executes approved `integration_check` test cases as bounded HTTP requ
 
 Integration evidence is captured as redacted `http_exchange` artifacts and runner metadata. Request URLs are reduced to safe previews, sensitive headers are masked, response bodies are hashed and bounded, and credential values are redacted before entering actual output, metadata, summaries, or errors.
 
+RAD-067 adds generic Integration check definitions in `src/lib/evaluation/integration-checks.ts`.
+The supported checks are `webhook_fired`, `api_expected_state`, `ticket_endpoint_accepted`, and `billing_object_updated`. Each definition compiles to the RAD-066 `integration_check` input shape, so generic API and webhook assertions reuse the same bounded HTTP execution, response validation, credential handling, and redacted evidence capture.
+
 ## Shared runner contract
 
 RAD-061 defines the shared runner contract in `src/lib/evaluation/runner-contract.ts`.

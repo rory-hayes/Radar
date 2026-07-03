@@ -72,10 +72,15 @@ export const integrationCheckSchema = z.object({
   acceptableStatuses: z.array(z.number().int().min(100).max(599)).min(1).max(20).optional(),
   expectedStatus: z.number().int().min(100).max(599).optional(),
   responseContains: boundedResponseMatcherSchema.optional(),
+  jsonPath: z.string().trim().min(1).max(200).optional(),
+  jsonEquals: z.union([z.string().max(1_000), z.number(), z.boolean(), z.null()]).optional(),
   timeoutMs: z.number().int().min(500).max(60_000).default(10_000),
 }).refine(
   (check) => check.method !== "GET" || check.body === undefined,
   "GET integration checks cannot include a request body.",
+).refine(
+  (check) => check.jsonEquals === undefined || Boolean(check.jsonPath),
+  "JSON equality checks must include a jsonPath.",
 );
 
 export type IntegrationCredentialInput = z.infer<typeof integrationCredentialSchema>;
@@ -237,6 +242,8 @@ export function integrationCheckFromTestCase(testCase: RadarTestCase): Integrati
     acceptableStatuses: testCase.input.acceptableStatuses,
     expectedStatus: testCase.input.expectedStatus,
     responseContains: testCase.input.responseContains,
+    jsonPath: testCase.input.jsonPath,
+    jsonEquals: testCase.input.jsonEquals,
     timeoutMs: testCase.input.timeoutMs,
   });
 }
@@ -276,6 +283,19 @@ export function validateIntegrationResponse(check: IntegrationCheck, response: I
       confidence: 0.84,
       summary: "Response status matched, but expected response text was not present.",
     };
+  }
+
+  if (check.jsonPath && check.jsonEquals !== undefined) {
+    const jsonResult = responseJsonValue(response.body, check.jsonPath);
+
+    if (!jsonResult.ok || jsonResult.value !== check.jsonEquals) {
+      return {
+        status: "failed" as const,
+        score: 0.45,
+        confidence: 0.86,
+        summary: "Response status matched, but expected JSON state was not present.",
+      };
+    }
   }
 
   return {
@@ -446,6 +466,8 @@ function buildHttpExchangeArtifact(input: {
       expectedStatus: input.check.expectedStatus,
       acceptableStatuses: input.check.acceptableStatuses,
       responseContains: Boolean(input.check.responseContains),
+      jsonPath: input.check.jsonPath,
+      jsonEquals: redactJsonValue(input.check.jsonEquals),
     },
   };
 }
@@ -477,6 +499,8 @@ function actualOutputForExchange(
     expectation: {
       acceptableStatuses: check.acceptableStatuses ?? [check.expectedStatus ?? 200],
       responseContains: Boolean(check.responseContains),
+      jsonPath: check.jsonPath,
+      jsonEquals: redactJsonValue(check.jsonEquals),
     },
     evaluation,
   };
@@ -586,6 +610,30 @@ function redactedHeaders(headers: Record<string, string>) {
       isSensitiveHeader(key) ? "[redacted-header]" : boundedText(redactIntegrationText(value), 200),
     ]),
   );
+}
+
+function responseJsonValue(body: string, path: string): { ok: true; value: unknown } | { ok: false } {
+  try {
+    const parsed = JSON.parse(body) as unknown;
+    const segments = path.replace(/^\$\./, "").replace(/^\$/, "").split(".").filter(Boolean);
+    let current = parsed;
+
+    for (const segment of segments) {
+      if (!current || typeof current !== "object" || Array.isArray(current)) {
+        return { ok: false };
+      }
+
+      current = (current as Record<string, unknown>)[segment];
+    }
+
+    return { ok: true, value: current };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function redactJsonValue(value: IntegrationCheck["jsonEquals"]) {
+  return typeof value === "string" ? boundedText(redactIntegrationText(value), 200) : value;
 }
 
 function isSensitiveHeader(headerName: string) {
