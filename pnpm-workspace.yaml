@@ -1,9 +1,11 @@
 allowBuilds:
   '@sentry/cli': true
+  protobufjs: true
   sharp: true
   unrs-resolver: true
 onlyBuiltDependencies:
   - '@sentry/cli'
+  - protobufjs
   - sharp
   - unrs-resolver
 overrides:

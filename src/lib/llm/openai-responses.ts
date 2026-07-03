@@ -8,6 +8,11 @@ import {
   type RadarLlmPromptContract,
   type RadarLlmPromptLogMetadata,
 } from "@/lib/llm/prompt-contracts";
+import {
+  fingerprintLlmTraceOutput,
+  traceRadarLlmGeneration,
+  type RadarLlmTraceMetadata,
+} from "@/lib/observability/langfuse";
 
 export const defaultOpenAIResponsesModel = "gpt-5.2";
 
@@ -26,6 +31,8 @@ export type OpenAIJsonRequest<TOutput> = {
 export type OpenAIJsonResult<TOutput> = {
   data: TOutput;
   metadata: RadarLlmPromptLogMetadata & {
+    langfuse?: RadarLlmTraceMetadata;
+    latencyMs?: number;
     usage?: {
       inputTokens?: number;
       outputTokens?: number;
@@ -79,43 +86,63 @@ export function createOpenAIJsonProvider(options: OpenAIJsonProviderOptions = {}
     provider: "openai",
     model,
     async generateJson<TOutput>(request: OpenAIJsonRequest<TOutput>) {
-      const response = await fetcher("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          instructions: request.contract.instructions,
-          input: request.input,
-          max_output_tokens: request.contract.maxOutputTokens,
-          text: {
-            format: {
-              type: "json_schema",
-              name: request.contract.responseFormat.name,
-              strict: request.contract.responseFormat.strict,
-              schema: request.contract.responseFormat.jsonSchema,
-            },
-          },
-        }),
+      const promptMetadata = createPromptLogMetadata({
+        provider: "openai",
+        model,
+        contract: request.contract,
+        promptInput: request.input,
       });
+      const traced = await traceRadarLlmGeneration(
+        {
+          provider: "openai",
+          model,
+          contract: request.contract,
+          promptMetadata,
+        },
+        async () => {
+          const response = await fetcher("https://api.openai.com/v1/responses", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              instructions: request.contract.instructions,
+              input: request.input,
+              max_output_tokens: request.contract.maxOutputTokens,
+              text: {
+                format: {
+                  type: "json_schema",
+                  name: request.contract.responseFormat.name,
+                  strict: request.contract.responseFormat.strict,
+                  schema: request.contract.responseFormat.jsonSchema,
+                },
+              },
+            }),
+          });
 
-      if (!response.ok) {
-        throw new OpenAIResponsesError(`OpenAI Responses request failed with status ${response.status}.`);
-      }
+          if (!response.ok) {
+            throw new OpenAIResponsesError(`OpenAI Responses request failed with status ${response.status}.`);
+          }
 
-      const payload = openAIResponsesPayloadSchema.parse(await response.json());
+          const payload = openAIResponsesPayloadSchema.parse(await response.json());
+          const data = parseOpenAIJsonPayload(payload, request.responseSchema);
+
+          return {
+            data,
+            usage: normalizeUsage(payload.usage),
+            outputFingerprint: fingerprintLlmTraceOutput(data),
+          };
+        },
+      );
       return {
-        data: parseOpenAIJsonPayload(payload, request.responseSchema),
+        data: traced.result.data,
         metadata: {
-          ...createPromptLogMetadata({
-            provider: "openai",
-            model,
-            contract: request.contract,
-            promptInput: request.input,
-          }),
-          usage: normalizeUsage(payload.usage),
+          ...promptMetadata,
+          langfuse: traced.trace,
+          latencyMs: traced.trace.latencyMs,
+          usage: traced.result.usage,
         },
       };
     },

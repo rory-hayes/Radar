@@ -33,6 +33,7 @@ export function buildRadarSentryOptions(runtime: "client" | "server" | "edge") {
     environment: radarSentryEnvironment,
     release: radarSentryRelease,
     sendDefaultPii: false,
+    skipOpenTelemetrySetup: runtime !== "client",
     tracesSampleRate: runtime === "client" ? 0.05 : 0.1,
     beforeSend: scrubSentryEvent,
     beforeBreadcrumb: scrubSentryBreadcrumb,
