@@ -27,6 +27,18 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 
 Set `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from `pnpm supabase:status`. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only.
 
+## Auth Smoke Testing
+
+RAD-011 wires Supabase Auth into the Next.js app with `/sign-in`, `/sign-up`, `/auth/callback`, and `/auth/sign-out`.
+
+After local Supabase is running and `.env.local` contains the local URL and keys, start the app:
+
+```bash
+pnpm dev
+```
+
+Open `/command-center` in a private browser session. You should be redirected to `/sign-in?next=%2Fcommand-center`. Create an account through `/sign-up`; local Supabase captures auth emails in Mailpit, which is listed by `pnpm supabase:status`. After confirmation or local sign-in, Radar redirects back to the intended protected route.
+
 ## Migrations
 
 Create a migration with:

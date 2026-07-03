@@ -72,6 +72,12 @@ RAD-006 adds the local Supabase migration and reset pipeline. Use `pnpm supabase
 
 See [docs/SUPABASE_LOCAL_DEVELOPMENT.md](docs/SUPABASE_LOCAL_DEVELOPMENT.md) for migration naming, reset/seed behavior, and local env setup.
 
+## Authentication
+
+RAD-011 protects the app routes with Supabase Auth. `/command-center`, `/assertions`, `/findings`, `/sources`, and `/settings` redirect to `/sign-in` until a valid Supabase session exists. The sign-in and sign-up pages use the public Supabase URL and anon key from `.env.local`; with empty local placeholders they render an authentication-unavailable state instead of leaking secrets or using fake credentials.
+
+For local auth testing, run `pnpm supabase:start`, copy `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` from `pnpm supabase:status` into `.env.local`, then restart `pnpm dev`.
+
 
 ## Shadcn MCP setup for Codex
 

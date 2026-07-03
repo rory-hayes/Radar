@@ -31,7 +31,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 
 | ID | Task | Priority | Status | Description |
 |---|---|---|---|---|
-| [RAD-011](tasks/phase-1-auth-workspaces/rad-011-implement-supabase-authentication.md) | Implement Supabase authentication | P0 | Backlog | Wire Supabase Auth into the app with sign in, sign out, session loading, route protection, and server-side auth helpers. |
+| [RAD-011](tasks/phase-1-auth-workspaces/rad-011-implement-supabase-authentication.md) | Implement Supabase authentication | P0 | Done | Wire Supabase Auth into the app with sign in, sign out, session loading, route protection, and server-side auth helpers. |
 | [RAD-012](tasks/phase-1-auth-workspaces/rad-012-create-workspace-and-membership-model.md) | Create workspace and membership model | P0 | Backlog | Implement workspaces and workspace_members tables plus creation flow so Radar is multi-tenant from the beginning. |
 | [RAD-013](tasks/phase-1-auth-workspaces/rad-013-implement-rbac-permission-guards.md) | Implement RBAC permission guards | P0 | Backlog | Add Admin, Editor, and Viewer roles with server-side and UI-level permission checks for create, edit, delete, rerun, and resolve actions. |
 | [RAD-014](tasks/phase-1-auth-workspaces/rad-014-build-minimal-authenticated-navigation.md) | Build minimal authenticated navigation | P0 | Backlog | Implement the left navigation and top bar for Command Center, Assertions, Findings, and Sources with active states, workspace selector placeholder, search affordance, and user menu. |
