@@ -3,7 +3,7 @@ export type SupabasePublicConfig = {
   anonKey: string;
 };
 
-export function getSupabasePublicConfig(env: NodeJS.ProcessEnv = process.env): SupabasePublicConfig | null {
+export function getSupabasePublicConfig(env: Partial<NodeJS.ProcessEnv> = process.env): SupabasePublicConfig | null {
   const url = normalizeEnvValue(env.NEXT_PUBLIC_SUPABASE_URL);
   const anonKey =
     normalizeEnvValue(env.NEXT_PUBLIC_SUPABASE_ANON_KEY) ??
