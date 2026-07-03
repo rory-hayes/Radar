@@ -14,6 +14,8 @@ import {
 } from "@/lib/assertions/schema";
 import {
   createAssertion,
+  getAssertionById,
+  listSources,
   replaceAssertionSourcesForAssertion,
   updateAssertion,
   upsertAssertionRunSchedule,
@@ -60,6 +62,16 @@ type AssertionFormInput = z.infer<typeof assertionFormActionSchema>;
 
 export type AssertionFormState = {
   error?: string;
+};
+
+const assertionSourceLinksActionSchema = z.object({
+  assertionId: z.uuid(),
+  sourceIds: z.array(z.uuid()).max(20),
+});
+
+export type AssertionSourceLinkingState = {
+  error?: string;
+  success?: string;
 };
 
 export async function createAssertionAction(
@@ -132,6 +144,66 @@ export async function updateAssertionAction(
 
   revalidatePath("/assertions");
   redirect("/assertions");
+}
+
+export async function updateAssertionSourceLinksAction(
+  _previousState: AssertionSourceLinkingState,
+  formData: FormData,
+): Promise<AssertionSourceLinkingState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        assertionId: String(formData.get("assertionId") ?? ""),
+        sourceIds: formData.getAll("sourceIds").map(String),
+      },
+      permission: "assertion:edit",
+      schema: assertionSourceLinksActionSchema,
+    },
+    async ({ input, membership }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const assertion = await getAssertionById(supabase, membership.workspace.id, input.assertionId);
+
+      if (!assertion) {
+        throw serverActionError("Assertion not found in this workspace.", "validation");
+      }
+
+      const workspaceSources = await listSources(supabase, membership.workspace.id);
+      const workspaceSourceIds = new Set(workspaceSources.map((source) => source.id));
+      const invalidSourceId = input.sourceIds.find((sourceId) => !workspaceSourceIds.has(sourceId));
+
+      if (invalidSourceId) {
+        throw serverActionError("One or more selected sources are not available in this workspace.", "validation");
+      }
+
+      await replaceAssertionSourcesForAssertion(
+        supabase,
+        membership.workspace.id,
+        input.assertionId,
+        input.sourceIds,
+      );
+
+      return input.sourceIds.length;
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/assertions");
+  revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
+
+  const sourceCount = result.ok ? result.data : 0;
+  return {
+    success: sourceCount === 1 ? "1 source linked to this assertion." : `${sourceCount} sources linked to this assertion.`,
+  };
 }
 
 function assertionFormInputFromFormData(mode: AssertionFormInput["mode"], formData: FormData) {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";
 import { EmptyState, MetricCard, SeverityBadge, StatusBadge, type StatusTone } from "@/components/radar";
 import {
   formatSourceTimestamp,
@@ -51,19 +52,23 @@ export type AssertionLinkedSource = RadarSource & {
 export type AssertionDetailViewProps = {
   assertion: RadarAssertion;
   schedule?: RadarAssertionRunSchedule;
+  availableSources: readonly RadarSource[];
   linkedSources: readonly AssertionLinkedSource[];
   testCases: readonly RadarTestCase[];
   runHistory: readonly RadarEvaluationRunSummary[];
   findings: readonly RadarFinding[];
+  canEditSources: boolean;
 };
 
 export function AssertionDetailView({
   assertion,
   schedule,
+  availableSources,
   linkedSources,
   testCases,
   runHistory,
   findings,
+  canEditSources,
 }: AssertionDetailViewProps) {
   const latestRun = runHistory[0];
   const openFindings = findings.filter((finding) => finding.status !== "resolved" && finding.status !== "ignored").length;
@@ -90,7 +95,12 @@ export function AssertionDetailView({
           <AssertionOverview assertion={assertion} schedule={schedule} latestRun={latestRun} />
         </TabsContent>
         <TabsContent value="sources">
-          <AssertionSources sources={linkedSources} />
+          <AssertionSources
+            assertion={assertion}
+            availableSources={availableSources}
+            linkedSources={linkedSources}
+            canEditSources={canEditSources}
+          />
         </TabsContent>
         <TabsContent value="test-cases">
           <AssertionTestCases testCases={testCases} />
@@ -203,7 +213,31 @@ function AssertionOverview({
   );
 }
 
-function AssertionSources({ sources }: { sources: readonly AssertionLinkedSource[] }) {
+function AssertionSources({
+  assertion,
+  availableSources,
+  linkedSources,
+  canEditSources,
+}: {
+  assertion: RadarAssertion;
+  availableSources: readonly RadarSource[];
+  linkedSources: readonly AssertionLinkedSource[];
+  canEditSources: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      <AssertionSourceLinkingPanel
+        assertion={assertion}
+        availableSources={availableSources}
+        linkedSources={linkedSources}
+        canEdit={canEditSources}
+      />
+      <LinkedSourceTable sources={linkedSources} />
+    </div>
+  );
+}
+
+function LinkedSourceTable({ sources }: { sources: readonly AssertionLinkedSource[] }) {
   if (sources.length === 0) {
     return (
       <EmptyState

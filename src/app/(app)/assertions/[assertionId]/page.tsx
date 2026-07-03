@@ -98,10 +98,12 @@ export default async function AssertionDetailPage({ params }: AssertionDetailPag
       <AssertionDetailView
         assertion={assertion}
         schedule={detail.schedule}
+        availableSources={detail.availableSources}
         linkedSources={detail.linkedSources}
         testCases={detail.testCases}
         runHistory={detail.runHistory}
         findings={detail.findings}
+        canEditSources={canEditAssertion}
       />
     </AssertionDetailShell>
   );
@@ -127,6 +129,7 @@ async function loadAssertionDetail(
     return {
       assertion,
       schedule: schedules.find((schedule) => schedule.assertionId === assertionId),
+      availableSources: sources,
       linkedSources: sourceLinks.flatMap<AssertionLinkedSource>((link) => {
         const source = sourcesById.get(link.sourceId);
 
@@ -141,6 +144,7 @@ async function loadAssertionDetail(
     return {
       assertion: null,
       schedule: undefined,
+      availableSources: [],
       linkedSources: [],
       testCases: [],
       runHistory: [],
