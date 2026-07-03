@@ -10,6 +10,11 @@ import {
   type AssertionSuggestionSourceContext,
 } from "@/lib/assertions/ai-suggestions";
 import {
+  createOpenAITestCaseSuggestionProvider,
+  TestCaseSuggestionError,
+  type TestCaseSuggestionSourceContext,
+} from "@/lib/assertions/ai-test-cases";
+import {
   assertionCategories,
   assertionPriorities,
   assertionScheduleCadences,
@@ -27,8 +32,10 @@ import {
   disableTestCase,
   getAssertionById,
   getTestCaseById,
+  listAssertionSourcesForAssertion,
   listSourceChunksPreview,
   listSources,
+  listTestCasesForAssertion,
   replaceAssertionSourcesForAssertion,
   updateAssertion,
   updateTestCase,
@@ -124,6 +131,16 @@ const testCaseStatusActionSchema = z.object({
 type TestCaseFormInput = z.infer<typeof testCaseFormActionSchema>;
 
 export type TestCaseFormState = {
+  error?: string;
+  success?: string;
+};
+
+const testCaseSuggestionActionSchema = z.object({
+  assertionId: z.uuid(),
+  maxSuggestions: z.number().int().min(1).max(5).default(3),
+});
+
+export type TestCaseSuggestionState = {
   error?: string;
   success?: string;
 };
@@ -349,6 +366,119 @@ export async function deleteTestCaseAction(formData: FormData) {
   await runTestCaseLifecycleAction(formData, async (supabase, workspaceId, testCaseId) => {
     await deleteTestCase(supabase, workspaceId, testCaseId);
   });
+}
+
+export async function generateSuggestedTestCasesAction(
+  _previousState: TestCaseSuggestionState,
+  formData: FormData,
+): Promise<TestCaseSuggestionState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        assertionId: String(formData.get("assertionId") ?? ""),
+        maxSuggestions: Number(formData.get("maxSuggestions") ?? 3),
+      },
+      permission: "assertion:edit",
+      schema: testCaseSuggestionActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const assertion = await requireWorkspaceAssertion(supabase, membership.workspace.id, input.assertionId);
+      const [sourceLinks, workspaceSources, existingTestCases] = await Promise.all([
+        listAssertionSourcesForAssertion(supabase, membership.workspace.id, input.assertionId),
+        listSources(supabase, membership.workspace.id),
+        listTestCasesForAssertion(supabase, membership.workspace.id, input.assertionId),
+      ]);
+      const linkedSourceIds = new Set(sourceLinks.map((link) => link.sourceId));
+      const linkedSources = workspaceSources.filter((source) => linkedSourceIds.has(source.id));
+
+      if (linkedSources.length === 0) {
+        throw serverActionError("Link at least one source before generating test cases.", "validation");
+      }
+
+      const sourceContexts = await Promise.all(
+        linkedSources.map<Promise<TestCaseSuggestionSourceContext>>(async (source) => {
+          const chunks = await listSourceChunksPreview(supabase, membership.workspace.id, source.id, { limit: 4 });
+
+          return {
+            id: source.id,
+            name: source.name,
+            description: source.description,
+            type: source.type,
+            originUri: source.originUri,
+            syncStatus: source.syncStatus,
+            excerpts: chunks.map((chunk) => chunk.content),
+          };
+        }),
+      );
+
+      if (!sourceContexts.some((source) => source.excerpts.length > 0 || source.description || source.originUri)) {
+        throw serverActionError("Linked sources do not have enough context for AI test case suggestions.", "validation");
+      }
+
+      let provider: ReturnType<typeof createOpenAITestCaseSuggestionProvider>;
+      let suggestions: Awaited<ReturnType<typeof provider.generate>>;
+
+      try {
+        provider = createOpenAITestCaseSuggestionProvider();
+        suggestions = await provider.generate({
+          assertion,
+          sources: sourceContexts,
+          existingTestCases,
+          maxSuggestions: input.maxSuggestions,
+        });
+      } catch (error) {
+        if (error instanceof TestCaseSuggestionError) {
+          throw serverActionError(error.message);
+        }
+
+        throw error;
+      }
+
+      const firstOrdinal = existingTestCases.reduce((maxOrdinal, testCase) => Math.max(maxOrdinal, testCase.ordinal + 1), 0);
+
+      for (const [index, suggestion] of suggestions.entries()) {
+        await createTestCase(supabase, membership.workspace.id, user.id, {
+          assertionId: assertion.id,
+          title: suggestion.title,
+          type: suggestion.type,
+          status: "draft",
+          input: {
+            text: suggestion.inputText,
+            coverageNotes: suggestion.coverageNotes,
+          },
+          expectedResult: suggestion.expectedResult,
+          ordinal: firstOrdinal + index,
+          metadata: {
+            generatedBy: "radar_ai_test_case_suggestion",
+            model: provider.model,
+            sourceIds: linkedSources.map((source) => source.id),
+            coverageNotes: suggestion.coverageNotes,
+          },
+        });
+      }
+
+      return suggestions.length;
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/assertions");
+  revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
+  const count = result.ok ? result.data : 0;
+  return {
+    success: count === 1 ? "1 draft test case generated." : `${count} draft test cases generated.`,
+  };
 }
 
 export async function generateSuggestedAssertionDraftsAction(

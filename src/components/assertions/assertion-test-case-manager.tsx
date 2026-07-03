@@ -9,6 +9,7 @@ import {
   PlusIcon,
   SaveIcon,
   ShieldCheckIcon,
+  SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
 
@@ -16,9 +17,11 @@ import {
   approveTestCaseAction,
   createTestCaseAction,
   deleteTestCaseAction,
+  generateSuggestedTestCasesAction,
   disableTestCaseAction,
   updateTestCaseAction,
   type TestCaseFormState,
+  type TestCaseSuggestionState,
 } from "@/app/(app)/assertions/actions";
 import { EmptyState, StatusBadge, type StatusTone } from "@/components/radar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -67,6 +70,7 @@ type AssertionTestCaseManagerProps = {
 };
 
 const initialState: TestCaseFormState = {};
+const initialSuggestionState: TestCaseSuggestionState = {};
 
 export function AssertionTestCaseManager({
   assertion,
@@ -76,12 +80,73 @@ export function AssertionTestCaseManager({
   return (
     <div className="flex flex-col gap-4">
       {canEdit ? (
-        <TestCaseCreateForm assertion={assertion} nextOrdinal={nextOrdinal(testCases)} />
+        <>
+          <TestCaseSuggestionPanel assertion={assertion} />
+          <TestCaseCreateForm assertion={assertion} nextOrdinal={nextOrdinal(testCases)} />
+        </>
       ) : (
         <p className="text-sm text-muted-foreground">Viewers can inspect test cases but cannot change them.</p>
       )}
       <TestCaseInventory assertion={assertion} testCases={testCases} canEdit={canEdit} />
     </div>
+  );
+}
+
+function TestCaseSuggestionPanel({ assertion }: { assertion: RadarAssertion }) {
+  const [state, formAction, isPending] = useActionState(generateSuggestedTestCasesAction, initialSuggestionState);
+  const maxSuggestionsId = useId();
+
+  return (
+    <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
+      <CardHeader>
+        <CardTitle>Generate test case drafts</CardTitle>
+        <CardDescription>
+          Use this assertion and linked source evidence to draft realistic customer-facing checks for review.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form action={formAction}>
+          <input type="hidden" name="assertionId" value={assertion.id} />
+          <FieldGroup>
+            {state.error ? (
+              <Alert variant="destructive">
+                <AlertCircleIcon />
+                <AlertTitle>Drafts not generated</AlertTitle>
+                <AlertDescription>{state.error}</AlertDescription>
+              </Alert>
+            ) : null}
+            {state.success ? (
+              <Alert>
+                <CheckCircle2Icon />
+                <AlertTitle>Drafts generated</AlertTitle>
+                <AlertDescription>{state.success}</AlertDescription>
+              </Alert>
+            ) : null}
+            <div className="grid gap-3 md:grid-cols-[12rem_1fr]">
+              <Field data-disabled={isPending ? true : undefined}>
+                <FieldLabel htmlFor={maxSuggestionsId}>Draft count</FieldLabel>
+                <Input
+                  id={maxSuggestionsId}
+                  name="maxSuggestions"
+                  type="number"
+                  min={1}
+                  max={5}
+                  defaultValue={3}
+                  disabled={isPending}
+                />
+                <FieldDescription>Generated drafts remain editable and unapproved.</FieldDescription>
+              </Field>
+              <div className="flex items-end justify-end">
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? <LoaderCircleIcon data-icon="inline-start" className="animate-spin" /> : <SparklesIcon data-icon="inline-start" />}
+                  Generate draft test cases
+                </Button>
+              </div>
+            </div>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
