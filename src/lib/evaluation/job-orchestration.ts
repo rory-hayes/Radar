@@ -16,6 +16,7 @@ import {
   type EvaluationRunStatus,
   type EvaluationRunTriggerType,
 } from "@/lib/evaluation/schema";
+import { processFindingRerunResolutionForRun } from "@/lib/findings/rerun-resolution";
 
 export const evaluationJobQueueReasons = ["manual", "schedule", "source_change", "system"] as const;
 
@@ -196,6 +197,7 @@ export async function runNextEvaluationJob(
         },
       }),
     });
+    await processFindingRerunResolutionForRun(client, input.workspaceId, completedRun);
 
     return { status: "completed", run: completedRun, attempt };
   } catch (error) {

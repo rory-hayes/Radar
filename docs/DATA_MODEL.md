@@ -117,6 +117,8 @@ RAD-077 records finding lifecycle transitions through status updates plus `findi
 
 RAD-078 stores operational ownership on findings by updating `owner_user_id`, the current severity-as-priority, and bounded ownership metadata such as `ownerTeam`, `ownershipUpdatedAt`, and `ownershipUpdatedByUserId`. Assignment changes close prior active `finding_assignments`, create a new assignment when a workspace member is selected, and write a `finding_activity` handoff note.
 
+RAD-079 links finding validation reruns through bounded `evaluation_runs.execution_metadata.findingRerun` metadata. The metadata stores the finding id, requester, request time, and resolution mode. Passing linked reruns write `finding_activity` and either move the finding to Fixed for human resolution review or, when configured for automatic resolution, write the required resolution fields and mark the finding Resolved.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.

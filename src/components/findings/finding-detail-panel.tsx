@@ -14,6 +14,7 @@ import {
 } from "@/components/radar";
 import { FindingLifecycleForm } from "@/components/findings/finding-lifecycle-form";
 import { FindingOwnershipForm, type FindingOwnerOption } from "@/components/findings/finding-ownership-form";
+import { FindingRerunForm } from "@/components/findings/finding-rerun-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,10 +42,11 @@ export type FindingDetailPanelProps = {
   evidence: readonly RadarFindingEvidence[];
   activity: readonly RadarFindingActivity[];
   canResolve: boolean;
+  canRun: boolean;
   ownerOptions: readonly FindingOwnerOption[];
 };
 
-export function FindingDetailPanel({ finding, evidence, activity, canResolve, ownerOptions }: FindingDetailPanelProps) {
+export function FindingDetailPanel({ finding, evidence, activity, canResolve, canRun, ownerOptions }: FindingDetailPanelProps) {
   if (!finding) {
     return (
       <EmptyState
@@ -106,6 +108,8 @@ export function FindingDetailPanel({ finding, evidence, activity, canResolve, ow
         ownerOptions={ownerOptions}
         canManage={canResolve}
       />
+
+      <FindingRerunForm findingId={finding.id} canRun={canRun} />
 
       <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
         <CardHeader>

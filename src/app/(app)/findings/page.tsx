@@ -113,6 +113,7 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
           evidence={selectedDetail.evidence}
           activity={selectedDetail.activity}
           canResolve={membershipCan(membership, "finding:resolve")}
+          canRun={membershipCan(membership, "run:rerun")}
           ownerOptions={findingResult.memberOptions}
         />
       </div>

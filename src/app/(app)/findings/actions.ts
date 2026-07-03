@@ -4,6 +4,9 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { recordAuditEvent } from "@/lib/audit/server";
+import { approvedRunnableTestCasesForRunner, buildManualRerunMetadata } from "@/lib/evaluation/manual-reruns";
+import { queueEvaluationJob } from "@/lib/evaluation/job-orchestration";
+import { buildFindingRerunMetadata } from "@/lib/findings/rerun-resolution";
 import {
   buildFindingLifecycleTransition,
   findingLifecycleWorkflowVersion,
@@ -18,8 +21,12 @@ import {
 import {
   assignFinding,
   closeActiveFindingAssignments,
+  getAssertionById,
   getFindingById,
+  getTestCaseById,
+  getTestCaseResultById,
   listActiveWorkspaceMembers,
+  listTestCasesForAssertion,
   recordFindingActivity,
   updateFindingOwnership,
   updateFindingStatus,
@@ -50,6 +57,9 @@ const findingOwnershipActionSchema = z.object({
   severity: z.enum(findingSeverities),
   note: optionalTrimmedString.pipe(z.string().max(1000).optional()),
 });
+const findingRerunActionSchema = z.object({
+  findingId: z.uuid(),
+});
 
 export type FindingLifecycleState = {
   error?: string;
@@ -57,6 +67,7 @@ export type FindingLifecycleState = {
 };
 
 export type FindingOwnershipState = FindingLifecycleState;
+export type FindingRerunState = FindingLifecycleState;
 
 export async function updateFindingLifecycleAction(
   _previousState: FindingLifecycleState,
@@ -284,6 +295,117 @@ export async function updateFindingOwnershipAction(
       ? `Finding ownership updated for ${formatOwnerTeam(updated.ownerTeam)}.`
       : "Finding ownership updated.",
   };
+}
+
+export async function queueFindingRerunAction(
+  _previousState: FindingRerunState,
+  formData: FormData,
+): Promise<FindingRerunState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        findingId: String(formData.get("findingId") ?? ""),
+      },
+      permission: "run:rerun",
+      schema: findingRerunActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const finding = await getFindingById(supabase, membership.workspace.id, input.findingId);
+
+      if (!finding) {
+        throw serverActionError("Finding is not available in this workspace.", "validation");
+      }
+
+      const assertion = await getAssertionById(supabase, membership.workspace.id, finding.assertionId);
+
+      if (!assertion) {
+        throw serverActionError("Finding assertion is not available in this workspace.", "validation");
+      }
+
+      const testCaseResult = finding.testCaseResultId
+        ? await getTestCaseResultById(supabase, membership.workspace.id, finding.testCaseResultId)
+        : null;
+      const testCase = testCaseResult
+        ? await getTestCaseById(supabase, membership.workspace.id, testCaseResult.testCaseId)
+        : null;
+      const testCases = await listTestCasesForAssertion(supabase, membership.workspace.id, assertion.id);
+      const runnableTestCases = approvedRunnableTestCasesForRunner(assertion.runnerType, testCases);
+      const requestedTestCase = testCase && runnableTestCases.some((candidate) => candidate.id === testCase.id)
+        ? testCase
+        : undefined;
+
+      if (runnableTestCases.length === 0) {
+        throw serverActionError("Approve at least one runnable test case before validating this fix.", "validation");
+      }
+
+      const requestedAt = new Date().toISOString();
+      const queuedTestCases = requestedTestCase ? [requestedTestCase] : runnableTestCases;
+      const queued = await queueEvaluationJob(supabase, {
+        workspaceId: membership.workspace.id,
+        assertionId: assertion.id,
+        runnerType: assertion.runnerType,
+        triggerType: "manual",
+        triggeredByUserId: user.id,
+        queueReason: "manual",
+        totalTestCases: queuedTestCases.length,
+        metadata: {
+          queuedBy: "rad-079_finding_rerun_action",
+          executionState: "queued_for_runner",
+          ...buildManualRerunMetadata({
+            requestedAt,
+            requestedByUserId: user.id,
+            testCaseId: requestedTestCase?.id,
+          }),
+          ...buildFindingRerunMetadata({
+            findingId: finding.id,
+            requestedAt,
+            requestedByUserId: user.id,
+            resolutionMode: "suggest",
+          }),
+        },
+      });
+
+      await recordFindingActivity(supabase, membership.workspace.id, {
+        findingId: finding.id,
+        actorUserId: user.id,
+        activityType: "rerun_linked",
+        note: requestedTestCase
+          ? "Queued a targeted rerun to validate this finding's fix."
+          : "Queued an assertion rerun to validate this finding's fix.",
+        metadata: {
+          workflowVersion: "rad-079",
+          evaluationRunId: queued.status === "queued" ? queued.run.id : null,
+          testCaseId: requestedTestCase?.id,
+        },
+      });
+
+      return {
+        assertionId: assertion.id,
+        runId: queued.status === "queued" ? queued.run.id : null,
+      };
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  const queued = result.ok ? result.data : null;
+  revalidatePath("/findings");
+
+  if (queued?.assertionId) {
+    revalidatePath(`/assertions/${queued.assertionId}`);
+  }
+
+  return { success: "Fix validation rerun queued." };
 }
 
 function ownershipActivityNote(

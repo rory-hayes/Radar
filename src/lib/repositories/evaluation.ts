@@ -133,6 +133,22 @@ export async function listEvaluationRunsForAssertion(
   return (data ?? []).map(mapEvaluationRunRow);
 }
 
+export async function getTestCaseResultById(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  testCaseResultId: string,
+) {
+  const { data, error } = await client
+    .from("test_case_results")
+    .select("id, workspace_id, evaluation_run_id, assertion_id, test_case_id, runner_type, status, score, confidence, actual_output, evidence_refs")
+    .eq("workspace_id", workspaceId)
+    .eq("id", testCaseResultId)
+    .maybeSingle<TestCaseResultRow>();
+
+  assertRepositorySuccess(error, "Unable to load test case result");
+  return data ? mapTestCaseResultRow(data) : null;
+}
+
 export async function listEvaluationRunSummariesForAssertion(
   client: RadarRepositoryClient,
   workspaceId: string,
