@@ -12,6 +12,8 @@
     "start": "next start",
     "validate:env": "node scripts/validate-env.mjs",
     "validate:seed": "node scripts/validate-seed-policy.mjs",
+    "db:harness": "node scripts/verify-db-harness.mjs",
+    "db:harness:apply": "node scripts/verify-db-harness.mjs --apply",
     "lint": "eslint .",
     "typecheck": "rm -rf .next/types .next/dev/types && NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
     "test": "node --test tests/unit/*.test.mjs",

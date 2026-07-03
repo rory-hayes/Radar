@@ -11,4 +11,6 @@ Rules:
 - Never include real customer content, provider credentials, runner secrets, service role keys, webhook secrets, or production URLs.
 - Never import these files into product runtime code.
 
-RAD-009 defines the contract. RAD-019 adds `radar-demo-workspace.sql`, which seeds the first representative local/test workspace and users using only schemas that exist in Phase 1. Until source, assertion, run, and finding tables exist, representative product examples are recorded as workspace-scoped `audit_logs` metadata rather than standalone product rows.
+RAD-009 defines the contract. RAD-019 adds `radar-demo-workspace.sql`, which seeds the first representative local/test workspace and users. Phase 2 extends that file with representative sources, assertions, evaluation runs, findings, evidence, assignments, and activity records as those schemas become available.
+
+RAD-029 verifies this seed coverage through `pnpm db:harness` and applies it with migrations through `pnpm db:harness:apply` when Docker is running.

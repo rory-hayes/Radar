@@ -14,6 +14,8 @@ Radar uses Supabase for Auth, Postgres, RLS, Storage, and pgvector. This documen
 pnpm supabase:start
 pnpm supabase:status
 pnpm db:reset
+pnpm db:harness
+pnpm db:harness:apply
 pnpm supabase:stop
 ```
 
@@ -26,6 +28,24 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
 ```
 
 Set `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from `pnpm supabase:status`. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only.
+
+## Database Harness
+
+RAD-029 adds a repeatable database harness for local and CI checks.
+
+```bash
+pnpm db:harness
+```
+
+This static harness verifies migration order, required schema files, representative seed coverage, expected constraints, key indexes, forced RLS policies, and private storage bucket configuration without requiring Docker.
+
+When Docker/Supabase is running, use:
+
+```bash
+pnpm db:harness:apply
+```
+
+This applies all migrations through `pnpm supabase:reset`, runs the seed validation, and then runs the same harness checks.
 
 ## Auth Smoke Testing
 

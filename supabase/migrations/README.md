@@ -18,3 +18,14 @@ The CLI writes timestamped SQL files into this directory. Keep one concern per m
 - Storage bucket migrations must default to private buckets unless a later ticket explicitly justifies public access.
 
 RAD-021 through RAD-029 add the first product schemas, policies, storage, and migration test harness. RAD-006 only establishes the local pipeline.
+
+## Harness
+
+RAD-029 adds `scripts/verify-db-harness.mjs`.
+
+```bash
+pnpm db:harness
+pnpm db:harness:apply
+```
+
+Use `pnpm db:harness` for Docker-free static checks in CI. Use `pnpm db:harness:apply` locally when Docker is running to apply migrations, seed data, and run the same checks.
