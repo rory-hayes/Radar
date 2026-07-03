@@ -163,16 +163,35 @@ export async function updateSource(
   input: Partial<CreateSourceInput>,
 ) {
   const parsedInput = sourceUpdateRequestSchema.parse(input);
+  const updatePayload: Record<string, unknown> = {};
+
+  if (parsedInput.name !== undefined) {
+    updatePayload.name = parsedInput.name;
+  }
+
+  if (parsedInput.description !== undefined) {
+    updatePayload.description = parsedInput.description;
+  }
+
+  if (parsedInput.type !== undefined) {
+    updatePayload.type = parsedInput.type;
+  }
+
+  if (parsedInput.originUri !== undefined) {
+    updatePayload.origin_uri = parsedInput.originUri;
+  }
+
+  if (parsedInput.config !== undefined) {
+    updatePayload.config = parsedInput.config;
+  }
+
+  if (parsedInput.metadata !== undefined) {
+    updatePayload.metadata = parsedInput.metadata;
+  }
+
   const { data, error } = await client
     .from("sources")
-    .update({
-      name: parsedInput.name,
-      description: parsedInput.description,
-      type: parsedInput.type,
-      origin_uri: parsedInput.originUri,
-      config: parsedInput.config,
-      metadata: parsedInput.metadata,
-    })
+    .update(updatePayload)
     .eq("workspace_id", workspaceId)
     .eq("id", sourceId)
     .select(sourceSelect)

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FileTextIcon, GlobeIcon, ServerIcon, UploadIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -6,10 +7,12 @@ import {
   CardAction,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { StatusBadge, type StatusTone } from "@/components/radar/status-badge";
+import { Button } from "@/components/ui/button";
 import { type RadarSource, type SourceSyncStatus, type SourceType } from "@/lib/sources/schema";
 
 export type SourceListItem = RadarSource & {
@@ -18,6 +21,7 @@ export type SourceListItem = RadarSource & {
 
 type SourceCardProps = {
   source: SourceListItem;
+  canEdit?: boolean;
 };
 
 const sourceTypeLabels: Record<SourceType, string> = {
@@ -56,7 +60,7 @@ const syncStatusTones: Record<SourceSyncStatus, StatusTone> = {
   archived: "neutral",
 };
 
-export function SourceCard({ source }: SourceCardProps) {
+export function SourceCard({ source, canEdit = false }: SourceCardProps) {
   const SourceIcon = sourceTypeIcons[source.type];
 
   return (
@@ -97,6 +101,13 @@ export function SourceCard({ source }: SourceCardProps) {
           ) : null}
         </dl>
       </CardContent>
+      {canEdit ? (
+        <CardFooter className="justify-end border-t border-border/80">
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/sources/${source.id}/edit`}>Edit source</Link>
+          </Button>
+        </CardFooter>
+      ) : null}
     </Card>
   );
 }

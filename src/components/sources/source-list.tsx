@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   Card,
   CardContent,
@@ -14,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/radar/status-badge";
+import { Button } from "@/components/ui/button";
 import {
   formatSourceTimestamp,
   sourceSyncStatusLabel,
@@ -24,9 +27,10 @@ import {
 
 type SourceListProps = {
   sources: readonly SourceListItem[];
+  canEdit?: boolean;
 };
 
-export function SourceList({ sources }: SourceListProps) {
+export function SourceList({ sources, canEdit = false }: SourceListProps) {
   return (
     <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
       <CardHeader>
@@ -43,7 +47,8 @@ export function SourceList({ sources }: SourceListProps) {
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last sync</TableHead>
-              <TableHead className="text-right pr-(--card-spacing)">Affected assertions</TableHead>
+              <TableHead className="text-right">Affected assertions</TableHead>
+              {canEdit ? <TableHead className="pr-(--card-spacing) text-right">Actions</TableHead> : null}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -65,9 +70,16 @@ export function SourceList({ sources }: SourceListProps) {
                   />
                 </TableCell>
                 <TableCell>{formatSourceTimestamp(source.lastSyncedAt)}</TableCell>
-                <TableCell className="text-right pr-(--card-spacing)">
+                <TableCell className="text-right">
                   {source.affectedAssertionCount}
                 </TableCell>
+                {canEdit ? (
+                  <TableCell className="pr-(--card-spacing) text-right">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/sources/${source.id}/edit`}>Edit</Link>
+                    </Button>
+                  </TableCell>
+                ) : null}
               </TableRow>
             ))}
           </TableBody>

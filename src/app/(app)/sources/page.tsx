@@ -1,11 +1,15 @@
+import Link from "next/link";
 import type { Metadata } from "next";
+import { PlusIcon } from "lucide-react";
 
 import { PageHeader } from "@/components/app-shell";
 import { EmptyState, ErrorState, MetricCard } from "@/components/radar";
 import { SourceCard, SourceList, type SourceListItem } from "@/components/sources";
+import { Button } from "@/components/ui/button";
 import { listSourceAssertionCounts, listSources } from "@/lib/repositories";
 import { getAppRouteByHref } from "@/lib/radar-routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { membershipCan } from "@/lib/workspaces/permissions";
 import { requireActiveWorkspace } from "@/lib/workspaces/server";
 
 const route = getAppRouteByHref("/sources");
@@ -17,10 +21,12 @@ export const metadata: Metadata = {
 export default async function SourcesPage() {
   const membership = await requireActiveWorkspace();
   const supabase = await createSupabaseServerClient();
+  const canCreateSource = membershipCan(membership, "source:create");
+  const canEditSource = membershipCan(membership, "source:edit");
 
   if (!supabase) {
     return (
-      <SourcesPageShell>
+      <SourcesPageShell canCreateSource={canCreateSource}>
         <ErrorState
           title="Sources could not load"
           description="Supabase is not configured for this environment, so Radar cannot read workspace sources."
@@ -34,7 +40,7 @@ export default async function SourcesPage() {
 
   if (sourceResult.error) {
     return (
-      <SourcesPageShell>
+      <SourcesPageShell canCreateSource={canCreateSource}>
         <ErrorState
           title="Sources could not load"
           description="Radar could not read source records for the active workspace. Refresh after checking database connectivity and workspace permissions."
@@ -47,22 +53,23 @@ export default async function SourcesPage() {
   const sourceItems = sourceResult.sources;
 
   return (
-    <SourcesPageShell sourceCount={sourceItems.length}>
+    <SourcesPageShell sourceCount={sourceItems.length} canCreateSource={canCreateSource}>
       <SourceMetrics sources={sourceItems} />
       {sourceItems.length > 0 ? (
         <>
           <div className="grid gap-4 lg:grid-cols-2">
             {sourceItems.map((source) => (
-              <SourceCard key={source.id} source={source} />
+              <SourceCard key={source.id} source={source} canEdit={canEditSource} />
             ))}
           </div>
-          <SourceList sources={sourceItems} />
+          <SourceList sources={sourceItems} canEdit={canEditSource} />
         </>
       ) : (
         <EmptyState
           title="No sources are connected yet"
           description="Sources appear after a customer-facing assertion needs evidence from a URL, uploaded document, manual policy text, API endpoint, or support bot endpoint."
           details={["Source type", "Sync health", "Affected assertions"]}
+          action={canCreateSource ? <AddSourceButton /> : undefined}
         />
       )}
     </SourcesPageShell>
@@ -97,9 +104,11 @@ async function loadSourceListItems(
 function SourcesPageShell({
   children,
   sourceCount,
+  canCreateSource = false,
 }: {
   children: React.ReactNode;
   sourceCount?: number;
+  canCreateSource?: boolean;
 }) {
   return (
     <section className="flex flex-col gap-6">
@@ -107,9 +116,22 @@ function SourcesPageShell({
         title={route?.title ?? "Sources"}
         description={route?.description ?? ""}
         status={typeof sourceCount === "number" ? `${sourceCount} sources` : undefined}
-      />
+      >
+        {canCreateSource ? <AddSourceButton /> : null}
+      </PageHeader>
       {children}
     </section>
+  );
+}
+
+function AddSourceButton() {
+  return (
+    <Button asChild>
+      <Link href="/sources/new">
+        <PlusIcon data-icon="inline-start" />
+        Add source
+      </Link>
+    </Button>
   );
 }
 
