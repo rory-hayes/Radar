@@ -25,6 +25,12 @@ import {
   type RunNextEvaluationJobInput,
 } from "@/lib/evaluation/job-orchestration";
 import {
+  evaluateKnowledgeAnswer,
+  type HybridEvaluationResult,
+  type HybridEvaluatorJudgeProvider,
+  type HybridRubricEvidenceSnippet,
+} from "@/lib/evaluation/hybrid-rubric";
+import {
   loadKnowledgeTargetConfigurationsForAssertion,
   type KnowledgeTargetConfiguration,
 } from "@/lib/evaluation/knowledge-targets";
@@ -54,6 +60,7 @@ export type KnowledgeRunnerTargetClient = (
 
 export type KnowledgeRunnerOptions = EvaluationEvidenceLoadOptions & {
   targetClient?: KnowledgeRunnerTargetClient;
+  judgeProvider?: HybridEvaluatorJudgeProvider;
   now?: () => Date;
 };
 
@@ -129,25 +136,29 @@ export async function runKnowledgeEvaluationJob(
   const resultRecords = await Promise.all(
     testCases.map((testCase) => executeKnowledgeTestCase(client, run, assertion, testCase, target, targetClient, options)),
   );
-  const errorCount = resultRecords.filter((result) => result.status === "error").length;
+  const resultSummary = summarizeKnowledgeResultRecords(resultRecords);
   const completedAt = options.now?.() ?? new Date();
   const evidenceRefs = dedupeEvidenceRefs(resultRecords.flatMap((result) => result.evidenceRefs));
 
   return {
-    status: aggregateKnowledgeRunStatus(testCases.length, errorCount),
+    status: resultSummary.status,
     totalTestCases: testCases.length,
-    passedCount: 0,
-    warningCount: 0,
-    failedCount: 0,
-    errorCount,
-    skippedCount: 0,
+    passedCount: resultSummary.passedCount,
+    warningCount: resultSummary.warningCount,
+    failedCount: resultSummary.failedCount,
+    errorCount: resultSummary.errorCount,
+    skippedCount: resultSummary.skippedCount,
+    score: resultSummary.score,
+    confidence: resultSummary.confidence,
     evidenceRefs,
     executionMetadata: knowledgeRunnerMetadata({
-      state: "raw_outputs_captured",
+      state: "scored_outputs_persisted",
       targetSourceId: target.sourceId,
       targetKind: target.kind,
       targetSourceType: target.sourceType,
       testCaseResults: resultRecords.length,
+      averageScore: resultSummary.score,
+      averageConfidence: resultSummary.confidence,
       startedAt: startedAt.toISOString(),
       completedAt: completedAt.toISOString(),
     }),
@@ -201,18 +212,32 @@ async function executeKnowledgeTestCase(
     });
     const completedAt = options.now?.() ?? new Date();
     const evidenceRefs = evidence.evidenceRefs;
+    const actualOutput = actualOutputForResponse(question, target, response, evidence);
+    const evaluation = await evaluateKnowledgeAnswer(
+      {
+        assertion,
+        testCase,
+        actualOutput,
+        evidence: evidenceSnippets(evidence),
+        evidenceRefCount: evidenceRefs.length,
+      },
+      { judgeProvider: options.judgeProvider },
+    );
 
     return createTestCaseResult(client, run.workspaceId, {
       evaluationRunId: run.id,
       assertionId: assertion.id,
       testCaseId: testCase.id,
       runnerType: "knowledge",
-      status: "inconclusive",
-      actualOutput: actualOutputForResponse(question, target, response, evidence),
+      status: evaluation.status,
+      score: evaluation.score,
+      confidence: evaluation.confidence,
+      actualOutput,
       actualSummary: boundedText(response.answer, 2000),
+      evaluatorSummary: boundedText(evaluation.summary, 2000),
       evidenceRefs,
-      executionMetadata: testCaseExecutionMetadata(target, evidence, response, {
-        status: "inconclusive",
+      executionMetadata: testCaseExecutionMetadata(target, evidence, response, evaluation, {
+        status: evaluation.status,
         startedAt: startedAt.toISOString(),
         completedAt: completedAt.toISOString(),
       }),
@@ -231,7 +256,7 @@ async function executeKnowledgeTestCase(
       status: "error",
       actualOutput: actualOutputForError(question, target, error),
       evidenceRefs: [],
-      executionMetadata: testCaseExecutionMetadata(target, null, null, {
+      executionMetadata: testCaseExecutionMetadata(target, null, null, null, {
         status: "error",
         startedAt: startedAt.toISOString(),
         completedAt: completedAt.toISOString(),
@@ -378,6 +403,7 @@ function testCaseExecutionMetadata(
   target: KnowledgeTargetConfiguration,
   evidence: EvaluationEvidenceContext | null,
   response: KnowledgeRunnerTargetResponse | null,
+  evaluation: HybridEvaluationResult | null,
   input: {
     status: TestCaseResultStatus;
     startedAt: string;
@@ -391,6 +417,15 @@ function testCaseExecutionMetadata(
     targetKind: target.kind,
     evidenceMatchCount: evidence?.matches.length ?? 0,
     targetStatusCode: response?.statusCode,
+    rubricVersion: evaluation?.rubricVersion,
+    score: evaluation?.score,
+    confidence: evaluation?.confidence,
+    recommendedFinding: evaluation?.recommendedFinding,
+    dimensionScores: evaluation?.dimensions.map((dimension) => ({
+      id: dimension.id,
+      score: dimension.score,
+      weight: dimension.weight,
+    })),
     startedAt: input.startedAt,
     completedAt: input.completedAt,
   });
@@ -408,14 +443,6 @@ function serializableTarget(target: KnowledgeTargetConfiguration) {
   };
 }
 
-function aggregateKnowledgeRunStatus(totalTestCases: number, errorCount: number) {
-  if (errorCount === 0) {
-    return "inconclusive";
-  }
-
-  return errorCount >= totalTestCases ? "error" : "warning";
-}
-
 function dedupeEvidenceRefs(evidenceRefs: readonly EvaluationEvidenceRefInput[]) {
   const seen = new Set<string>();
 
@@ -429,6 +456,88 @@ function dedupeEvidenceRefs(evidenceRefs: readonly EvaluationEvidenceRefInput[])
     seen.add(key);
     return true;
   });
+}
+
+function evidenceSnippets(evidence: EvaluationEvidenceContext): HybridRubricEvidenceSnippet[] {
+  return evidence.matches.map((match) => ({
+    excerpt: match.excerpt,
+    citation: `${match.citation.documentTitle}#chunk-${match.citation.chunkIndex}`,
+    score: match.score,
+  }));
+}
+
+function summarizeKnowledgeResultRecords(
+  results: Awaited<ReturnType<typeof createTestCaseResult>>[],
+): EvaluationJobRunnerResult & {
+  passedCount: number;
+  warningCount: number;
+  failedCount: number;
+  errorCount: number;
+  skippedCount: number;
+} {
+  const passedCount = results.filter((result) => result.status === "passed").length;
+  const warningCount = results.filter((result) => result.status === "warning").length;
+  const failedCount = results.filter((result) => result.status === "failed").length;
+  const errorCount = results.filter((result) => result.status === "error").length;
+  const skippedCount = results.filter((result) => result.status === "skipped").length;
+  const scoredResults = results.filter((result) => typeof result.score === "number");
+  const confidentResults = results.filter((result) => typeof result.confidence === "number");
+  const status = aggregateKnowledgeRunStatus({
+    totalCount: results.length,
+    passedCount,
+    warningCount,
+    failedCount,
+    errorCount,
+    skippedCount,
+  });
+
+  return {
+    status,
+    passedCount,
+    warningCount,
+    failedCount,
+    errorCount,
+    skippedCount,
+    score: averageScore(scoredResults.map((result) => result.score)),
+    confidence: averageScore(confidentResults.map((result) => result.confidence)),
+  };
+}
+
+function aggregateKnowledgeRunStatus(input: {
+  totalCount: number;
+  passedCount: number;
+  warningCount: number;
+  failedCount: number;
+  errorCount: number;
+  skippedCount: number;
+}): EvaluationJobRunnerResult["status"] {
+  if (input.errorCount >= input.totalCount) {
+    return "error";
+  }
+
+  if (input.failedCount > 0) {
+    return "failed";
+  }
+
+  if (input.warningCount > 0 || input.errorCount > 0) {
+    return "warning";
+  }
+
+  if (input.passedCount === input.totalCount) {
+    return "passed";
+  }
+
+  return "inconclusive";
+}
+
+function averageScore(values: Array<number | undefined>) {
+  const numericValues = values.filter((value): value is number => typeof value === "number");
+
+  if (numericValues.length === 0) {
+    return undefined;
+  }
+
+  return numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
 }
 
 function questionFromTestCase(testCase: RadarTestCase) {

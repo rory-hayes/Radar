@@ -42,6 +42,8 @@ Radar must combine deterministic checks, evidence comparison, contradiction dete
 
 RAD-056 implements the hybrid evaluator rubric for Knowledge Runner answers. The rubric scores source grounding, contradiction detection, completeness, refusal behaviour, citation validity, and policy consistency before optionally blending an LLM judge result. Deterministic scoring remains the majority signal, and an evidence-free result stays inconclusive with no recommended finding even if an LLM judge would otherwise escalate it.
 
+RAD-057 persists per-test scored results by applying the hybrid rubric during Knowledge Runner execution before inserting `test_case_results`. Each result stores status, score, confidence, bounded actual summary, evaluator summary, evidence refs, timing metadata, and rubric dimension metadata. The evaluation run summary aggregates result counts plus average score and confidence so run history can be inspected at assertion and test-case granularity.
+
 ## LLM prompt contracts
 
 RAD-052 introduces a server-only LLM adapter for OpenAI Responses JSON calls. Prompt contracts are versioned in code with an id, version, task, instructions, strict JSON schema, and output-token limit. Runtime metadata must record provider, model, prompt id, prompt version, task, response format, input fingerprint, request time, and token usage when available. Do not persist raw prompts, raw source context, API keys, or bearer values in logs or client-visible metadata.

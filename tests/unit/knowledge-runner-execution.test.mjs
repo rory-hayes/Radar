@@ -42,7 +42,6 @@ test("RAD-055 captures raw test outputs with evidence refs", async () => {
 
   assert.match(runner, /loadEvaluationEvidence/);
   assert.match(runner, /createTestCaseResult/);
-  assert.match(runner, /status: "inconclusive"/);
   assert.match(runner, /actualOutputForResponse/);
   assert.match(runner, /actualSummary: boundedText\(response\.answer, 2000\)/);
   assert.match(runner, /evidenceRefs/);
