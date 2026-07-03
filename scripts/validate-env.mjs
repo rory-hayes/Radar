@@ -43,6 +43,7 @@ const envSchema = z.object({
   RADAR_APP_URL: optionalUrl,
   STRIPE_SECRET_KEY: optionalText,
   STRIPE_WEBHOOK_SECRET: optionalText,
+  STRIPE_PRICE_ID_STARTER: optionalText,
   SENTRY_AUTH_TOKEN: optionalText,
   LANGFUSE_PUBLIC_KEY: optionalText,
   LANGFUSE_SECRET_KEY: optionalText,

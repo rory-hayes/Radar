@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { trackProductEvent } from "@/lib/analytics/posthog";
 import { recordAuditEvent } from "@/lib/audit/server";
+import { getBillingGateResult } from "@/lib/billing/enforcement";
 import { approvedRunnableTestCasesForRunner, buildManualRerunMetadata } from "@/lib/evaluation/manual-reruns";
 import { queueEvaluationJob } from "@/lib/evaluation/job-orchestration";
 import { buildFindingRerunMetadata } from "@/lib/findings/rerun-resolution";
@@ -343,6 +344,16 @@ export async function queueFindingRerunAction(
 
       if (runnableTestCases.length === 0) {
         throw serverActionError("Approve at least one runnable test case before validating this fix.", "validation");
+      }
+
+      const gate = await getBillingGateResult({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        action: "queue_run",
+      });
+
+      if (!gate.allowed) {
+        throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
       }
 
       const requestedAt = new Date().toISOString();

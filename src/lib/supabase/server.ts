@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
@@ -26,6 +27,22 @@ export async function createSupabaseServerClient() {
           // Server Components cannot write cookies. Proxy and Route Handlers can.
         }
       },
+    },
+  });
+}
+
+export function createSupabaseServiceRoleClient() {
+  const config = getSupabasePublicConfig();
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (!config || !serviceRoleKey) {
+    return null;
+  }
+
+  return createClient(config.url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   });
 }

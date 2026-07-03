@@ -143,7 +143,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 
 | ID | Task | Priority | Status | Description |
 |---|---|---|---|---|
-| [RAD-091](tasks/phase-9-production-readiness/rad-091-implement-stripe-billing-and-plan-gates.md) | Implement Stripe billing and plan gates | P0 | Backlog | Add Stripe customer/subscription flow, plan limits for assertions/sources/runs, billing portal access, and safe unpaid states. |
+| [RAD-091](tasks/phase-9-production-readiness/rad-091-implement-stripe-billing-and-plan-gates.md) | Implement Stripe billing and plan gates | P0 | Done | Add Stripe customer/subscription flow, plan limits for assertions/sources/runs, billing portal access, and safe unpaid states. |
 | [RAD-092](tasks/phase-9-production-readiness/rad-092-build-onboarding-checklist-and-activation-flow.md) | Build onboarding checklist and activation flow | P0 | Backlog | Create a guided activation flow that helps users create first source, assertion, runner config, first run, and first finding/report. |
 | [RAD-093](tasks/phase-9-production-readiness/rad-093-add-sentry-error-monitoring-and-release-tracking.md) | Add Sentry error monitoring and release tracking | P0 | Backlog | Instrument frontend and backend errors, source maps, release versions, and key context without leaking secrets/source content. |
 | [RAD-094](tasks/phase-9-production-readiness/rad-094-add-langfuse-internal-llm-tracing.md) | Add Langfuse internal LLM tracing | P0 | Backlog | Instrument internal LLM calls for assertion generation, test case generation, judging, and fixes with prompt versions, costs, latency, and redacted metadata. |

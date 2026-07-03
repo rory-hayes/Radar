@@ -15,6 +15,7 @@ import {
   type TestCaseSuggestionSourceContext,
 } from "@/lib/assertions/ai-test-cases";
 import { trackProductEvent } from "@/lib/analytics/posthog";
+import { getBillingGateResult } from "@/lib/billing/enforcement";
 import {
   assertionCategories,
   assertionPriorities,
@@ -34,6 +35,7 @@ import {
   getAssertionById,
   getTestCaseById,
   listAssertionSourcesForAssertion,
+  listAssertions,
   listSourceChunksPreview,
   listSources,
   listTestCasesForAssertion,
@@ -176,6 +178,16 @@ export async function createAssertionAction(
 
       if (!supabase) {
         throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const gate = await getBillingGateResult({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        action: "create_assertion",
+      });
+
+      if (!gate.allowed) {
+        throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
       }
 
       const assertion = await createAssertion(supabase, membership.workspace.id, user.id, buildAssertionInput(input));
@@ -545,6 +557,16 @@ export async function queueManualAssertionRunAction(
         throw serverActionError("Approve at least one runnable test case before queueing a manual run.", "validation");
       }
 
+      const gate = await getBillingGateResult({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        action: "queue_run",
+      });
+
+      if (!gate.allowed) {
+        throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
+      }
+
       const requestedAt = new Date().toISOString();
       const queuedTestCases = requestedTestCase ? [requestedTestCase] : runnableTestCases;
 
@@ -650,6 +672,20 @@ export async function generateSuggestedAssertionDraftsAction(
         }
 
         throw error;
+      }
+
+      const existingAssertions = await listAssertions(supabase, membership.workspace.id);
+      const gate = await getBillingGateResult({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        action: "create_assertion",
+        usageOverride: {
+          assertions: existingAssertions.length + Math.max(suggestions.length - 1, 0),
+        },
+      });
+
+      if (!gate.allowed) {
+        throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
       }
 
       for (const suggestion of suggestions) {

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { trackProductEvent } from "@/lib/analytics/posthog";
+import { getBillingGateResult } from "@/lib/billing/enforcement";
 import { createSource, updateSource } from "@/lib/repositories";
 import {
   runWorkspaceServerAction,
@@ -99,6 +100,16 @@ export async function createSourceAction(
 
       if (!supabase) {
         throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      const gate = await getBillingGateResult({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        action: "create_source",
+      });
+
+      if (!gate.allowed) {
+        throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
       }
 
       const source = await createSource(supabase, membership.workspace.id, user.id, buildCreateSourceInput(input));
