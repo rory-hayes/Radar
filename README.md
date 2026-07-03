@@ -52,7 +52,7 @@ pnpm test:e2e
 pnpm build
 ```
 
-The Next dev/build scripts force Tailwind's WASI path with `NAPI_RS_FORCE_WASI=true` so local Codex runs do not depend on unsigned native Tailwind binaries. Next may still log its SWC native-loader warning locally and fall back to WASM.
+The Next build and typecheck paths force Tailwind's WASI path with `NAPI_RS_FORCE_WASI=true` so local Codex runs do not depend on unsigned native Tailwind binaries. Next may still log its SWC native-loader warning locally and fall back to WASM.
 
 ## Environment validation
 

@@ -22,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { StatusBadge } from "@/components/radar/status-badge";
 import { primaryAppRoutes, type PrimaryAppRouteId } from "@/lib/radar-routes";
@@ -35,6 +36,13 @@ const navIcons: Record<PrimaryAppRouteId, LucideIcon> = {
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  function closeMobileNav() {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -42,7 +50,7 @@ export function SidebarNav() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="h-12">
-              <Link href="/command-center" aria-label="Radar Command Center">
+              <Link href="/command-center" aria-label="Radar Command Center" onClick={closeMobileNav}>
                 <span className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
                   R
                 </span>
@@ -68,7 +76,7 @@ export function SidebarNav() {
                 return (
                   <SidebarMenuItem key={route.href}>
                     <SidebarMenuButton asChild isActive={isActive}>
-                      <Link href={route.href}>
+                      <Link href={route.href} onClick={closeMobileNav}>
                         <Icon />
                         <span>{route.title}</span>
                       </Link>

@@ -21,7 +21,7 @@ test("RAD-001 defines the required local development and quality scripts", async
       "test:e2e": packageJson.scripts["test:e2e"],
     },
     {
-      dev: "pnpm validate:env && NAPI_RS_FORCE_WASI=true next dev --webpack",
+      dev: "pnpm validate:env && NAPI_RS_FORCE_WASI=true next dev",
       build: "pnpm validate:env && NAPI_RS_FORCE_WASI=true next build --webpack",
       start: "next start",
       "validate:env": "node scripts/validate-env.mjs",

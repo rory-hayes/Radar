@@ -57,3 +57,10 @@ test("RAD-007 exposes stable shell component boundaries", async () => {
   assert.match(appShell, /<SidebarNav \/>/);
   assert.match(appShell, /<TopBar \/>/);
 });
+
+test("RAD-010 closes the mobile sidebar after route navigation", async () => {
+  const sidebarNav = await readFile("src/components/app-shell/sidebar-nav.tsx", "utf8");
+
+  assert.match(sidebarNav, /setOpenMobile\(false\)/);
+  assert.match(sidebarNav, /onClick=\{closeMobileNav\}/);
+});

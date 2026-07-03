@@ -7,7 +7,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "dev": "pnpm validate:env && NAPI_RS_FORCE_WASI=true next dev --webpack",
+    "dev": "pnpm validate:env && NAPI_RS_FORCE_WASI=true next dev",
     "build": "pnpm validate:env && NAPI_RS_FORCE_WASI=true next build --webpack",
     "start": "next start",
     "validate:env": "node scripts/validate-env.mjs",
