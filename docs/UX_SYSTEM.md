@@ -46,6 +46,16 @@ Radar UI must use:
 - no consumer SaaS illustration style,
 - no template bloat.
 
+## Implemented token families
+
+- Core surfaces: `--radar-surface-raised`, `--radar-surface-subtle`, `--radar-line-strong`, `--radar-text-soft`.
+- Status tones: pass, warning, fail, running, neutral.
+- Severity tones: critical, high, medium, low, info.
+- Density and shape: `--radar-card-radius`, `--radar-control-height`, compact card spacing through shadcn `Card size="sm"`.
+- Shadows: `--radar-shadow-card` and `--radar-shadow-panel`, kept subtle for enterprise surfaces.
+
+Status and severity colour is reserved for state, risk, and evidence priority. Do not use these tones as decorative page accents.
+
 Core Radar-owned components should include:
 
 - `AppShell`
@@ -64,3 +74,13 @@ Core Radar-owned components should include:
 - `EmptyState`
 - `LoadingState`
 - `ErrorState`
+
+RAD-008 implements the first reusable base layer:
+
+- `MetricCard`
+- `StatusBadge`
+- `SeverityBadge`
+- `EmptyState`
+- `LoadingState`
+- `ErrorState`
+- `EvidenceSnippet`

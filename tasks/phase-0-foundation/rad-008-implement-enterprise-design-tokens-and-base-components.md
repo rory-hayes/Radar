@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -65,54 +65,80 @@ package/config/app shell/docs/test files as required by the task.
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
-- [ ] Base components use Radar-owned names and styling.
-- [ ] The design system avoids playful/consumer styling.
-- [ ] Components have typed props and basic tests/stories/examples where appropriate.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant.
+- [x] Data persists correctly where applicable.
+- [x] Workspace authorization is enforced where applicable.
+- [x] No unrelated scope is introduced.
+- [x] Base components use Radar-owned names and styling.
+- [x] The design system avoids playful/consumer styling.
+- [x] Components have typed props and basic tests/stories/examples where appropriate.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 
 ## UI / MCP checklist
 
-- [ ] Read `docs/SHADCN_MCP_AND_BLOCKS.md` and `docs/UI_BLOCKS_IMPLEMENTATION_PLAN.md`.
-- [ ] Checked MCP status or documented CLI fallback.
-- [ ] Used only the smallest approved shadcn primitive/block needed.
-- [ ] Removed demo content and unrelated template routes.
-- [ ] Confirmed UI remains enterprise, minimal, and Radar-specific.
-- [ ] Included screenshots or manual QA notes in PR summary.
+- [x] Read `docs/SHADCN_MCP_AND_BLOCKS.md` and `docs/UI_BLOCKS_IMPLEMENTATION_PLAN.md`.
+- [x] Checked MCP status or documented CLI fallback.
+- [x] Used only the smallest approved shadcn primitive/block needed.
+- [x] Removed demo content and unrelated template routes.
+- [x] Confirmed UI remains enterprise, minimal, and Radar-specific.
+- [x] Included screenshots or manual QA notes in PR summary.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Capture screenshots for UI changes.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
 Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+
+## Codex implementation notes
+
+- Added enterprise Radar CSS tokens for surfaces, borders, status tones, severity tones, subtle shadows, density, and shape in `src/app/globals.css`.
+- Added typed Radar-owned base components in `src/components/radar`: `MetricCard`, `StatusBadge`, `SeverityBadge`, `EmptyState`, `LoadingState`, `ErrorState`, and `EvidenceSnippet`.
+- Rewired shell placeholders, page header, top bar, sidebar environment state, route loading, and route error handling to use Radar-owned base components.
+- Updated `docs/UX_SYSTEM.md` with implemented token families and the RAD-008 component layer.
+- Added `tests/unit/design-system.test.mjs` for token coverage, component exports, semantic status/severity variants, and app-shell usage.
+- Used installed shadcn primitives only; no new block or template was installed.
+- Screenshot QA:
+  - Desktop Command Center: `/tmp/radar-rad-008-command-center-desktop.png`
+  - Mobile Findings: `/tmp/radar-rad-008-findings-mobile.png`
+- Browser QA against `next start` on port 3011 had no console errors.
+
+Commands run:
+
+```bash
+pnpm dlx shadcn@latest docs card alert skeleton
+pnpm validate:env
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm test:e2e
+pnpm build
+next start --port 3011
+```

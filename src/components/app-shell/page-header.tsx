@@ -4,7 +4,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/radar/status-badge";
 
 type PageHeaderProps = {
   title: string;
@@ -20,7 +20,7 @@ export function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <header className="flex flex-col gap-5 border-b bg-background pb-6">
+    <header className="flex flex-col gap-5 border-b border-border/80 bg-background pb-6">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -35,7 +35,7 @@ export function PageHeader({
             <h1 className="text-2xl leading-tight font-semibold tracking-normal text-foreground md:text-3xl">
               {title}
             </h1>
-            <Badge variant="secondary">{status}</Badge>
+            <StatusBadge label={status} />
           </div>
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
             {description}

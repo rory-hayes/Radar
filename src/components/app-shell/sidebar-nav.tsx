@@ -23,7 +23,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/radar/status-badge";
 import { primaryAppRoutes, type PrimaryAppRouteId } from "@/lib/radar-routes";
 
 const navIcons: Record<PrimaryAppRouteId, LucideIcon> = {
@@ -85,7 +85,7 @@ export function SidebarNav() {
         <div className="flex flex-col gap-2 rounded-lg border border-sidebar-border p-3">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-medium text-sidebar-foreground">Environment</span>
-            <Badge variant="outline">Local</Badge>
+            <StatusBadge label="Local" />
           </div>
           <p className="text-xs leading-5 text-muted-foreground">Local workspace</p>
         </div>
