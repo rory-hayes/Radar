@@ -45,7 +45,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 
 | ID | Task | Priority | Status | Description |
 |---|---|---|---|---|
-| [RAD-021](tasks/phase-2-data-model/rad-021-create-sources-documents-and-chunks-schema.md) | Create sources, documents, and chunks schema | P0 | Backlog | Add the database tables for sources, source_documents, source_chunks, versions, hashes, metadata, and sync state. |
+| [RAD-021](tasks/phase-2-data-model/rad-021-create-sources-documents-and-chunks-schema.md) | Create sources, documents, and chunks schema | P0 | Done | Add the database tables for sources, source_documents, source_chunks, versions, hashes, metadata, and sync state. |
 | [RAD-022](tasks/phase-2-data-model/rad-022-create-assertions-and-test-cases-schema.md) | Create assertions and test cases schema | P0 | Backlog | Add assertions, assertion_sources, assertion_templates, assertion_runs_schedule, and test_cases tables with required workspace ownership and status fields. |
 | [RAD-023](tasks/phase-2-data-model/rad-023-create-evaluation-runs-and-result-schema.md) | Create evaluation runs and result schema | P0 | Backlog | Add evaluation_runs and test_case_results tables with statuses, scores, confidence, evidence references, runner type, and execution metadata. |
 | [RAD-024](tasks/phase-2-data-model/rad-024-create-findings-and-evidence-schema.md) | Create findings and evidence schema | P0 | Backlog | Add findings, finding_evidence, finding_activity, finding_assignments, and resolution state fields. |

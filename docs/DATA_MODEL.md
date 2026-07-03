@@ -44,6 +44,17 @@ Evaluation results and findings should reference source documents/chunks and art
 
 RAD-016 adds `audit_logs` as the append-only event trail for auth, workspace, source, assertion, run, and finding changes. Every audit event stores workspace, actor, action, resource type, optional resource ID, metadata, and timestamp. Workspace-scoped events are readable by active workspace members; auth events without a workspace are readable by the acting user.
 
+## Sources and Evidence Input
+
+RAD-021 adds the first source-of-truth persistence layer:
+
+- `sources` stores workspace-owned evidence inputs such as URLs, uploaded documents, manual text, API endpoints, and support bot endpoints.
+- `source_versions` stores deterministic sync snapshots with content hashes, document/chunk counts, status, timing, and metadata.
+- `source_documents` stores extracted document records owned by a source version, with hash, MIME/storage metadata, extraction status, and error state.
+- `source_chunks` stores bounded text chunks and optional pgvector embeddings for later evidence retrieval.
+
+Every source table has direct `workspace_id` ownership and RLS. Source content may be stored in `source_chunks.content`, but it must not be copied into logs, analytics, or unbounded metadata fields.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.
