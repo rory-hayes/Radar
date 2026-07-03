@@ -43,6 +43,7 @@ test("RAD-008 exposes typed Radar-owned base components", async () => {
     "EmptyState",
     "LoadingState",
     "ErrorState",
+    "EvidenceDiff",
     "EvidenceSnippet",
   ]) {
     assert.match(barrel, new RegExp(exportName));
@@ -55,6 +56,7 @@ test("RAD-008 exposes typed Radar-owned base components", async () => {
     "empty-state",
     "loading-state",
     "error-state",
+    "evidence-diff",
     "evidence-snippet",
   ]) {
     await fileExists(`src/components/radar/${component}.tsx`);

@@ -84,3 +84,5 @@ RAD-008 implements the first reusable base layer:
 - `LoadingState`
 - `ErrorState`
 - `EvidenceSnippet`
+
+RAD-074 adds `EvidenceDiff` for finding evidence. It compares a bounded source or policy excerpt against the finding's actual answer/result, highlights source terms missing from the actual output, highlights actual terms unsupported by the source excerpt, and keeps citations visible through compact badges. This is an explainability aid for evidence-backed findings, not a generic text-diff workspace.

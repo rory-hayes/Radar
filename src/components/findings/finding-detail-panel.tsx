@@ -7,7 +7,7 @@ import {
 
 import {
   EmptyState,
-  EvidenceSnippet,
+  EvidenceDiff,
   SeverityBadge,
   StatusBadge,
   type StatusTone,
@@ -115,13 +115,19 @@ export function FindingDetailPanel({ finding, evidence, activity }: FindingDetai
         </CardContent>
       </Card>
 
-      <FindingEvidenceList evidence={evidence} />
+      <FindingEvidenceList finding={finding} evidence={evidence} />
       <FindingActivityList activity={activity} />
     </aside>
   );
 }
 
-function FindingEvidenceList({ evidence }: { evidence: readonly RadarFindingEvidence[] }) {
+function FindingEvidenceList({
+  finding,
+  evidence,
+}: {
+  finding: FindingListItem;
+  evidence: readonly RadarFindingEvidence[];
+}) {
   if (evidence.length === 0) {
     return (
       <EmptyState
@@ -139,14 +145,15 @@ function FindingEvidenceList({ evidence }: { evidence: readonly RadarFindingEvid
         <p className="text-sm text-muted-foreground">Source excerpts, run output, and artifacts tied to this issue.</p>
       </div>
       {evidence.map((item) => (
-        <EvidenceSnippet
+        <EvidenceDiff
           key={item.id}
           title={formatEvidenceType(item.evidenceType)}
-          source={evidenceSourceLabel(item)}
+          sourceLabel={evidenceSourceLabel(item)}
+          sourceText={evidenceText(item, finding.expected)}
+          actualText={finding.actual}
+          citation={item.citation}
           confidenceLabel={typeof item.confidence === "number" ? formatConfidence(item.confidence) : undefined}
-        >
-          {item.quote ?? item.citation ?? item.artifactPath ?? "Evidence row is linked without copied content."}
-        </EvidenceSnippet>
+        />
       ))}
     </section>
   );
@@ -232,6 +239,10 @@ function evidenceSourceLabel(evidence: RadarFindingEvidence) {
   if (evidence.artifactPath) return "Runner artifact";
   if (evidence.evaluationRunId) return `Run ${shortId(evidence.evaluationRunId)}`;
   return "Finding evidence";
+}
+
+function evidenceText(evidence: RadarFindingEvidence, fallback: string) {
+  return evidence.quote ?? evidence.citation ?? evidence.artifactPath ?? fallback;
 }
 
 function activityStatusChange(activity: RadarFindingActivity) {

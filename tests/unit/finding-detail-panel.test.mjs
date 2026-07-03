@@ -46,7 +46,7 @@ test("RAD-073 renders evidence activity owner status and run context", async () 
   const panel = await readWorkspaceFile("src/components/findings/finding-detail-panel.tsx");
 
   assert.match(panel, /FindingEvidenceList/);
-  assert.match(panel, /EvidenceSnippet/);
+  assert.match(panel, /EvidenceDiff/);
   assert.match(panel, /artifactPath/);
   assert.match(panel, /FindingActivityList/);
   assert.match(panel, /formatActivityType/);
