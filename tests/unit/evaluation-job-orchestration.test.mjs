@@ -30,8 +30,8 @@ test("RAD-051 queues assertion evaluation work with durable orchestration metada
   assert.match(orchestrator, /ORCHESTRATOR_VERSION = "rad-051"/);
   assert.match(actions, /queueEvaluationJob/);
   assert.match(actions, /queueReason: "manual"/);
-  assert.match(actions, /executionState: "runner_orchestration_pending"/);
-  assert.match(actions, /Approve at least one test case before queueing a manual run/);
+  assert.match(actions, /executionState: "queued_for_runner"/);
+  assert.match(actions, /Approve at least one runnable test case before queueing a manual run/);
 });
 
 test("RAD-051 claims due queued runs before invoking runner work", async () => {

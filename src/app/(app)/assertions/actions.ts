@@ -43,6 +43,10 @@ import {
 } from "@/lib/repositories";
 import { queueEvaluationJob } from "@/lib/evaluation/job-orchestration";
 import {
+  approvedRunnableTestCasesForRunner,
+  buildManualRerunMetadata,
+} from "@/lib/evaluation/manual-reruns";
+import {
   runWorkspaceServerAction,
   serverActionError,
   serverActionErrorState,
@@ -148,6 +152,7 @@ export type TestCaseSuggestionState = {
 
 const manualRunActionSchema = z.object({
   assertionId: z.uuid(),
+  testCaseId: optionalTrimmedString.pipe(z.uuid().optional()),
 });
 
 export type ManualRunState = {
@@ -514,11 +519,21 @@ export async function queueManualAssertionRunAction(
 
       const assertion = await requireWorkspaceAssertion(supabase, membership.workspace.id, input.assertionId);
       const testCases = await listTestCasesForAssertion(supabase, membership.workspace.id, input.assertionId);
-      const approvedTestCases = testCases.filter((testCase) => testCase.status === "approved");
+      const runnableTestCases = approvedRunnableTestCasesForRunner(assertion.runnerType, testCases);
+      const requestedTestCase = input.testCaseId
+        ? runnableTestCases.find((testCase) => testCase.id === input.testCaseId)
+        : undefined;
 
-      if (approvedTestCases.length === 0) {
-        throw serverActionError("Approve at least one test case before queueing a manual run.", "validation");
+      if (input.testCaseId && !requestedTestCase) {
+        throw serverActionError("The selected test case must be approved and runnable for this assertion.", "validation");
       }
+
+      if (runnableTestCases.length === 0) {
+        throw serverActionError("Approve at least one runnable test case before queueing a manual run.", "validation");
+      }
+
+      const requestedAt = new Date().toISOString();
+      const queuedTestCases = requestedTestCase ? [requestedTestCase] : runnableTestCases;
 
       return queueEvaluationJob(supabase, {
         workspaceId: membership.workspace.id,
@@ -527,10 +542,15 @@ export async function queueManualAssertionRunAction(
         triggerType: "manual",
         triggeredByUserId: user.id,
         queueReason: "manual",
-        totalTestCases: approvedTestCases.length,
+        totalTestCases: queuedTestCases.length,
         metadata: {
-          queuedBy: "rad-049_manual_trigger",
-          executionState: "runner_orchestration_pending",
+          queuedBy: "rad-059_manual_rerun_action",
+          executionState: "queued_for_runner",
+          ...buildManualRerunMetadata({
+            requestedAt,
+            requestedByUserId: user.id,
+            testCaseId: requestedTestCase?.id,
+          }),
         },
       });
     },
@@ -544,7 +564,12 @@ export async function queueManualAssertionRunAction(
 
   revalidatePath("/assertions");
   revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
-  return { success: "Manual verification queued. Runner execution will attach results in a later phase." };
+
+  if (formData.get("testCaseId")) {
+    return { success: "Targeted test case rerun queued. Results will appear in run history after execution." };
+  }
+
+  return { success: "Manual verification queued. Results will appear in run history after execution." };
 }
 
 export async function generateSuggestedAssertionDraftsAction(

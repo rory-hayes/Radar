@@ -45,10 +45,19 @@ import type {
   RadarEvaluationRunSummary,
 } from "@/lib/repositories";
 import type { KnowledgeTargetConfigurationSet } from "@/lib/evaluation/knowledge-targets";
+import { approvedRunnableTestCasesForRunner } from "@/lib/evaluation/manual-reruns";
+import type { TestCaseResultStatus } from "@/lib/evaluation/schema";
 import type { RadarSource } from "@/lib/sources/schema";
 
 export type AssertionLinkedSource = RadarSource & {
   link: RadarAssertionSource;
+};
+
+export type AssertionFailedTestCaseRerunCandidate = {
+  id: string;
+  title: string;
+  latestRunId: string;
+  latestResultStatus: TestCaseResultStatus;
 };
 
 export type AssertionDetailViewProps = {
@@ -58,6 +67,7 @@ export type AssertionDetailViewProps = {
   linkedSources: readonly AssertionLinkedSource[];
   testCases: readonly RadarTestCase[];
   runHistory: readonly RadarEvaluationRunSummary[];
+  failedTestCaseRerunCandidates: readonly AssertionFailedTestCaseRerunCandidate[];
   findings: readonly RadarFinding[];
   knowledgeTargets?: KnowledgeTargetConfigurationSet;
   canEditSources: boolean;
@@ -72,6 +82,7 @@ export function AssertionDetailView({
   linkedSources,
   testCases,
   runHistory,
+  failedTestCaseRerunCandidates,
   findings,
   knowledgeTargets,
   canEditSources,
@@ -80,7 +91,7 @@ export function AssertionDetailView({
 }: AssertionDetailViewProps) {
   const latestRun = runHistory[0];
   const openFindings = findings.filter((finding) => finding.status !== "resolved" && finding.status !== "ignored").length;
-  const approvedTestCaseCount = testCases.filter((testCase) => testCase.status === "approved").length;
+  const runnableTestCaseCount = approvedRunnableTestCasesForRunner(assertion.runnerType, testCases).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -105,7 +116,8 @@ export function AssertionDetailView({
             assertion={assertion}
             schedule={schedule}
             latestRun={latestRun}
-            approvedTestCaseCount={approvedTestCaseCount}
+            runnableTestCaseCount={runnableTestCaseCount}
+            failedTestCaseRerunCandidates={failedTestCaseRerunCandidates}
             canRunAssertions={canRunAssertions}
           />
         </TabsContent>
@@ -183,13 +195,15 @@ function AssertionOverview({
   assertion,
   schedule,
   latestRun,
-  approvedTestCaseCount,
+  runnableTestCaseCount,
+  failedTestCaseRerunCandidates,
   canRunAssertions,
 }: {
   assertion: RadarAssertion;
   schedule?: RadarAssertionRunSchedule;
   latestRun?: RadarEvaluationRunSummary;
-  approvedTestCaseCount: number;
+  runnableTestCaseCount: number;
+  failedTestCaseRerunCandidates: readonly AssertionFailedTestCaseRerunCandidate[];
   canRunAssertions: boolean;
 }) {
   return (
@@ -232,7 +246,9 @@ function AssertionOverview({
       <div className="lg:col-span-2">
         <AssertionManualRunPanel
           assertion={assertion}
-          approvedTestCaseCount={approvedTestCaseCount}
+          runnableTestCaseCount={runnableTestCaseCount}
+          latestRun={latestRun}
+          failedTestCaseRerunCandidates={failedTestCaseRerunCandidates}
           canRun={canRunAssertions}
         />
       </div>

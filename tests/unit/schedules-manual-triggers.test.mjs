@@ -24,7 +24,7 @@ test("RAD-049 keeps schedule fields configurable on the assertion form", async (
   assert.match(actions, /upsertAssertionRunSchedule/);
 });
 
-test("RAD-049 queues manual verification without executing eval logic", async () => {
+test("RAD-049 queues manual verification through the evaluation job boundary", async () => {
   const actions = await readWorkspaceFile("src/app/(app)/assertions/actions.ts");
 
   assert.match(actions, /export async function queueManualAssertionRunAction/);
@@ -32,8 +32,8 @@ test("RAD-049 queues manual verification without executing eval logic", async ()
   assert.match(actions, /listTestCasesForAssertion/);
   assert.match(actions, /queueEvaluationJob/);
   assert.match(actions, /triggerType: "manual"/);
-  assert.match(actions, /executionState: "runner_orchestration_pending"/);
-  assert.match(actions, /Approve at least one test case before queueing a manual run/);
+  assert.match(actions, /executionState: "queued_for_runner"/);
+  assert.match(actions, /Approve at least one runnable test case before queueing a manual run/);
 });
 
 test("RAD-049 exposes manual run controls on assertion detail", async () => {
@@ -50,7 +50,7 @@ test("RAD-049 exposes manual run controls on assertion detail", async () => {
   assert.match(index, /AssertionManualRunPanel/);
   assert.match(panel, /Manual verification/);
   assert.match(panel, /Queue manual run/);
-  assert.match(panel, /approvedTestCaseCount > 0/);
+  assert.match(panel, /runnableTestCaseCount > 0/);
   assert.match(panel, /You do not have permission to queue runs/);
 });
 

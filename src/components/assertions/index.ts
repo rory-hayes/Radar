@@ -2,7 +2,11 @@ export { AssertionForm } from "@/components/assertions/assertion-form";
 export { AssertionSuggestionGenerator } from "@/components/assertions/assertion-suggestion-generator";
 export { AssertionTemplatePicker } from "@/components/assertions/assertion-template-picker";
 export { AssertionDetailView } from "@/components/assertions/assertion-detail";
-export type { AssertionDetailViewProps, AssertionLinkedSource } from "@/components/assertions/assertion-detail";
+export type {
+  AssertionDetailViewProps,
+  AssertionFailedTestCaseRerunCandidate,
+  AssertionLinkedSource,
+} from "@/components/assertions/assertion-detail";
 export { AssertionManualRunPanel } from "@/components/assertions/assertion-manual-run-panel";
 export { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";
 export { AssertionTestCaseManager } from "@/components/assertions/assertion-test-case-manager";

@@ -31,6 +31,10 @@ import {
   type HybridRubricEvidenceSnippet,
 } from "@/lib/evaluation/hybrid-rubric";
 import {
+  filterManualRerunTestCases,
+  readManualRerunRequest,
+} from "@/lib/evaluation/manual-reruns";
+import {
   loadKnowledgeTargetConfigurationsForAssertion,
   type KnowledgeTargetConfiguration,
 } from "@/lib/evaluation/knowledge-targets";
@@ -95,20 +99,29 @@ export async function runKnowledgeEvaluationJob(
   }
 
   const allTestCases = await listTestCasesForAssertion(client, run.workspaceId, assertion.id);
-  const testCases = allTestCases.filter(
+  const approvedKnowledgeTestCases = allTestCases.filter(
     (testCase) => testCase.status === "approved" && testCase.type === "customer_question",
   );
+  const manualRerun = readManualRerunRequest(run.executionMetadata);
+  const testCases = filterManualRerunTestCases(approvedKnowledgeTestCases, manualRerun);
 
   if (testCases.length === 0) {
+    const isTargetedRerun = manualRerun?.scope === "test_case";
+
     return {
       status: "error",
       totalTestCases: 0,
       errorCount: 1,
       executionMetadata: knowledgeRunnerMetadata({
         state: "error",
-        reason: "no_approved_customer_question_test_cases",
+        reason: isTargetedRerun
+          ? "manual_rerun_test_case_not_runnable"
+          : "no_approved_customer_question_test_cases",
+        manualRerun,
       }),
-      errorMessage: "Knowledge Runner needs at least one approved customer-question test case.",
+      errorMessage: isTargetedRerun
+        ? "The targeted manual rerun test case is no longer approved or runnable."
+        : "Knowledge Runner needs at least one approved customer-question test case.",
     };
   }
 
@@ -127,6 +140,7 @@ export async function runKnowledgeEvaluationJob(
         state: "error",
         reason: "no_ready_knowledge_target",
         targetCount: targetConfiguration.targets.length,
+        manualRerun,
       }),
       errorMessage: "Knowledge Runner needs a ready target endpoint or answer set.",
     };
@@ -156,6 +170,7 @@ export async function runKnowledgeEvaluationJob(
       targetSourceId: target.sourceId,
       targetKind: target.kind,
       targetSourceType: target.sourceType,
+      manualRerun,
       testCaseResults: resultRecords.length,
       averageScore: resultSummary.score,
       averageConfidence: resultSummary.confidence,

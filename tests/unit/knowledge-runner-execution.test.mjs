@@ -66,13 +66,13 @@ test("RAD-055 executes endpoint and uploaded answer-set targets without storing 
   assert.doesNotMatch(runner, /console\.log|console\.error/);
 });
 
-test("RAD-055 documents raw Knowledge Runner outputs and scope boundaries", async () => {
+test("RAD-055 documents Knowledge Runner outputs and scope boundaries", async () => {
   const evalSpec = await readWorkspaceFile("docs/EVAL_ENGINE_SPEC.md");
   const task = await readWorkspaceFile("tasks/phase-5-eval-knowledge-runner/rad-055-implement-knowledge-runner-execution-loop.md");
   const runner = await readWorkspaceFile("src/lib/evaluation/knowledge-runner.ts");
 
   assert.match(evalSpec, /RAD-055/);
-  assert.match(evalSpec, /raw Knowledge Runner outputs/);
+  assert.match(evalSpec, /Knowledge Runner outputs/);
   assert.match(task, /Knowledge Runner execution loop/);
 
   for (const source of [runner]) {

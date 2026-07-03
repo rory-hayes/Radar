@@ -5,11 +5,13 @@ import { ArrowLeftIcon, PencilIcon } from "lucide-react";
 
 import {
   AssertionDetailView,
+  type AssertionFailedTestCaseRerunCandidate,
   type AssertionLinkedSource,
 } from "@/components/assertions";
 import { PageHeader } from "@/components/app-shell";
 import { ErrorState } from "@/components/radar";
 import { Button } from "@/components/ui/button";
+import type { RadarTestCase } from "@/lib/assertions/schema";
 import { loadKnowledgeTargetConfigurationsForAssertion } from "@/lib/evaluation/knowledge-targets";
 import {
   getAssertionById,
@@ -19,6 +21,7 @@ import {
   listFindingsForAssertion,
   listSources,
   listTestCasesForAssertion,
+  listTestCaseResultsForRun,
 } from "@/lib/repositories";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { membershipCan } from "@/lib/workspaces/permissions";
@@ -104,6 +107,7 @@ export default async function AssertionDetailPage({ params }: AssertionDetailPag
         linkedSources={detail.linkedSources}
         testCases={detail.testCases}
         runHistory={detail.runHistory}
+        failedTestCaseRerunCandidates={detail.failedTestCaseRerunCandidates}
         findings={detail.findings}
         knowledgeTargets={detail.knowledgeTargets}
         canEditSources={canEditAssertion}
@@ -130,6 +134,7 @@ async function loadAssertionDetail(
         linkedSources: [],
         testCases: [],
         runHistory: [],
+        failedTestCaseRerunCandidates: [],
         findings: [],
         knowledgeTargets: undefined,
         error: null,
@@ -146,6 +151,10 @@ async function loadAssertionDetail(
       loadKnowledgeTargetConfigurationsForAssertion(supabase, { workspaceId, assertionId }),
     ]);
     const sourcesById = new Map(sources.map((source) => [source.id, source]));
+    const latestFailedRun = runHistory.find((run) => run.failedCount + run.errorCount > 0);
+    const failedTestCaseRerunCandidates = latestFailedRun
+      ? await loadFailedTestCaseRerunCandidates(supabase, workspaceId, latestFailedRun.id, testCases)
+      : [];
 
     return {
       assertion,
@@ -158,6 +167,7 @@ async function loadAssertionDetail(
       }),
       testCases,
       runHistory,
+      failedTestCaseRerunCandidates,
       findings,
       knowledgeTargets,
       error: null,
@@ -170,11 +180,43 @@ async function loadAssertionDetail(
       linkedSources: [],
       testCases: [],
       runHistory: [],
+      failedTestCaseRerunCandidates: [],
       findings: [],
       knowledgeTargets: undefined,
       error: error instanceof Error ? error.message : "assertion_detail.repository_error",
     };
   }
+}
+
+async function loadFailedTestCaseRerunCandidates(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  workspaceId: string,
+  evaluationRunId: string,
+  testCases: readonly RadarTestCase[],
+): Promise<AssertionFailedTestCaseRerunCandidate[]> {
+  const testCasesById = new Map(testCases.map((testCase) => [testCase.id, testCase]));
+  const results = await listTestCaseResultsForRun(supabase, workspaceId, evaluationRunId);
+
+  return results.flatMap<AssertionFailedTestCaseRerunCandidate>((result) => {
+    if (result.status !== "failed" && result.status !== "error") {
+      return [];
+    }
+
+    const testCase = testCasesById.get(result.testCaseId);
+
+    if (!testCase || testCase.status !== "approved") {
+      return [];
+    }
+
+    return [
+      {
+        id: testCase.id,
+        title: testCase.title,
+        latestRunId: evaluationRunId,
+        latestResultStatus: result.status,
+      },
+    ];
+  });
 }
 
 function AssertionDetailShell({

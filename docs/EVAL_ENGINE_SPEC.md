@@ -44,6 +44,8 @@ RAD-056 implements the hybrid evaluator rubric for Knowledge Runner answers. The
 
 RAD-057 persists per-test scored results by applying the hybrid rubric during Knowledge Runner execution before inserting `test_case_results`. Each result stores status, score, confidence, bounded actual summary, evaluator summary, evidence refs, timing metadata, and rubric dimension metadata. The evaluation run summary aggregates result counts plus average score and confidence so run history can be inspected at assertion and test-case granularity.
 
+RAD-059 upgrades manual reruns from a placeholder trigger into a queued evaluation action. Manual rerun metadata records whether the user reran the whole assertion or one failed test case, the requesting user, and the request time. The server action validates workspace permission and approved runnable test cases before queueing, and the Knowledge Runner filters targeted reruns to the selected approved customer-question test case.
+
 ## LLM prompt contracts
 
 RAD-052 introduces a server-only LLM adapter for OpenAI Responses JSON calls. Prompt contracts are versioned in code with an id, version, task, instructions, strict JSON schema, and output-token limit. Runtime metadata must record provider, model, prompt id, prompt version, task, response format, input fingerprint, request time, and token usage when available. Do not persist raw prompts, raw source context, API keys, or bearer values in logs or client-visible metadata.
@@ -64,9 +66,9 @@ Endpoint targets expose only URL, HTTP method, and credential mode. Credentials,
 
 ## Knowledge Runner raw execution
 
-RAD-055 adds the server-only execution loop for raw Knowledge Runner outputs. It claims queued knowledge runs, loads approved customer-question test cases, selects one ready target from the assertion-linked target configuration, retrieves assertion-scoped evidence, calls the configured endpoint or uploaded/manual answer set, and writes one `test_case_results` row per executed test case.
+RAD-055 adds the server-only execution loop for Knowledge Runner outputs. It claims queued knowledge runs, loads approved customer-question test cases, selects one ready target from the assertion-linked target configuration, retrieves assertion-scoped evidence, calls the configured endpoint or uploaded/manual answer set, and writes one `test_case_results` row per executed test case.
 
-Raw Knowledge Runner outputs are intentionally marked `inconclusive` until the hybrid evaluator scores them in later tickets. Each result stores bounded actual answer text, target metadata without credentials, evidence references, timing metadata, and bounded error details when target execution fails. The run summary records aggregate raw-output capture state and evidence refs, not final pass/fail scoring.
+Knowledge Runner outputs are scored by the hybrid evaluator before persistence. Each result stores bounded actual answer text, target metadata without credentials, evidence references, timing metadata, bounded error details when target execution fails, status, score, confidence, and evaluator summary. The run summary records aggregate scored state and evidence refs.
 
 ## Evidence rule
 
