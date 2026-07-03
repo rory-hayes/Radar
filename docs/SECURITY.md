@@ -56,6 +56,12 @@ RAD-027 adds security-definer workspace membership helpers and forces RLS on wor
 
 The same migration defines storage object policies for the private `radar-evidence-artifacts` bucket path convention: object names must start with the workspace UUID, members can read, Admin/Editor users can create or update, and Admin users can delete. RAD-028 owns bucket creation and storage helpers, but storage object policies must remain workspace- and role-scoped.
 
+## Evidence Artifact Storage
+
+RAD-028 creates the private `radar-evidence-artifacts` bucket for uploaded documents, source snapshots, screenshots, run artifacts, and report exports. Artifact object paths must use `<workspaceId>/<artifactKind>/<ownerId>/<fileName>` so storage RLS can enforce the same workspace and role checks as database records.
+
+Application code must use server-only helpers to build paths and create signed upload and download URLs. Do not expose Supabase service credentials to clients, do not create public artifact URLs, and do not store raw runner secrets or full source payloads in artifact metadata.
+
 ## Audit Logging
 
 RAD-016 records security-relevant actions in `audit_logs` with actor, workspace, action, resource, metadata, and timestamp. Server-side mutation helpers should call `recordAuditEvent(...)` after successful writes. Metadata must stay small and must not include raw source content, runner credentials, provider secrets, or customer-sensitive evidence bodies.

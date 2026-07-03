@@ -52,6 +52,13 @@ import {
 export const radarIdSchema = z.uuid();
 export const radarIsoDateTimeSchema = z.iso.datetime();
 export const radarJsonRecordSchema = z.record(z.string(), z.unknown()).default({});
+export const evidenceArtifactKinds = [
+  "uploaded-document",
+  "source-snapshot",
+  "screenshot",
+  "run-artifact",
+  "report-export",
+] as const;
 
 export const workspaceIdRequestSchema = z.object({
   workspaceId: radarIdSchema,
@@ -288,6 +295,38 @@ export const findingActivityResponseSchema = z.object({
   createdAt: radarIsoDateTimeSchema,
 });
 
+export const evidenceArtifactPathRequestSchema = z.object({
+  workspaceId: radarIdSchema,
+  artifactKind: z.enum(evidenceArtifactKinds),
+  ownerId: radarIdSchema,
+  fileName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(180)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/, "Use a simple file name without spaces or path separators."),
+});
+
+export const evidenceArtifactSignedUrlRequestSchema = z.object({
+  workspaceId: radarIdSchema,
+  storagePath: z.string().trim().min(1).max(1024),
+  expiresInSeconds: z.number().int().min(60).max(3600).default(300),
+});
+
+export const evidenceArtifactUploadUrlResponseSchema = z.object({
+  bucket: z.literal("radar-evidence-artifacts"),
+  storagePath: z.string().min(1).max(1024),
+  signedUrl: z.string().url(),
+  token: z.string().min(1).optional(),
+});
+
+export const evidenceArtifactDownloadUrlResponseSchema = z.object({
+  bucket: z.literal("radar-evidence-artifacts"),
+  storagePath: z.string().min(1).max(1024),
+  signedUrl: z.string().url(),
+  expiresInSeconds: z.number().int().min(60).max(3600),
+});
+
 export const validationSuccessResponseSchema = <TSchema extends z.ZodType>(dataSchema: TSchema) =>
   z.object({
     ok: z.literal(true),
@@ -313,3 +352,6 @@ export type TestCaseCreateRequest = z.infer<typeof testCaseCreateRequestSchema>;
 export type EvaluationRunCreateRequest = z.infer<typeof evaluationRunCreateRequestSchema>;
 export type TestCaseResultCreateRequest = z.infer<typeof testCaseResultCreateRequestSchema>;
 export type FindingCreateRequest = z.infer<typeof findingCreateRequestSchema>;
+export type EvidenceArtifactKind = (typeof evidenceArtifactKinds)[number];
+export type EvidenceArtifactPathRequest = z.infer<typeof evidenceArtifactPathRequestSchema>;
+export type EvidenceArtifactSignedUrlRequest = z.infer<typeof evidenceArtifactSignedUrlRequestSchema>;

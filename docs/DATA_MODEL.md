@@ -42,6 +42,10 @@ RAD-027 adds RLS hardening through centralized workspace membership helper funct
 
 Evaluation results and findings should reference source documents/chunks and artifact files rather than copying unbounded content into many records.
 
+## Evidence artifact storage
+
+RAD-028 stores binary and exported evidence in the private `radar-evidence-artifacts` bucket. Artifact paths must follow `<workspaceId>/<artifactKind>/<ownerId>/<fileName>`, where `artifactKind` is one of `uploaded-document`, `source-snapshot`, `screenshot`, `run-artifact`, or `report-export`. Database rows should store only bounded storage paths, citations, hashes, and summaries, not duplicated full artifact bodies.
+
 ## Audit logs
 
 RAD-016 adds `audit_logs` as the append-only event trail for auth, workspace, source, assertion, run, and finding changes. Every audit event stores workspace, actor, action, resource type, optional resource ID, metadata, and timestamp. Workspace-scoped events are readable by active workspace members; auth events without a workspace are readable by the acting user.
