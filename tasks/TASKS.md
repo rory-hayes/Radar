@@ -68,7 +68,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 | [RAD-037](tasks/phase-3-sources-evidence/rad-037-create-evidence-retrieval-api.md) | Create evidence retrieval API | P0 | Done | Implement source search/retrieval endpoints that accept workspace, assertion/test case context, and return ranked evidence chunks with citations and source metadata. |
 | [RAD-038](tasks/phase-3-sources-evidence/rad-038-build-source-detail-page.md) | Build source detail page | P0 | Done | Create source detail views showing versions, sync history, extracted content preview, affected assertions, errors, and manual re-sync action. |
 | [RAD-039](tasks/phase-3-sources-evidence/rad-039-implement-affected-assertion-detection.md) | Implement affected assertion detection | P0 | Done | Link sources to assertions and identify which assertions should rerun when a source changes, including manual and auto-generated relationships. |
-| [RAD-040](tasks/phase-3-sources-evidence/rad-040-e2e-gate-4-source-ingestion-to-evidence-retrieval.md) | E2E Gate 4 — Source ingestion to evidence retrieval | P0 | Backlog | Run E2E coverage that creates sources, crawls/uploads content, indexes it, retrieves relevant evidence, shows source health, and prevents unauthorized access. |
+| [RAD-040](tasks/phase-3-sources-evidence/rad-040-e2e-gate-4-source-ingestion-to-evidence-retrieval.md) | E2E Gate 4 — Source ingestion to evidence retrieval | P0 | Done | Run E2E coverage that creates sources, crawls/uploads content, indexes it, retrieves relevant evidence, shows source health, and prevents unauthorized access. |
 ## Phase 4 — Assertions and Test Cases
 
 | ID | Task | Priority | Status | Description |
