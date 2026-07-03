@@ -1,0 +1,8 @@
+-- Radar local seed entrypoint.
+--
+-- Supabase loads this file after migrations during `pnpm db:reset`.
+-- RAD-006 intentionally keeps it empty so the foundation pipeline exists
+-- without introducing mock product rows ahead of the seed-data tickets.
+--
+-- Future local/demo seeds must stay deterministic, workspace-scoped, and safe
+-- to recreate on every local reset. Production data must never be added here.

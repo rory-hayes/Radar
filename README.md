@@ -65,6 +65,12 @@ GitHub Actions runs the same baseline gates on pull requests and pushes to `main
 
 The initial app intentionally exposes only a clean Radar placeholder. Product routes for Command Center, Assertions, Findings, and Sources are introduced by later RAD tickets.
 
+## Supabase local development
+
+RAD-006 adds the local Supabase migration and reset pipeline. Use `pnpm supabase:start`, `pnpm supabase:status`, and `pnpm db:reset` after `pnpm install`. The seed entrypoint is intentionally empty until the demo seed tickets add deterministic local data.
+
+See [docs/SUPABASE_LOCAL_DEVELOPMENT.md](docs/SUPABASE_LOCAL_DEVELOPMENT.md) for migration naming, reset/seed behavior, and local env setup.
+
 
 ## Shadcn MCP setup for Codex
 

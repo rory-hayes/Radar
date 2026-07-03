@@ -14,7 +14,13 @@
     "lint": "eslint .",
     "typecheck": "NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
     "test": "node --test tests/unit/*.test.mjs",
-    "test:e2e": "node --test tests/e2e/*.test.mjs"
+    "test:e2e": "node --test tests/e2e/*.test.mjs",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset --local",
+    "supabase:migration:new": "supabase migration new",
+    "db:reset": "pnpm supabase:reset"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -41,6 +47,7 @@
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.10",
     "postcss": "^8.5.16",
+    "supabase": "2.109.0",
     "tailwindcss": "^4.3.2",
     "typescript": "6.0.3"
   }
