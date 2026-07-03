@@ -83,6 +83,10 @@ type SourceChunkRow = {
   token_count: number | null;
 };
 
+type SourceAssertionCountRow = {
+  source_id: string;
+};
+
 const sourceSelect =
   "id, workspace_id, name, description, type, sync_status, origin_uri, content_hash, last_synced_at, last_sync_error, created_by";
 
@@ -96,6 +100,21 @@ export async function listSources(client: RadarRepositoryClient, workspaceId: st
 
   assertRepositorySuccess(error, "Unable to list sources");
   return (data ?? []).map(mapSourceRow);
+}
+
+export async function listSourceAssertionCounts(client: RadarRepositoryClient, workspaceId: string) {
+  const { data, error } = await client
+    .from("assertion_sources")
+    .select("source_id")
+    .eq("workspace_id", workspaceId)
+    .returns<SourceAssertionCountRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source assertion counts");
+
+  return (data ?? []).reduce<Record<string, number>>((counts, row) => {
+    counts[row.source_id] = (counts[row.source_id] ?? 0) + 1;
+    return counts;
+  }, {});
 }
 
 export async function getSourceById(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {

@@ -84,7 +84,6 @@ test("RAD-018 gives every primary placeholder a Radar-specific empty state", asy
     ["command-center", "No verification activity yet"],
     ["assertions", "No assertions are being verified yet"],
     ["findings", "No evidence-backed findings yet"],
-    ["sources", "No sources are required yet"],
   ]) {
     const page = await readWorkspaceFile(`src/app/(app)/${route}/page.tsx`);
 
@@ -92,4 +91,12 @@ test("RAD-018 gives every primary placeholder a Radar-specific empty state", asy
     assert.match(page, /details:/);
     assert.doesNotMatch(page, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
   }
+
+  const sourcesPage = await readWorkspaceFile("src/app/(app)/sources/page.tsx");
+
+  assert.match(sourcesPage, /No sources are connected yet/);
+  assert.match(sourcesPage, /Source type/);
+  assert.match(sourcesPage, /Sync health/);
+  assert.match(sourcesPage, /Affected assertions/);
+  assert.doesNotMatch(sourcesPage, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
 });
