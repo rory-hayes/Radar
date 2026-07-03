@@ -81,9 +81,12 @@ test("RAD-018 gives every primary placeholder a Radar-specific empty state", asy
   assert.match(routePlaceholder, /emptyState/);
 
   const commandCenterPage = await readWorkspaceFile("src/app/(app)/command-center/page.tsx");
+  const commandCenterSummary = await readWorkspaceFile("src/components/command-center/command-center-kpi-summary.tsx");
 
-  assert.match(commandCenterPage, /No verification activity yet/);
-  assert.match(commandCenterPage, /details:/);
+  assert.match(commandCenterPage, /CommandCenterKpiSummary/);
+  assert.doesNotMatch(commandCenterPage, /RoutePlaceholder/);
+  assert.match(commandCenterSummary, /No verification activity yet/);
+  assert.match(commandCenterSummary, /details=/);
   assert.doesNotMatch(commandCenterPage, /prompt playground|trace explorer|workflow canvas|integration marketplace/i);
 
   const assertionsPage = await readWorkspaceFile("src/app/(app)/assertions/page.tsx");

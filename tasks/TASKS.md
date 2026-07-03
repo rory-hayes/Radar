@@ -129,7 +129,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 
 | ID | Task | Priority | Status | Description |
 |---|---|---|---|---|
-| [RAD-081](tasks/phase-8-dashboard-reports-alerts/rad-081-build-command-center-kpi-summary.md) | Build Command Center KPI summary | P1 | Backlog | Create the executive summary cards for checks run, exceptions, critical issues, recommended fixes, pass rate, and trend indicators. |
+| [RAD-081](tasks/phase-8-dashboard-reports-alerts/rad-081-build-command-center-kpi-summary.md) | Build Command Center KPI summary | P1 | Done | Create the executive summary cards for checks run, exceptions, critical issues, recommended fixes, pass rate, and trend indicators. |
 | [RAD-082](tasks/phase-8-dashboard-reports-alerts/rad-082-build-needs-attention-panel.md) | Build Needs Attention panel | P1 | Backlog | Show the most important open findings with severity, confidence, impact, affected assertion, and primary recommended fix. |
 | [RAD-083](tasks/phase-8-dashboard-reports-alerts/rad-083-build-assertion-health-by-category.md) | Build assertion health by category | P1 | Backlog | Create grouped health summaries for Pricing, Refund/Cancellation, Onboarding, Billing/Invoices, Support Escalation, and custom categories. |
 | [RAD-084](tasks/phase-8-dashboard-reports-alerts/rad-084-build-recent-activity-feed.md) | Build recent activity feed | P1 | Backlog | Add an activity feed for source syncs, assertions run, findings opened/resolved, reruns, and report generation. |
