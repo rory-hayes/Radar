@@ -38,6 +38,8 @@ const envSchema = z.object({
   OPENAI_API_KEY: optionalText,
   TRIGGER_SECRET_KEY: optionalText,
   RESEND_API_KEY: optionalText,
+  RESEND_FROM_EMAIL: optionalText,
+  RADAR_APP_URL: optionalUrl,
   STRIPE_SECRET_KEY: optionalText,
   STRIPE_WEBHOOK_SECRET: optionalText,
   SENTRY_AUTH_TOKEN: optionalText,
