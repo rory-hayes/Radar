@@ -27,7 +27,6 @@ import {
 import {
   approveTestCase,
   createAssertion,
-  createEvaluationRun,
   createTestCase,
   deleteTestCase,
   disableTestCase,
@@ -42,6 +41,7 @@ import {
   updateTestCase,
   upsertAssertionRunSchedule,
 } from "@/lib/repositories";
+import { queueEvaluationJob } from "@/lib/evaluation/job-orchestration";
 import {
   runWorkspaceServerAction,
   serverActionError,
@@ -518,22 +518,17 @@ export async function queueManualAssertionRunAction(
         throw serverActionError("Approve at least one test case before queueing a manual run.", "validation");
       }
 
-      return createEvaluationRun(supabase, membership.workspace.id, {
+      return queueEvaluationJob(supabase, {
+        workspaceId: membership.workspace.id,
         assertionId: assertion.id,
         runnerType: assertion.runnerType,
-        status: "queued",
         triggerType: "manual",
         triggeredByUserId: user.id,
+        queueReason: "manual",
         totalTestCases: approvedTestCases.length,
-        passedCount: 0,
-        warningCount: 0,
-        failedCount: 0,
-        errorCount: 0,
-        skippedCount: 0,
-        evidenceRefs: [],
-        executionMetadata: {
+        metadata: {
           queuedBy: "rad-049_manual_trigger",
-          executionState: "placeholder_until_runner_orchestration",
+          executionState: "runner_orchestration_pending",
         },
       });
     },

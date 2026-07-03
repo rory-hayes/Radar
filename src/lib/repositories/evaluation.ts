@@ -50,6 +50,15 @@ type EvaluationRunSummaryRow = EvaluationRunRow & {
   skipped_count: number;
 };
 
+type EvaluationRunJobRow = EvaluationRunSummaryRow & {
+  scheduled_for: string | null;
+  started_at: string | null;
+  duration_ms: number | null;
+  evidence_refs: unknown;
+  execution_metadata: unknown;
+  error_message: string | null;
+};
+
 type TestCaseResultRow = {
   id: string;
   workspace_id: string;
@@ -67,6 +76,7 @@ type TestCaseResultRow = {
 const evaluationRunSelect =
   "id, workspace_id, assertion_id, runner_type, status, trigger_type, triggered_by_user_id, total_test_cases, score, confidence";
 const evaluationRunSummarySelect = `${evaluationRunSelect}, created_at, completed_at, passed_count, warning_count, failed_count, error_count, skipped_count`;
+const evaluationRunJobSelect = `${evaluationRunSummarySelect}, scheduled_for, started_at, duration_ms, evidence_refs, execution_metadata, error_message`;
 
 export type RadarEvaluationRunSummary = RadarEvaluationRun & {
   createdAt: string;
@@ -76,6 +86,34 @@ export type RadarEvaluationRunSummary = RadarEvaluationRun & {
   failedCount: number;
   errorCount: number;
   skippedCount: number;
+};
+
+export type RadarEvaluationRunJob = RadarEvaluationRunSummary & {
+  scheduledFor?: string;
+  startedAt?: string;
+  durationMs?: number;
+  evidenceRefs: unknown[];
+  executionMetadata: JsonRecord;
+  errorMessage?: string;
+};
+
+export type EvaluationRunJobUpdateInput = {
+  status: EvaluationRunStatus;
+  scheduledFor?: string | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationMs?: number | null;
+  totalTestCases?: number;
+  passedCount?: number;
+  warningCount?: number;
+  failedCount?: number;
+  errorCount?: number;
+  skippedCount?: number;
+  score?: number | null;
+  confidence?: number | null;
+  evidenceRefs?: unknown[];
+  executionMetadata?: JsonRecord;
+  errorMessage?: string | null;
 };
 
 export async function listEvaluationRunsForAssertion(
@@ -142,6 +180,43 @@ export async function listLatestEvaluationRunsForAssertions(
   }, {});
 }
 
+export async function listQueuedEvaluationRunsForWorkspace(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  options: { now?: string; limit?: number } = {},
+) {
+  const now = options.now ?? new Date().toISOString();
+  const { data, error } = await client
+    .from("evaluation_runs")
+    .select(evaluationRunJobSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("status", "queued")
+    .or(`scheduled_for.is.null,scheduled_for.lte.${now}`)
+    .order("scheduled_for", { ascending: true, nullsFirst: true })
+    .order("created_at", { ascending: true })
+    .limit(options.limit ?? 10)
+    .returns<EvaluationRunJobRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list queued evaluation runs");
+  return (data ?? []).map(mapEvaluationRunJobRow);
+}
+
+export async function getEvaluationRunJob(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  evaluationRunId: string,
+) {
+  const { data, error } = await client
+    .from("evaluation_runs")
+    .select(evaluationRunJobSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("id", evaluationRunId)
+    .maybeSingle<EvaluationRunJobRow>();
+
+  assertRepositorySuccess(error, "Unable to load evaluation run job");
+  return data ? mapEvaluationRunJobRow(data) : null;
+}
+
 export async function createEvaluationRun(
   client: RadarRepositoryClient,
   workspaceId: string,
@@ -178,6 +253,74 @@ export async function createEvaluationRun(
 
   assertRepositorySuccess(error, "Unable to create evaluation run");
   return mapEvaluationRunRow(requireRepositoryRow(data, "Evaluation run insert returned no row"));
+}
+
+export async function updateEvaluationRunJob(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  evaluationRunId: string,
+  input: EvaluationRunJobUpdateInput,
+) {
+  const update: Record<string, unknown> = {
+    status: input.status,
+  };
+
+  if ("scheduledFor" in input) update.scheduled_for = input.scheduledFor ?? null;
+  if ("startedAt" in input) update.started_at = input.startedAt ?? null;
+  if ("completedAt" in input) update.completed_at = input.completedAt ?? null;
+  if ("durationMs" in input) update.duration_ms = input.durationMs ?? null;
+  if (input.totalTestCases !== undefined) update.total_test_cases = input.totalTestCases;
+  if (input.passedCount !== undefined) update.passed_count = input.passedCount;
+  if (input.warningCount !== undefined) update.warning_count = input.warningCount;
+  if (input.failedCount !== undefined) update.failed_count = input.failedCount;
+  if (input.errorCount !== undefined) update.error_count = input.errorCount;
+  if (input.skippedCount !== undefined) update.skipped_count = input.skippedCount;
+  if ("score" in input) update.score = input.score ?? null;
+  if ("confidence" in input) update.confidence = input.confidence ?? null;
+  if (input.evidenceRefs !== undefined) update.evidence_refs = input.evidenceRefs;
+  if (input.executionMetadata !== undefined) update.execution_metadata = input.executionMetadata;
+  if ("errorMessage" in input) update.error_message = input.errorMessage ?? null;
+
+  const { data, error } = await client
+    .from("evaluation_runs")
+    .update(update)
+    .eq("workspace_id", workspaceId)
+    .eq("id", evaluationRunId)
+    .select(evaluationRunJobSelect)
+    .single<EvaluationRunJobRow>();
+
+  assertRepositorySuccess(error, "Unable to update evaluation run job");
+  return mapEvaluationRunJobRow(requireRepositoryRow(data, "Evaluation run job update returned no row"));
+}
+
+export async function claimQueuedEvaluationRun(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  evaluationRunId: string,
+  input: {
+    startedAt: string;
+    executionMetadata: JsonRecord;
+  },
+) {
+  const { data, error } = await client
+    .from("evaluation_runs")
+    .update({
+      status: "running",
+      scheduled_for: null,
+      started_at: input.startedAt,
+      completed_at: null,
+      duration_ms: null,
+      error_message: null,
+      execution_metadata: input.executionMetadata,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", evaluationRunId)
+    .eq("status", "queued")
+    .select(evaluationRunJobSelect)
+    .maybeSingle<EvaluationRunJobRow>();
+
+  assertRepositorySuccess(error, "Unable to claim queued evaluation run");
+  return data ? mapEvaluationRunJobRow(data) : null;
 }
 
 export async function updateEvaluationRunStatus(
@@ -281,6 +424,21 @@ function mapEvaluationRunSummaryRow(row: EvaluationRunSummaryRow): RadarEvaluati
   }
 
   return summary;
+}
+
+function mapEvaluationRunJobRow(row: EvaluationRunJobRow): RadarEvaluationRunJob {
+  const job: RadarEvaluationRunJob = {
+    ...mapEvaluationRunSummaryRow(row),
+    evidenceRefs: Array.isArray(row.evidence_refs) ? row.evidence_refs : [],
+    executionMetadata: jsonRecord(row.execution_metadata),
+  };
+
+  if (row.scheduled_for) job.scheduledFor = row.scheduled_for;
+  if (row.started_at) job.startedAt = row.started_at;
+  if (row.duration_ms !== null) job.durationMs = row.duration_ms;
+  if (row.error_message) job.errorMessage = row.error_message;
+
+  return job;
 }
 
 function mapTestCaseResultRow(row: TestCaseResultRow): RadarTestCaseResult {

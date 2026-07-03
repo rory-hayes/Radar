@@ -58,7 +58,8 @@ test("RAD-050 gate verifies test cases can be generated, edited, approved, disab
   assert.match(manualRunPanel, /Queue manual run/);
   assert.match(assertionsRepository, /export async function approveTestCase/);
   assert.match(evaluationRepository, /export async function createEvaluationRun/);
-  assert.match(actions, /placeholder_until_runner_orchestration/);
+  assert.match(actions, /queueEvaluationJob/);
+  assert.match(actions, /runner_orchestration_pending/);
 });
 
 test("RAD-050 gate verifies workspace authorization and mutation boundaries", async () => {

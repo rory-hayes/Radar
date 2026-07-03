@@ -30,11 +30,10 @@ test("RAD-049 queues manual verification without executing eval logic", async ()
   assert.match(actions, /export async function queueManualAssertionRunAction/);
   assert.match(actions, /permission: "run:rerun"/);
   assert.match(actions, /listTestCasesForAssertion/);
-  assert.match(actions, /status: "queued"/);
+  assert.match(actions, /queueEvaluationJob/);
   assert.match(actions, /triggerType: "manual"/);
-  assert.match(actions, /placeholder_until_runner_orchestration/);
+  assert.match(actions, /executionState: "runner_orchestration_pending"/);
   assert.match(actions, /Approve at least one test case before queueing a manual run/);
-  assert.match(actions, /createEvaluationRun/);
 });
 
 test("RAD-049 exposes manual run controls on assertion detail", async () => {

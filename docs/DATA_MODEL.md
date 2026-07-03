@@ -94,6 +94,8 @@ RAD-023 adds durable run history:
 
 Both tables are directly workspace-owned and also constrained back to workspace-owned assertions and test cases. Evidence references are bounded JSON arrays that point to source chunks, source documents, or storage artifacts; they must not duplicate raw documents or runner secrets.
 
+RAD-051 uses `evaluation_runs` as the durable job queue for evaluation orchestration. Queued runs are claimed by workspace and status, transitioned to `running` before runner work starts, and then updated to a terminal status or rescheduled with bounded retry metadata in `execution_metadata.orchestration`. The orchestration layer records job id, attempt count, max attempts, queue reason, retry time, and failure summary without adding a generic workflow system or new runner types.
+
 ## Findings and Evidence
 
 RAD-024 adds the evidence-backed issue layer:
