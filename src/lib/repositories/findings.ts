@@ -61,6 +61,7 @@ type FindingEvidenceRow = {
   evaluation_run_id: string | null;
   test_case_result_id: string | null;
   quote: string | null;
+  artifact_path: string | null;
   citation: string | null;
   confidence: number | null;
 };
@@ -115,7 +116,7 @@ const findingSelect =
   "id, workspace_id, assertion_id, evaluation_run_id, test_case_result_id, title, summary, expected, actual, severity, status, confidence, customer_impact, recommended_fix, owner_user_id, dedupe_key";
 
 const findingEvidenceSelect =
-  "id, workspace_id, finding_id, evidence_type, source_id, source_document_id, source_chunk_id, evaluation_run_id, test_case_result_id, quote, citation, confidence";
+  "id, workspace_id, finding_id, evidence_type, source_id, source_document_id, source_chunk_id, evaluation_run_id, test_case_result_id, quote, artifact_path, citation, confidence";
 
 export async function listFindings(client: RadarRepositoryClient, workspaceId: string) {
   const { data, error } = await client
@@ -296,6 +297,19 @@ export async function listFindingEvidence(client: RadarRepositoryClient, workspa
   return (data ?? []).map(mapFindingEvidenceRow);
 }
 
+export async function listFindingActivity(client: RadarRepositoryClient, workspaceId: string, findingId: string) {
+  const { data, error } = await client
+    .from("finding_activity")
+    .select("id, workspace_id, finding_id, actor_user_id, activity_type, from_status, to_status, note, created_at")
+    .eq("workspace_id", workspaceId)
+    .eq("finding_id", findingId)
+    .order("created_at", { ascending: false })
+    .returns<FindingActivityRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list finding activity");
+  return (data ?? []).map(mapFindingActivityRow);
+}
+
 export async function assignFinding(
   client: RadarRepositoryClient,
   workspaceId: string,
@@ -380,6 +394,7 @@ function mapFindingEvidenceRow(row: FindingEvidenceRow): RadarFindingEvidence {
     evaluationRunId: optionalString(row.evaluation_run_id),
     testCaseResultId: optionalString(row.test_case_result_id),
     quote: optionalString(row.quote),
+    artifactPath: optionalString(row.artifact_path),
     citation: optionalString(row.citation),
     confidence: optionalNumber(row.confidence),
   });

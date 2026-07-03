@@ -49,6 +49,7 @@ export type RadarFindingEvidence = {
   evaluationRunId?: string;
   testCaseResultId?: string;
   quote?: string;
+  artifactPath?: string;
   citation?: string;
   confidence?: number;
 };

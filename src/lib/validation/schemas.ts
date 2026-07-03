@@ -272,6 +272,7 @@ export const findingEvidenceResponseSchema = z.object({
   evaluationRunId: radarIdSchema.optional(),
   testCaseResultId: radarIdSchema.optional(),
   quote: z.string().optional(),
+  artifactPath: z.string().optional(),
   citation: z.string().optional(),
   confidence: z.number().min(0).max(1).optional(),
 });

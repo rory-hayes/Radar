@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHeader } from "@/components/app-shell";
 import {
+  FindingDetailPanel,
   FindingInbox,
   type FindingListFilters,
   type FindingListItem,
@@ -13,7 +14,12 @@ import {
   findingSeverities,
   findingStatuses,
 } from "@/lib/findings/schema";
-import { listAssertions, listFindings } from "@/lib/repositories";
+import {
+  listAssertions,
+  listFindingActivity,
+  listFindingEvidence,
+  listFindings,
+} from "@/lib/repositories";
 import { getAppRouteByHref } from "@/lib/radar-routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { requireActiveWorkspace } from "@/lib/workspaces/server";
@@ -35,6 +41,7 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
   const resolvedSearchParams = (await searchParams) ?? {};
   const filters = filtersFromSearchParams(resolvedSearchParams);
   const requestedPage = pageFromSearchParams(resolvedSearchParams);
+  const selectedFindingId = stringParam(resolvedSearchParams.finding);
 
   if (!supabase) {
     return (
@@ -66,23 +73,42 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
   const totalPages = Math.max(1, Math.ceil(filteredFindings.length / pageSize));
   const page = Math.min(requestedPage, totalPages);
   const paginatedFindings = filteredFindings.slice((page - 1) * pageSize, page * pageSize);
+  const selectedFinding = selectedFindingFromList(filteredFindings, paginatedFindings, selectedFindingId);
+  const selectedDetail = selectedFinding
+    ? await loadFindingDetail(supabase, membership.workspace.id, selectedFinding.id)
+    : { evidence: [], activity: [], error: null };
 
   return (
     <FindingsPageShell findingCount={findingResult.findings.length}>
       <FindingMetrics findings={findingResult.findings} />
-      <FindingInbox
-        findings={paginatedFindings}
-        filters={filters}
-        ownerOptions={ownerOptions(findingResult.findings)}
-        assertionOptions={assertionOptions(findingResult.findings)}
-        totalFindingCount={findingResult.findings.length}
-        pagination={{
-          page,
-          pageSize,
-          totalItems: filteredFindings.length,
-          totalPages,
-        }}
-      />
+      {selectedDetail.error ? (
+        <ErrorState
+          title="Finding detail could not load"
+          description="Radar could not read evidence or activity for the selected finding."
+          reference={selectedDetail.error}
+        />
+      ) : null}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">
+        <FindingInbox
+          findings={paginatedFindings}
+          filters={filters}
+          ownerOptions={ownerOptions(findingResult.findings)}
+          assertionOptions={assertionOptions(findingResult.findings)}
+          totalFindingCount={findingResult.findings.length}
+          selectedFindingId={selectedFinding?.id}
+          pagination={{
+            page,
+            pageSize,
+            totalItems: filteredFindings.length,
+            totalPages,
+          }}
+        />
+        <FindingDetailPanel
+          finding={selectedFinding}
+          evidence={selectedDetail.evidence}
+          activity={selectedDetail.activity}
+        />
+      </div>
     </FindingsPageShell>
   );
 }
@@ -109,6 +135,27 @@ async function loadFindingListItems(
     return {
       findings: [],
       error: error instanceof Error ? error.message : "findings.repository_error",
+    };
+  }
+}
+
+async function loadFindingDetail(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  workspaceId: string,
+  findingId: string,
+) {
+  try {
+    const [evidence, activity] = await Promise.all([
+      listFindingEvidence(supabase, workspaceId, findingId),
+      listFindingActivity(supabase, workspaceId, findingId),
+    ]);
+
+    return { evidence, activity, error: null };
+  } catch (error) {
+    return {
+      evidence: [],
+      activity: [],
+      error: error instanceof Error ? error.message : "findings.detail_repository_error",
     };
   }
 }
@@ -236,6 +283,14 @@ function filterFindings(findings: readonly FindingListItem[], filters: FindingLi
 
     return true;
   });
+}
+
+function selectedFindingFromList(
+  filteredFindings: readonly FindingListItem[],
+  paginatedFindings: readonly FindingListItem[],
+  selectedFindingId: string,
+) {
+  return filteredFindings.find((finding) => finding.id === selectedFindingId) ?? paginatedFindings[0] ?? filteredFindings[0];
 }
 
 function ownerOptions(findings: readonly FindingListItem[]) {

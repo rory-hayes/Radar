@@ -45,6 +45,7 @@ import {
   type FindingStatus,
   type RadarFinding,
 } from "@/lib/findings/schema";
+import { cn } from "@/lib/utils";
 
 export type FindingListFilters = {
   q?: string;
@@ -77,6 +78,7 @@ type FindingInboxProps = {
   ownerOptions: readonly FilterOption[];
   assertionOptions: readonly FilterOption[];
   totalFindingCount: number;
+  selectedFindingId?: string;
 };
 
 const allFilterValue = "all";
@@ -88,6 +90,7 @@ export function FindingInbox({
   ownerOptions,
   assertionOptions,
   totalFindingCount,
+  selectedFindingId,
 }: FindingInboxProps) {
   const hasFilters = Object.values(filters).some(Boolean);
 
@@ -116,7 +119,7 @@ export function FindingInbox({
           assertionOptions={assertionOptions}
         />
         {findings.length > 0 ? (
-          <FindingRows findings={findings} />
+          <FindingRows findings={findings} filters={filters} selectedFindingId={selectedFindingId} />
         ) : (
           <EmptyState
             title="No findings match these filters"
@@ -275,7 +278,15 @@ function OptionSelect({
   );
 }
 
-function FindingRows({ findings }: { findings: readonly FindingListItem[] }) {
+function FindingRows({
+  findings,
+  filters,
+  selectedFindingId,
+}: {
+  findings: readonly FindingListItem[];
+  filters: FindingListFilters;
+  selectedFindingId?: string;
+}) {
   return (
     <Table>
       <TableHeader>
@@ -291,10 +302,15 @@ function FindingRows({ findings }: { findings: readonly FindingListItem[] }) {
       </TableHeader>
       <TableBody>
         {findings.map((finding) => (
-          <TableRow key={finding.id}>
+          <TableRow key={finding.id} className={cn(finding.id === selectedFindingId && "bg-muted/50")}>
             <TableCell className="min-w-80 whitespace-normal">
               <div className="flex flex-col gap-1">
-                <span className="font-medium text-foreground">{finding.title}</span>
+                <Link
+                  href={findingSelectionHref(filters, finding.id)}
+                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  {finding.title}
+                </Link>
                 <span className="line-clamp-2 max-w-xl text-muted-foreground">{finding.summary}</span>
               </div>
             </TableCell>
@@ -382,6 +398,25 @@ function findingPageHref(filters: FindingListFilters, page: number) {
 
   const query = params.toString();
   return query ? `/findings?${query}` : "/findings";
+}
+
+function findingSelectionHref(filters: FindingListFilters, findingId: string) {
+  const params = findingSearchParams(filters);
+  params.set("finding", findingId);
+  const query = params.toString();
+  return query ? `/findings?${query}` : "/findings";
+}
+
+function findingSearchParams(filters: FindingListFilters) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(filters)) {
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  return params;
 }
 
 function statusTone(status: FindingStatus): StatusTone {
