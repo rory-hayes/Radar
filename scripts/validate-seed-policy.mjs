@@ -5,6 +5,7 @@ const requiredFiles = [
   "src/lib/demo-data-policy.ts",
   "supabase/seed.sql",
   "supabase/seeds/README.md",
+  "supabase/seeds/radar-demo-workspace.sql",
 ];
 
 const requiredStrings = {
@@ -22,13 +23,16 @@ const requiredStrings = {
     "demoDataAllowedEnvironments",
     "demoDataProhibitedEnvironments",
     "seedEntrypoint",
+    "firstDemoWorkspaceSeed",
     "workspace_id",
+    "phaseOneSeedTables",
     "productRuntimeImportsAllowed: false",
     "realCustomerDataAllowed: false",
   ],
   "supabase/seed.sql": [
     "RADAR_LOCAL_SEED_CONTRACT",
     "supabase/seeds",
+    "radar-demo-workspace.sql",
     "workspace_id",
     "production data must never be added here",
   ],
@@ -37,6 +41,20 @@ const requiredStrings = {
     "workspace_id",
     "Never include real customer content",
     "Never import these files into product runtime code",
+    "radar-demo-workspace.sql",
+  ],
+  "supabase/seeds/radar-demo-workspace.sql": [
+    "RAD-019 deterministic local/test seed",
+    "auth.users",
+    "public.workspaces",
+    "public.workspace_members",
+    "public.audit_logs",
+    "radar-demo-workspace",
+    "source.created",
+    "assertion.created",
+    "run.rerun_requested",
+    "finding.updated",
+    "workspace_id",
   ],
 };
 
@@ -45,6 +63,7 @@ const forbiddenSeedPatterns = [
   /whsec_[A-Za-z0-9]/,
   /service_role/i,
   /BEGIN\s+PRIVATE\s+KEY/,
+  /\bhttps?:\/\//i,
 ];
 
 const failures = [];

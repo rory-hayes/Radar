@@ -5,9 +5,11 @@ export const demoDataProhibitedEnvironments = ["preview", "staging", "production
 export const demoSeedContract = {
   seedEntrypoint: "supabase/seed.sql",
   seedDirectory: "supabase/seeds",
+  firstDemoWorkspaceSeed: "supabase/seeds/radar-demo-workspace.sql",
   resetCommand: "pnpm db:reset",
   requiredWorkspaceScope: "workspace_id",
   deterministicIdsRequired: true,
+  phaseOneSeedTables: ["auth.users", "workspaces", "workspace_members", "audit_logs"],
   productRuntimeImportsAllowed: false,
   externalNetworkCallsAllowed: false,
   realCustomerDataAllowed: false,

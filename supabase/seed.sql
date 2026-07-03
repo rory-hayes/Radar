@@ -6,7 +6,10 @@
 -- `supabase/seeds` after the relevant schema exists.
 --
 -- Current state:
--- - No product tables exist yet, so RAD-009 keeps this file as a contract.
+-- - RAD-019 seeds deterministic local/test users, one workspace, memberships,
+--   and representative audit activity for assertion/source/finding examples.
+-- - Product tables for assertions, sources, runs, and findings are introduced
+--   in later data-model tickets; do not create them here.
 -- - Future customer-owned rows must be scoped by workspace_id or a
 --   workspace-owned parent.
 -- - Future local/demo seeds must stay deterministic and safe to recreate on
@@ -14,3 +17,5 @@
 -- - production data must never be added here.
 -- - Product runtime code must never import seed files or hardcoded product
 --   result arrays.
+
+\ir ./seeds/radar-demo-workspace.sql

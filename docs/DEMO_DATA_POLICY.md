@@ -49,7 +49,9 @@ Use:
 pnpm db:reset
 ```
 
-That command applies migrations and then runs `supabase/seed.sql`. Since schema tables are introduced in later tickets, RAD-009 keeps `seed.sql` as a guarded contract with no product rows.
+That command applies migrations and then runs `supabase/seed.sql`. RAD-019 keeps `seed.sql` as the entrypoint and includes `supabase/seeds/radar-demo-workspace.sql` for deterministic local/test users, one demo workspace, workspace memberships, and representative audit activity.
+
+The Phase 1 seed must not create source, assertion, run, or finding tables ahead of their data-model tickets. Until those schemas exist, sample source/assertion/finding examples may appear only as workspace-scoped audit metadata that demonstrates the intended local scenario.
 
 ## Future Seed Shape
 
