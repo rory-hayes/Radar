@@ -11,6 +11,7 @@
     "build": "pnpm validate:env && NAPI_RS_FORCE_WASI=true next build --webpack",
     "start": "next start",
     "validate:env": "node scripts/validate-env.mjs",
+    "validate:seed": "node scripts/validate-seed-policy.mjs",
     "lint": "eslint .",
     "typecheck": "rm -rf .next/types .next/dev/types && NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
     "test": "node --test tests/unit/*.test.mjs",

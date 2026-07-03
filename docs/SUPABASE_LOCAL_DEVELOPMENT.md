@@ -47,7 +47,9 @@ pnpm db:reset
 
 The reset command applies every migration and then runs `supabase/seed.sql` because `supabase/config.toml` sets `db.seed.enabled = true`.
 
-`supabase/seed.sql` is intentionally a no-op in RAD-006. Demo seed policy and representative records are owned by RAD-009 and RAD-019. Until then, do not add mock product rows to application paths.
+`supabase/seed.sql` is intentionally a no-op until schema tables exist. RAD-009 defines the demo data policy and seed contract; RAD-019 owns the first representative demo workspace and users. Until then, do not add mock product rows to application paths.
+
+See `docs/DEMO_DATA_POLICY.md` before adding any local/demo seed rows.
 
 ## Production Boundary
 

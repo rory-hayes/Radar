@@ -47,6 +47,9 @@ jobs:
       - name: Validate environment contract
         run: pnpm validate:env
 
+      - name: Validate seed data policy
+        run: pnpm validate:seed
+
       - name: Lint
         run: pnpm lint
 

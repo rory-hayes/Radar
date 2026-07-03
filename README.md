@@ -44,6 +44,7 @@ Quality checks:
 
 ```bash
 pnpm validate:env
+pnpm validate:seed
 pnpm lint
 pnpm typecheck
 pnpm test

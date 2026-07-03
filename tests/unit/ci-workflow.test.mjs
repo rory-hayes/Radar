@@ -8,6 +8,7 @@ test("RAD-005 runs the required CI quality gates", () => {
   for (const command of [
     "pnpm install --frozen-lockfile",
     "pnpm validate:env",
+    "pnpm validate:seed",
     "pnpm lint",
     "pnpm typecheck",
     "pnpm test",

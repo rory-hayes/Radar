@@ -1,8 +1,16 @@
--- Radar local seed entrypoint.
+-- RADAR_LOCAL_SEED_CONTRACT v1
+-- Radar local/test seed entrypoint.
 --
 -- Supabase loads this file after migrations during `pnpm db:reset`.
--- RAD-006 intentionally keeps it empty so the foundation pipeline exists
--- without introducing mock product rows ahead of the seed-data tickets.
+-- This file orchestrates deterministic local/test seed fragments under
+-- `supabase/seeds` after the relevant schema exists.
 --
--- Future local/demo seeds must stay deterministic, workspace-scoped, and safe
--- to recreate on every local reset. Production data must never be added here.
+-- Current state:
+-- - No product tables exist yet, so RAD-009 keeps this file as a contract.
+-- - Future customer-owned rows must be scoped by workspace_id or a
+--   workspace-owned parent.
+-- - Future local/demo seeds must stay deterministic and safe to recreate on
+--   every local reset.
+-- - production data must never be added here.
+-- - Product runtime code must never import seed files or hardcoded product
+--   result arrays.
