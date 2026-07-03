@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 
 import { trackProductEvent } from "@/lib/analytics/posthog";
+import { checkAndRecordAbuseLimit } from "@/lib/abuse/enforcement";
 import { type RunnerType } from "@/lib/assertions/schema";
 import {
   claimQueuedEvaluationRun,
@@ -171,6 +172,23 @@ export async function runNextEvaluationJob(
   }
 
   try {
+    const executionLimit = await checkAndRecordAbuseLimit({
+      client,
+      workspaceId: input.workspaceId,
+      userId: claimedRun.triggeredByUserId,
+      eventType: "runner_execution",
+      metadata: {
+        runId: claimedRun.id,
+        assertionId: claimedRun.assertionId,
+        runnerType: claimedRun.runnerType,
+        triggerType: claimedRun.triggerType,
+      },
+    });
+
+    if (!executionLimit.allowed) {
+      throw new EvaluationJobOrchestrationError(executionLimit.message);
+    }
+
     const result = await runner({ jobId, attempt, maxAttempts, run: claimedRun });
     const completedAt = new Date().toISOString();
     const completedRun = await updateEvaluationRunJob(client, input.workspaceId, claimedRun.id, {
@@ -339,4 +357,11 @@ function jobErrorMessage(error: unknown) {
 
 function jsonObject(value: unknown): JsonRecord {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as JsonRecord) : {};
+}
+
+export class EvaluationJobOrchestrationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "EvaluationJobOrchestrationError";
+  }
 }

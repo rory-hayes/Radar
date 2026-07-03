@@ -18,6 +18,10 @@ export async function POST(request: Request) {
     {
       permission: "workspace:read",
       schema: evidenceRetrievalRequestSchema,
+      rateLimit: {
+        eventType: "api_request",
+        route: "/api/evidence/retrieve",
+      },
     },
     async ({ input, membership }) => {
       const supabase = await createSupabaseServerClient();

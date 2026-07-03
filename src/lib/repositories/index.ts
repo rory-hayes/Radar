@@ -9,3 +9,4 @@ export * from "@/lib/repositories/findings";
 export * from "@/lib/repositories/runner-credentials";
 export * from "@/lib/repositories/notifications";
 export * from "@/lib/repositories/billing";
+export * from "@/lib/repositories/abuse";

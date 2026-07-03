@@ -14,6 +14,7 @@ import {
   TestCaseSuggestionError,
   type TestCaseSuggestionSourceContext,
 } from "@/lib/assertions/ai-test-cases";
+import { checkAndRecordAbuseLimit } from "@/lib/abuse/enforcement";
 import { trackProductEvent } from "@/lib/analytics/posthog";
 import { getBillingGateResult } from "@/lib/billing/enforcement";
 import {
@@ -461,6 +462,22 @@ export async function generateSuggestedTestCasesAction(
         throw serverActionError("Linked sources do not have enough context for AI test case suggestions.", "validation");
       }
 
+      const aiLimit = await checkAndRecordAbuseLimit({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        eventType: "ai_call",
+        metadata: {
+          workflow: "test_case_suggestions",
+          assertionId: assertion.id,
+          maxSuggestions: input.maxSuggestions,
+        },
+      });
+
+      if (!aiLimit.allowed) {
+        throw serverActionError(aiLimit.message, "rate_limited");
+      }
+
       let provider: ReturnType<typeof createOpenAITestCaseSuggestionProvider>;
       let suggestions: Awaited<ReturnType<typeof provider.generate>>;
 
@@ -567,6 +584,23 @@ export async function queueManualAssertionRunAction(
         throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
       }
 
+      const runLimit = await checkAndRecordAbuseLimit({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        eventType: "eval_run",
+        metadata: {
+          workflow: "manual_assertion_run",
+          assertionId: assertion.id,
+          testCaseId: requestedTestCase?.id,
+          runnerType: assertion.runnerType,
+        },
+      });
+
+      if (!runLimit.allowed) {
+        throw serverActionError(runLimit.message, "rate_limited");
+      }
+
       const requestedAt = new Date().toISOString();
       const queuedTestCases = requestedTestCase ? [requestedTestCase] : runnableTestCases;
 
@@ -654,6 +688,22 @@ export async function generateSuggestedAssertionDraftsAction(
 
       if (!sourceContexts.some((source) => source.excerpts.length > 0 || source.description || source.originUri)) {
         throw serverActionError("Selected sources do not have enough extracted context for AI suggestions.", "validation");
+      }
+
+      const aiLimit = await checkAndRecordAbuseLimit({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        eventType: "ai_call",
+        metadata: {
+          workflow: "assertion_suggestions",
+          sourceIds: input.sourceIds,
+          maxSuggestions: input.maxSuggestions,
+        },
+      });
+
+      if (!aiLimit.allowed) {
+        throw serverActionError(aiLimit.message, "rate_limited");
       }
 
       let provider: ReturnType<typeof createOpenAIAssertionSuggestionProvider>;

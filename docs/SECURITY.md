@@ -94,6 +94,16 @@ RAD-077 requires `finding:resolve` permission for all finding lifecycle changes.
 
 RAD-078 validates assignees against active members of the current workspace before updating `owner_user_id` or assignment history. Ownership notes and metadata are bounded, team values are restricted to Radar's operational team list, and audit events store only IDs, status/severity values, and team labels.
 
+## Rate Limits, Quotas, And Abuse Controls
+
+RAD-095 adds durable abuse-limit events in `abuse_limit_events`. Each event is workspace-scoped, can include the acting user, and is protected by RLS so only workspace members can read or insert their own workspace events. The table records bounded metadata only; it must not store source bodies, prompts, completions, request bodies, credentials, cookies, or raw evidence.
+
+`src/lib/abuse/limits.ts` defines workspace and user sliding-window limits for source syncs, evaluation run queueing, AI calls, API requests, file uploads, and runner executions.
+
+Payload ceilings live in the same module, including uploaded document size, manual text length, evidence retrieval query length, and Knowledge Runner endpoint response length. Runner duration controls are centralized: Knowledge endpoint fetches have an abort timeout, Journey and Integration runners keep their timeout schemas, and runner execution events are recorded when queued jobs are claimed.
+
+Server actions call `checkAndRecordAbuseLimit` before expensive operations. Workspace JSON APIs use the shared guardrail `rateLimit` option and return `rate_limited` with HTTP 429 when a window is exceeded.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.

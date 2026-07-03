@@ -52,7 +52,7 @@ test("RAD-034 wires uploaded document extraction into source create and edit act
   assert.match(actions, /uploadedFile instanceof File/);
   assert.match(actions, /uploadFailureMessage/);
   assert.match(actions, /Uploaded document extraction failed/);
-  assert.match(actions, /maxUploadBytes = 10 \* 1024 \* 1024/);
+  assert.match(actions, /maxUploadBytes = abusePayloadLimits\.uploadedDocumentMaxBytes/);
   assert.match(form, /accept="\.pdf,\.md,\.txt,text\/markdown,text\/plain,application\/pdf"/);
   assert.match(form, /name="uploadedFile"/);
 });

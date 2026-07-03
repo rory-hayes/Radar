@@ -8,6 +8,7 @@ import {
   type RadarEvaluationRunJob,
   type RadarRepositoryClient,
 } from "@/lib/repositories";
+import { abusePayloadLimits, runnerDurationLimits } from "@/lib/abuse/limits";
 import { type RadarAssertion, type RadarTestCase } from "@/lib/assertions/schema";
 import {
   type EvaluationEvidenceRefInput,
@@ -381,6 +382,10 @@ async function defaultKnowledgeTargetClient(
     throw new KnowledgeRunnerExecutionError(`Endpoint target returned HTTP ${response.status}.`);
   }
 
+  if (text.length > abusePayloadLimits.knowledgeEndpointResponseMaxCharacters) {
+    throw new KnowledgeRunnerExecutionError("Endpoint target response exceeded the Knowledge Runner size limit.");
+  }
+
   return {
     answer: extractAnswerText(text),
     statusCode: response.status,
@@ -403,33 +408,49 @@ async function fetchKnowledgeTarget(
 ) {
   const url = new URL(target.targetUri ?? "");
   const method = target.httpMethod ?? "GET";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), runnerDurationLimits.knowledgeTargetTimeoutMs);
 
-  if (method === "GET") {
-    url.searchParams.set("question", question);
-    url.searchParams.set("assertionId", context.assertionId);
-    url.searchParams.set("testCaseId", context.testCaseId);
+  try {
+    if (method === "GET") {
+      url.searchParams.set("question", question);
+      url.searchParams.set("assertionId", context.assertionId);
+      url.searchParams.set("testCaseId", context.testCaseId);
 
-    return fetch(url, {
+      return await fetch(url, {
+        method,
+        signal: controller.signal,
+        headers: {
+          Accept: "application/json, text/plain;q=0.9",
+        },
+      });
+    }
+
+    return await fetch(url, {
       method,
+      signal: controller.signal,
       headers: {
         Accept: "application/json, text/plain;q=0.9",
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        question,
+        workspaceId: context.workspaceId,
+        assertionId: context.assertionId,
+        testCaseId: context.testCaseId,
+      }),
     });
-  }
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new KnowledgeRunnerExecutionError(
+        `Endpoint target exceeded ${runnerDurationLimits.knowledgeTargetTimeoutMs}ms.`,
+      );
+    }
 
-  return fetch(url, {
-    method,
-    headers: {
-      Accept: "application/json, text/plain;q=0.9",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      question,
-      workspaceId: context.workspaceId,
-      assertionId: context.assertionId,
-      testCaseId: context.testCaseId,
-    }),
-  });
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function actualOutputForResponse(

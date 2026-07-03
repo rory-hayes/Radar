@@ -4,6 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { checkAndRecordAbuseLimit } from "@/lib/abuse/enforcement";
+import type { AbuseLimitEventType } from "@/lib/abuse/schema";
 import { getAuthenticatedUser, type RadarAuthenticatedUser } from "@/lib/auth/session";
 import { getActiveWorkspaceForCurrentUser } from "@/lib/workspaces/server";
 import {
@@ -12,6 +14,7 @@ import {
   type WorkspacePermission,
 } from "@/lib/workspaces/permissions";
 import { type RadarWorkspaceMembership } from "@/lib/workspaces/schema";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type ServerInputSchema<TInput> = {
   parse(input: unknown): TInput;
@@ -21,6 +24,7 @@ export type ServerGuardrailCode =
   | "unauthenticated"
   | "workspace_required"
   | "unauthorized"
+  | "rate_limited"
   | "validation"
   | "server_error";
 
@@ -55,6 +59,11 @@ type GuardedWorkspaceActionOptions<TInput> = GuardedActionOptions<TInput> & {
 type GuardedApiOptions<TInput> = {
   schema: ServerInputSchema<TInput>;
   successStatus?: number;
+  rateLimit?: {
+    eventType: AbuseLimitEventType;
+    route: string;
+    quantity?: number;
+  };
 };
 
 type GuardedWorkspaceApiOptions<TInput> = GuardedApiOptions<TInput> & {
@@ -127,6 +136,7 @@ export async function runWorkspaceApiHandler<TInput, TData>(
   try {
     const input = parseServerInput(options.schema, await readJsonBody(request));
     const context = await getWorkspaceActionContext(options.permission);
+    await enforceApiRateLimit(context, options.rateLimit);
     const data = await handler({ ...context, input });
 
     return NextResponse.json({ ok: true, data }, { status: options.successStatus ?? 200 });
@@ -236,9 +246,41 @@ function statusForCode(code: ServerGuardrailCode) {
     unauthenticated: 401,
     workspace_required: 403,
     unauthorized: 403,
+    rate_limited: 429,
     validation: 400,
     server_error: 500,
   } satisfies Record<ServerGuardrailCode, number>;
 
   return statuses[code];
+}
+
+async function enforceApiRateLimit(
+  context: WorkspaceActionContext,
+  rateLimit: GuardedApiOptions<unknown>["rateLimit"],
+) {
+  if (!rateLimit) {
+    return;
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    throw new ServerGuardrailError("server_error", "Supabase is not configured for this environment.");
+  }
+
+  const decision = await checkAndRecordAbuseLimit({
+    client: supabase,
+    workspaceId: context.membership.workspace.id,
+    userId: context.user.id,
+    eventType: rateLimit.eventType,
+    quantity: rateLimit.quantity,
+    metadata: {
+      route: rateLimit.route,
+      boundary: "api",
+    },
+  });
+
+  if (!decision.allowed) {
+    throw new ServerGuardrailError("rate_limited", decision.message);
+  }
 }

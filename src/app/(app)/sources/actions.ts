@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { abusePayloadLimits } from "@/lib/abuse/limits";
+import { checkAndRecordAbuseLimit } from "@/lib/abuse/enforcement";
 import { trackProductEvent } from "@/lib/analytics/posthog";
 import { getBillingGateResult } from "@/lib/billing/enforcement";
 import { createSource, updateSource } from "@/lib/repositories";
@@ -19,7 +21,7 @@ import { sourceTypes, type CreateSourceInput } from "@/lib/sources/schema";
 
 const endpointMethods = ["GET", "POST"] as const;
 const endpointAuthModes = ["none", "bearer", "basic", "custom_header"] as const;
-const maxUploadBytes = 10 * 1024 * 1024;
+const maxUploadBytes = abusePayloadLimits.uploadedDocumentMaxBytes;
 
 const optionalTrimmedString = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
@@ -34,7 +36,7 @@ const sourceFormActionSchema = z
     description: optionalTrimmedString.pipe(z.string().max(500).optional()),
     type: z.enum(sourceTypes),
     originUri: optionalTrimmedString.pipe(z.string().max(2048).optional()),
-    manualText: optionalTrimmedString.pipe(z.string().max(50000).optional()),
+    manualText: optionalTrimmedString.pipe(z.string().max(abusePayloadLimits.manualTextMaxCharacters).optional()),
     endpointMethod: z.enum(endpointMethods).default("GET"),
     endpointAuthMode: z.enum(endpointAuthModes).default("none"),
     uploadedFileName: optionalTrimmedString.pipe(z.string().max(255).optional()),
@@ -112,6 +114,24 @@ export async function createSourceAction(
         throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
       }
 
+      if (uploadedFile) {
+        const uploadLimit = await checkAndRecordAbuseLimit({
+          client: supabase,
+          workspaceId: membership.workspace.id,
+          userId: user.id,
+          eventType: "file_upload",
+          metadata: {
+            fileSize: uploadedFile.size,
+            fileType: uploadedFile.type || "unknown",
+            sourceType: input.type,
+          },
+        });
+
+        if (!uploadLimit.allowed) {
+          throw serverActionError(uploadLimit.message, "rate_limited");
+        }
+      }
+
       const source = await createSource(supabase, membership.workspace.id, user.id, buildCreateSourceInput(input));
 
       if (input.type === "uploaded_document" && uploadedFile) {
@@ -157,7 +177,7 @@ export async function updateSourceAction(
       permission: "source:edit",
       schema: sourceFormActionSchema,
     },
-    async ({ input, membership }) => {
+    async ({ input, membership, user }) => {
       const supabase = await createSupabaseServerClient();
 
       if (!supabase) {
@@ -166,6 +186,25 @@ export async function updateSourceAction(
 
       if (!input.sourceId) {
         throw serverActionError("Source id is required when updating a source.", "validation");
+      }
+
+      if (input.type === "uploaded_document" && uploadedFile) {
+        const uploadLimit = await checkAndRecordAbuseLimit({
+          client: supabase,
+          workspaceId: membership.workspace.id,
+          userId: user.id,
+          eventType: "file_upload",
+          metadata: {
+            fileSize: uploadedFile.size,
+            fileType: uploadedFile.type || "unknown",
+            sourceType: input.type,
+            sourceId: input.sourceId,
+          },
+        });
+
+        if (!uploadLimit.allowed) {
+          throw serverActionError(uploadLimit.message, "rate_limited");
+        }
       }
 
       const source = await updateSource(supabase, membership.workspace.id, input.sourceId, buildUpdateSourceInput(input));
@@ -201,17 +240,34 @@ export async function resyncSourceAction(formData: FormData): Promise<void> {
       permission: "source:edit",
       schema: sourceResyncActionSchema,
     },
-    async ({ input, membership }) => {
+    async ({ input, membership, user }) => {
       const supabase = await createSupabaseServerClient();
 
       if (!supabase) {
         throw serverActionError("Supabase is not configured for this environment.");
       }
 
+      const limit = await checkAndRecordAbuseLimit({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        eventType: "source_sync",
+        metadata: {
+          sourceId: input.sourceId,
+          reason: "manual",
+          boundary: "server_action",
+        },
+      });
+
+      if (!limit.allowed) {
+        throw serverActionError(limit.message, "rate_limited");
+      }
+
       return runSourceSyncJob(supabase, {
         workspaceId: membership.workspace.id,
         sourceId: input.sourceId,
         reason: "manual",
+        requestedByUserId: user.id,
       });
     },
   );

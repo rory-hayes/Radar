@@ -10,6 +10,10 @@ export async function POST(request: Request) {
       permission: "workspace:manage",
       schema: notificationEmailRequestSchema,
       successStatus: 202,
+      rateLimit: {
+        eventType: "api_request",
+        route: "/api/notifications/email",
+      },
     },
     async ({ input, membership }) => {
       const supabase = await createSupabaseServerClient();

@@ -10,6 +10,10 @@ export async function POST(request: Request) {
       permission: "workspace:manage",
       schema: slackAlertRequestSchema,
       successStatus: 202,
+      rateLimit: {
+        eventType: "api_request",
+        route: "/api/notifications/slack",
+      },
     },
     async ({ input, membership }) => {
       const supabase = await createSupabaseServerClient();

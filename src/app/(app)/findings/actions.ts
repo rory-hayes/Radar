@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { checkAndRecordAbuseLimit } from "@/lib/abuse/enforcement";
 import { trackProductEvent } from "@/lib/analytics/posthog";
 import { recordAuditEvent } from "@/lib/audit/server";
 import { getBillingGateResult } from "@/lib/billing/enforcement";
@@ -354,6 +355,24 @@ export async function queueFindingRerunAction(
 
       if (!gate.allowed) {
         throw serverActionError(gate.message ?? "This workspace has reached its billing plan limit.", "validation");
+      }
+
+      const runLimit = await checkAndRecordAbuseLimit({
+        client: supabase,
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        eventType: "eval_run",
+        metadata: {
+          workflow: "finding_fix_rerun",
+          findingId: finding.id,
+          assertionId: assertion.id,
+          testCaseId: requestedTestCase?.id,
+          runnerType: assertion.runnerType,
+        },
+      });
+
+      if (!runLimit.allowed) {
+        throw serverActionError(runLimit.message, "rate_limited");
       }
 
       const requestedAt = new Date().toISOString();
