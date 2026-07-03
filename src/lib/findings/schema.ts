@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const findingStatuses = ["open", "investigating", "fixed", "resolved", "ignored", "false_positive"] as const;
 export const findingSeverities = ["critical", "high", "medium", "low"] as const;
+export const findingOwnerTeams = ["support", "product", "ops", "engineering"] as const;
 export const findingEvidenceTypes = ["source_chunk", "source_document", "run_output", "artifact", "manual_note"] as const;
 export const findingActivityTypes = [
   "created",
@@ -16,6 +17,7 @@ export const findingActivityTypes = [
 
 export type FindingStatus = (typeof findingStatuses)[number];
 export type FindingSeverity = (typeof findingSeverities)[number];
+export type FindingOwnerTeam = (typeof findingOwnerTeams)[number];
 export type FindingEvidenceType = (typeof findingEvidenceTypes)[number];
 export type FindingActivityType = (typeof findingActivityTypes)[number];
 

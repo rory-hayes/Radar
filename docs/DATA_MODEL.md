@@ -115,6 +115,8 @@ RAD-076 stores recommended-fix generator metadata on findings, including generat
 
 RAD-077 records finding lifecycle transitions through status updates plus `finding_activity` rows. Resolved and false-positive findings must write `resolved_at`, `resolved_by_user_id`, and `resolution_summary` so the resolution state remains explainable; reopening or moving back to active work clears stale resolution fields. Lifecycle changes also create audit events for workspace accountability.
 
+RAD-078 stores operational ownership on findings by updating `owner_user_id`, the current severity-as-priority, and bounded ownership metadata such as `ownerTeam`, `ownershipUpdatedAt`, and `ownershipUpdatedByUserId`. Assignment changes close prior active `finding_assignments`, create a new assignment when a workspace member is selected, and write a `finding_activity` handoff note.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.

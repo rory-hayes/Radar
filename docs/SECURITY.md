@@ -92,6 +92,8 @@ Finding summaries, expected/actual text, evidence quotes, activity notes, and re
 
 RAD-077 requires `finding:resolve` permission for all finding lifecycle changes. The server action validates the active workspace, checks the current finding belongs to that workspace, enforces allowed status transitions, writes `finding_activity`, and records a workspace audit event without logging raw evidence or secrets.
 
+RAD-078 validates assignees against active members of the current workspace before updating `owner_user_id` or assignment history. Ownership notes and metadata are bounded, team values are restricted to Radar's operational team list, and audit events store only IDs, status/severity values, and team labels.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.

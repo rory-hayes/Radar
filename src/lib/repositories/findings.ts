@@ -7,6 +7,7 @@ import {
   type FindingEvidenceInput,
   type FindingEvidenceType,
   type FindingInput,
+  type FindingOwnerTeam,
   type FindingSeverity,
   type FindingStatus,
   type RadarFinding,
@@ -120,6 +121,13 @@ export type FindingStatusUpdateInput = {
   resolvedByUserId?: string;
   resolutionSummary?: string;
   clearResolution?: boolean;
+};
+
+export type FindingOwnershipUpdateInput = {
+  ownerUserId?: string;
+  ownerTeam?: FindingOwnerTeam;
+  severity: FindingSeverity;
+  metadata: JsonRecord;
 };
 
 const findingSelect =
@@ -280,6 +288,44 @@ export async function updateFindingStatus(
 
   assertRepositorySuccess(error, "Unable to update finding status");
   return mapFindingRow(requireRepositoryRow(data, "Finding update returned no row"));
+}
+
+export async function updateFindingOwnership(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  findingId: string,
+  input: FindingOwnershipUpdateInput,
+) {
+  const { data, error } = await client
+    .from("findings")
+    .update({
+      owner_user_id: input.ownerUserId ?? null,
+      severity: input.severity,
+      metadata: input.metadata,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", findingId)
+    .select(findingSelect)
+    .single<FindingRow>();
+
+  assertRepositorySuccess(error, "Unable to update finding ownership");
+  return mapFindingRow(requireRepositoryRow(data, "Finding ownership update returned no row"));
+}
+
+export async function closeActiveFindingAssignments(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  findingId: string,
+  unassignedAt: string,
+) {
+  const { error } = await client
+    .from("finding_assignments")
+    .update({ unassigned_at: unassignedAt })
+    .eq("workspace_id", workspaceId)
+    .eq("finding_id", findingId)
+    .is("unassigned_at", null);
+
+  assertRepositorySuccess(error, "Unable to close active finding assignments");
 }
 
 export async function addFindingEvidence(

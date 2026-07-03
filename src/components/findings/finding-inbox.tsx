@@ -41,6 +41,7 @@ import {
 import {
   findingSeverities,
   findingStatuses,
+  type FindingOwnerTeam,
   type FindingSeverity,
   type FindingStatus,
   type RadarFinding,
@@ -52,11 +53,13 @@ export type FindingListFilters = {
   severity?: FindingSeverity;
   status?: FindingStatus;
   owner?: string;
+  team?: FindingOwnerTeam;
   assertion?: string;
 };
 
 export type FindingListItem = RadarFinding & {
   assertionTitle?: string;
+  ownerTeam?: FindingOwnerTeam;
 };
 
 export type FindingPagination = {
@@ -76,6 +79,7 @@ type FindingInboxProps = {
   filters: FindingListFilters;
   pagination: FindingPagination;
   ownerOptions: readonly FilterOption[];
+  teamOptions: readonly FilterOption[];
   assertionOptions: readonly FilterOption[];
   totalFindingCount: number;
   selectedFindingId?: string;
@@ -88,6 +92,7 @@ export function FindingInbox({
   filters,
   pagination,
   ownerOptions,
+  teamOptions,
   assertionOptions,
   totalFindingCount,
   selectedFindingId,
@@ -116,6 +121,7 @@ export function FindingInbox({
         <FindingFilters
           filters={filters}
           ownerOptions={ownerOptions}
+          teamOptions={teamOptions}
           assertionOptions={assertionOptions}
         />
         {findings.length > 0 ? (
@@ -148,15 +154,17 @@ export function FindingInbox({
 function FindingFilters({
   filters,
   ownerOptions,
+  teamOptions,
   assertionOptions,
 }: {
   filters: FindingListFilters;
   ownerOptions: readonly FilterOption[];
+  teamOptions: readonly FilterOption[];
   assertionOptions: readonly FilterOption[];
 }) {
   return (
     <form action="/findings">
-      <FieldGroup className="grid gap-3 lg:grid-cols-[minmax(16rem,1fr)_repeat(4,minmax(8rem,11rem))_auto]">
+      <FieldGroup className="grid gap-3 lg:grid-cols-[minmax(16rem,1fr)_repeat(5,minmax(8rem,11rem))_auto]">
         <Field>
           <FieldLabel htmlFor="finding-search">Search</FieldLabel>
           <div className="relative">
@@ -192,6 +200,12 @@ function FindingFilters({
             { value: "unassigned", label: "Unassigned" },
             ...ownerOptions,
           ]}
+        />
+        <OptionSelect
+          name="team"
+          label="Team"
+          value={filters.team}
+          options={teamOptions}
         />
         <OptionSelect
           name="assertion"
@@ -320,7 +334,12 @@ function FindingRows({
             <TableCell>
               <StatusBadge tone={statusTone(finding.status)} label={formatStatus(finding.status)} />
             </TableCell>
-            <TableCell>{formatOwner(finding.ownerUserId)}</TableCell>
+            <TableCell>
+              <div className="flex flex-col gap-1">
+                <span>{formatOwner(finding.ownerUserId)}</span>
+                <span className="text-xs text-muted-foreground">{formatOwnerTeam(finding.ownerTeam)}</span>
+              </div>
+            </TableCell>
             <TableCell className="min-w-52 whitespace-normal">
               {finding.assertionTitle ? (
                 <Link
@@ -442,6 +461,11 @@ function formatStatus(status: FindingStatus) {
 
 function formatOwner(ownerUserId?: string) {
   return ownerUserId ? `User ${ownerUserId.slice(0, 8)}` : "Unassigned";
+}
+
+function formatOwnerTeam(team?: FindingOwnerTeam) {
+  if (!team) return "Unassigned";
+  return team === "ops" ? "Ops" : `${team.charAt(0).toUpperCase()}${team.slice(1)}`;
 }
 
 function formatConfidence(confidence: number) {

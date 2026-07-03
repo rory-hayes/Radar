@@ -10,11 +10,14 @@ import {
 import { ErrorState, MetricCard } from "@/components/radar";
 import {
   type FindingSeverity,
+  type FindingOwnerTeam,
   type FindingStatus,
+  findingOwnerTeams,
   findingSeverities,
   findingStatuses,
 } from "@/lib/findings/schema";
 import {
+  listActiveWorkspaceMembers,
   listAssertions,
   listFindingActivity,
   listFindingEvidence,
@@ -94,6 +97,7 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
           findings={paginatedFindings}
           filters={filters}
           ownerOptions={ownerOptions(findingResult.findings)}
+          teamOptions={teamOptions()}
           assertionOptions={assertionOptions(findingResult.findings)}
           totalFindingCount={findingResult.findings.length}
           selectedFindingId={selectedFinding?.id}
@@ -109,6 +113,7 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
           evidence={selectedDetail.evidence}
           activity={selectedDetail.activity}
           canResolve={membershipCan(membership, "finding:resolve")}
+          ownerOptions={findingResult.memberOptions}
         />
       </div>
     </FindingsPageShell>
@@ -120,9 +125,10 @@ async function loadFindingListItems(
   workspaceId: string,
 ) {
   try {
-    const [findings, assertions] = await Promise.all([
+    const [findings, assertions, members] = await Promise.all([
       listFindings(supabase, workspaceId),
       listAssertions(supabase, workspaceId),
+      listActiveWorkspaceMembers(supabase, workspaceId),
     ]);
     const assertionTitles = new Map(assertions.map((assertion) => [assertion.id, assertion.title]));
 
@@ -130,12 +136,18 @@ async function loadFindingListItems(
       findings: findings.map<FindingListItem>((finding) => ({
         ...finding,
         assertionTitle: assertionTitles.get(finding.assertionId),
+        ownerTeam: ownerTeamFromMetadata(finding.metadata),
+      })),
+      memberOptions: members.map((member) => ({
+        value: member.userId,
+        label: `User ${member.userId.slice(0, 8)} (${member.role})`,
       })),
       error: null,
     };
   } catch (error) {
     return {
       findings: [],
+      memberOptions: [],
       error: error instanceof Error ? error.message : "findings.repository_error",
     };
   }
@@ -225,6 +237,7 @@ function filtersFromSearchParams(searchParams: Record<string, string | string[] 
   const severity = enumParam(searchParams.severity, findingSeverities);
   const status = enumParam(searchParams.status, findingStatuses);
   const owner = stringParam(searchParams.owner);
+  const team = enumParam(searchParams.team, findingOwnerTeams);
   const assertion = stringParam(searchParams.assertion);
 
   if (query) {
@@ -241,6 +254,10 @@ function filtersFromSearchParams(searchParams: Record<string, string | string[] 
 
   if (owner && owner !== "all") {
     filters.owner = owner;
+  }
+
+  if (team) {
+    filters.team = team;
   }
 
   if (assertion && assertion !== "all") {
@@ -279,6 +296,10 @@ function filterFindings(findings: readonly FindingListItem[], filters: FindingLi
       return false;
     }
 
+    if (filters.team && finding.ownerTeam !== filters.team) {
+      return false;
+    }
+
     if (filters.assertion && finding.assertionId !== filters.assertion) {
       return false;
     }
@@ -304,6 +325,13 @@ function ownerOptions(findings: readonly FindingListItem[]) {
   }));
 }
 
+function teamOptions() {
+  return findingOwnerTeams.map((team) => ({
+    value: team,
+    label: formatOwnerTeam(team),
+  }));
+}
+
 function assertionOptions(findings: readonly FindingListItem[]) {
   const assertionsById = new Map<string, string>();
 
@@ -323,6 +351,7 @@ function findingSearchText(finding: FindingListItem) {
     finding.customerImpact,
     finding.recommendedFix,
     finding.ownerUserId,
+    finding.ownerTeam,
     finding.assertionTitle,
   ]
     .filter(Boolean)
@@ -340,4 +369,17 @@ function enumParam<TValue extends string>(
 
 function stringParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+function ownerTeamFromMetadata(metadata: unknown): FindingOwnerTeam | undefined {
+  if (!metadata || typeof metadata !== "object" || !("ownerTeam" in metadata)) {
+    return undefined;
+  }
+
+  const ownerTeam = (metadata as Record<string, unknown>).ownerTeam;
+  return findingOwnerTeams.includes(ownerTeam as FindingOwnerTeam) ? (ownerTeam as FindingOwnerTeam) : undefined;
+}
+
+function formatOwnerTeam(team: FindingOwnerTeam) {
+  return team === "ops" ? "Ops" : `${team.charAt(0).toUpperCase()}${team.slice(1)}`;
 }

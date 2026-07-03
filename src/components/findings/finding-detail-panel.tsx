@@ -13,6 +13,7 @@ import {
   type StatusTone,
 } from "@/components/radar";
 import { FindingLifecycleForm } from "@/components/findings/finding-lifecycle-form";
+import { FindingOwnershipForm, type FindingOwnerOption } from "@/components/findings/finding-ownership-form";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import type {
   FindingActivityType,
   FindingEvidenceType,
+  FindingOwnerTeam,
   FindingStatus,
   RadarFindingEvidence,
 } from "@/lib/findings/schema";
@@ -39,9 +41,10 @@ export type FindingDetailPanelProps = {
   evidence: readonly RadarFindingEvidence[];
   activity: readonly RadarFindingActivity[];
   canResolve: boolean;
+  ownerOptions: readonly FindingOwnerOption[];
 };
 
-export function FindingDetailPanel({ finding, evidence, activity, canResolve }: FindingDetailPanelProps) {
+export function FindingDetailPanel({ finding, evidence, activity, canResolve, ownerOptions }: FindingDetailPanelProps) {
   if (!finding) {
     return (
       <EmptyState
@@ -68,6 +71,7 @@ export function FindingDetailPanel({ finding, evidence, activity, canResolve }: 
             <DetailItem label="Affected assertion" value={finding.assertionTitle ?? "Assertion unavailable"} />
             <DetailItem label="Confidence" value={formatConfidence(finding.confidence)} />
             <DetailItem label="Owner" value={formatOwner(finding.ownerUserId)} />
+            <DetailItem label="Team" value={formatOwnerTeam(finding.ownerTeam)} />
             <DetailItem label="Run" value={finding.evaluationRunId ? shortId(finding.evaluationRunId) : "No run linked"} />
           </dl>
         </CardContent>
@@ -92,6 +96,15 @@ export function FindingDetailPanel({ finding, evidence, activity, canResolve }: 
         currentStatus={finding.status}
         allowedStatuses={allowedFindingStatusTargets(finding.status)}
         canResolve={canResolve}
+      />
+
+      <FindingOwnershipForm
+        findingId={finding.id}
+        ownerUserId={finding.ownerUserId}
+        ownerTeam={finding.ownerTeam}
+        severity={finding.severity}
+        ownerOptions={ownerOptions}
+        canManage={canResolve}
       />
 
       <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
@@ -273,6 +286,11 @@ function formatStatus(status: FindingStatus) {
 
 function formatOwner(ownerUserId?: string) {
   return ownerUserId ? `User ${ownerUserId.slice(0, 8)}` : "Unassigned";
+}
+
+function formatOwnerTeam(team?: FindingOwnerTeam) {
+  if (!team) return "Unassigned";
+  return team === "ops" ? "Ops" : `${team.charAt(0).toUpperCase()}${team.slice(1)}`;
 }
 
 function formatConfidence(confidence: number) {

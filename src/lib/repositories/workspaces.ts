@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   type CreateWorkspaceInput,
+  type RadarWorkspaceMember,
   type RadarWorkspace,
   type RadarWorkspaceMembership,
   type UpdateWorkspaceSettingsInput,
@@ -34,6 +35,12 @@ type WorkspaceMemberRow = {
   role: WorkspaceRole;
   status: WorkspaceMemberStatus;
   workspace: WorkspaceRow | WorkspaceRow[] | null;
+};
+
+type WorkspaceMemberListRow = {
+  user_id: string;
+  role: WorkspaceRole;
+  status: WorkspaceMemberStatus;
 };
 
 export async function getWorkspaceById(client: RadarRepositoryClient, workspaceId: string) {
@@ -79,6 +86,19 @@ export async function getFirstActiveWorkspaceMembershipForUser(
   });
 }
 
+export async function listActiveWorkspaceMembers(client: RadarRepositoryClient, workspaceId: string) {
+  const { data, error } = await client
+    .from("workspace_members")
+    .select("user_id, role, status")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+    .returns<WorkspaceMemberListRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list workspace members");
+  return (data ?? []).map(mapWorkspaceMemberRow);
+}
+
 export async function createWorkspaceWithAdminMembership(
   client: RadarRepositoryClient,
   input: CreateWorkspaceInput & { slug: string },
@@ -122,4 +142,12 @@ function mapWorkspaceRow(row: WorkspaceRow): RadarWorkspace {
     status: row.status,
     teamVisibility: row.team_visibility,
   });
+}
+
+function mapWorkspaceMemberRow(row: WorkspaceMemberListRow): RadarWorkspaceMember {
+  return {
+    userId: row.user_id,
+    role: row.role,
+    memberStatus: row.status,
+  };
 }
