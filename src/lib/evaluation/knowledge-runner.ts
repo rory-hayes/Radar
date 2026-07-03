@@ -35,6 +35,12 @@ import {
   readManualRerunRequest,
 } from "@/lib/evaluation/manual-reruns";
 import {
+  assertRunnerTypeMatches,
+  sharedRunnerContractMetadata,
+  type RunnerRetrySemantics,
+  type SharedRunnerExecutionResult,
+} from "@/lib/evaluation/runner-contract";
+import {
   loadKnowledgeTargetConfigurationsForAssertion,
   type KnowledgeTargetConfiguration,
 } from "@/lib/evaluation/knowledge-targets";
@@ -85,7 +91,7 @@ export async function runKnowledgeEvaluationJob(
   client: RadarRepositoryClient,
   run: RadarEvaluationRunJob,
   options: KnowledgeRunnerOptions = {},
-): Promise<EvaluationJobRunnerResult> {
+): Promise<SharedRunnerExecutionResult> {
   const startedAt = options.now?.() ?? new Date();
 
   if (run.runnerType !== "knowledge") {
@@ -97,6 +103,17 @@ export async function runKnowledgeEvaluationJob(
   if (!assertion) {
     throw new KnowledgeRunnerExecutionError("Assertion was not found in this workspace.");
   }
+
+  const retry = retrySemanticsFromRun(run);
+  assertRunnerTypeMatches({
+    workspaceId: run.workspaceId,
+    assertion,
+    run,
+    triggerType: run.triggerType,
+    runnerType: "knowledge",
+    attempt: retry.attempt,
+    maxAttempts: retry.maxAttempts,
+  });
 
   const allTestCases = await listTestCasesForAssertion(client, run.workspaceId, assertion.id);
   const approvedKnowledgeTestCases = allTestCases.filter(
@@ -111,8 +128,21 @@ export async function runKnowledgeEvaluationJob(
     return {
       status: "error",
       totalTestCases: 0,
+      passedCount: 0,
+      warningCount: 0,
+      failedCount: 0,
       errorCount: 1,
+      skippedCount: 0,
+      evidenceRefs: [],
+      artifacts: [],
       executionMetadata: knowledgeRunnerMetadata({
+        ...sharedRunnerContractMetadata({
+          runnerType: "knowledge",
+          status: "error",
+          evidenceRefCount: 0,
+          artifactCount: 0,
+          retry,
+        }),
         state: "error",
         reason: isTargetedRerun
           ? "manual_rerun_test_case_not_runnable"
@@ -135,8 +165,21 @@ export async function runKnowledgeEvaluationJob(
     return {
       status: "error",
       totalTestCases: testCases.length,
+      passedCount: 0,
+      warningCount: 0,
+      failedCount: 0,
       errorCount: testCases.length,
+      skippedCount: 0,
+      evidenceRefs: [],
+      artifacts: [],
       executionMetadata: knowledgeRunnerMetadata({
+        ...sharedRunnerContractMetadata({
+          runnerType: "knowledge",
+          status: "error",
+          evidenceRefCount: 0,
+          artifactCount: 0,
+          retry,
+        }),
         state: "error",
         reason: "no_ready_knowledge_target",
         targetCount: targetConfiguration.targets.length,
@@ -153,6 +196,7 @@ export async function runKnowledgeEvaluationJob(
   const resultSummary = summarizeKnowledgeResultRecords(resultRecords);
   const completedAt = options.now?.() ?? new Date();
   const evidenceRefs = dedupeEvidenceRefs(resultRecords.flatMap((result) => result.evidenceRefs));
+  const artifacts: [] = [];
 
   return {
     status: resultSummary.status,
@@ -165,7 +209,15 @@ export async function runKnowledgeEvaluationJob(
     score: resultSummary.score,
     confidence: resultSummary.confidence,
     evidenceRefs,
+    artifacts,
     executionMetadata: knowledgeRunnerMetadata({
+      ...sharedRunnerContractMetadata({
+        runnerType: "knowledge",
+        status: resultSummary.status,
+        evidenceRefCount: evidenceRefs.length,
+        artifactCount: artifacts.length,
+        retry,
+      }),
       state: "scored_outputs_persisted",
       targetSourceId: target.sourceId,
       targetKind: target.kind,
@@ -553,6 +605,28 @@ function averageScore(values: Array<number | undefined>) {
   }
 
   return numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
+}
+
+function retrySemanticsFromRun(run: RadarEvaluationRunJob): RunnerRetrySemantics {
+  const orchestration = recordValue(run.executionMetadata.orchestration);
+  const attempt = numberValue(orchestration?.attempts) ?? 1;
+  const maxAttempts = numberValue(orchestration?.maxAttempts) ?? attempt;
+
+  return {
+    attempt,
+    maxAttempts,
+    retryable: attempt < maxAttempts,
+  };
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function questionFromTestCase(testCase: RadarTestCase) {

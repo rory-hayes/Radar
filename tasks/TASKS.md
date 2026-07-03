@@ -101,7 +101,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 
 | ID | Task | Priority | Status | Description |
 |---|---|---|---|---|
-| [RAD-061](tasks/phase-6-journey-integration-runners/rad-061-create-shared-runner-interface.md) | Create shared runner interface | P1 | Backlog | Define a common runner contract for Knowledge, Journey, and Integration runners including inputs, outputs, status, errors, evidence artifacts, and retry semantics. |
+| [RAD-061](tasks/phase-6-journey-integration-runners/rad-061-create-shared-runner-interface.md) | Create shared runner interface | P1 | Done | Define a common runner contract for Knowledge, Journey, and Integration runners including inputs, outputs, status, errors, evidence artifacts, and retry semantics. |
 | [RAD-062](tasks/phase-6-journey-integration-runners/rad-062-implement-playwright-journey-runner-foundation.md) | Implement Playwright Journey Runner foundation | P1 | Backlog | Set up Playwright execution, browser contexts, screenshot capture, trace artifact storage, timeouts, and safe credential handling. |
 | [RAD-063](tasks/phase-6-journey-integration-runners/rad-063-create-journey-step-definition-schema.md) | Create journey step definition schema | P1 | Backlog | Define a simple schema for URL visits, clicks, text entry, assertions, waits, emails, screenshots, and success conditions without building a visual workflow canvas. |
 | [RAD-064](tasks/phase-6-journey-integration-runners/rad-064-build-trial-onboarding-journey-pack.md) | Build Trial & Onboarding journey pack | P1 | Backlog | Create the first Journey Runner template for signup/trial/onboarding checks using configurable URLs, test credentials, and expected success states. |

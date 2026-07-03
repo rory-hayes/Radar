@@ -43,17 +43,36 @@ Examples:
 
 ## Shared runner contract
 
+RAD-061 defines the shared runner contract in `src/lib/evaluation/runner-contract.ts`.
+Knowledge, Journey, and Integration runners must all return the same top-level contract so assertion, run, result, and findings models do not fork by runner type.
+
+Each runner receives:
+
+- workspace id
+- assertion
+- evaluation run job
+- trigger type
+- runner type
+- attempt and max-attempt retry context
+- one or more runner-specific test case inputs
+
 Each runner returns:
 
-- status
-- actual result
-- expected result
+- terminal status
+- per-test status counts
+- score and confidence where available
+- bounded actual output
+- actual and evaluator summaries
+- evidence references
 - evidence artifacts
 - error details if any
-- duration
+- started/completed timestamps and duration
 - retry metadata
-- confidence hints
-- redacted logs
+- redacted execution metadata
+
+Evidence artifacts are typed as source evidence, screenshots, traces, HTTP exchanges, email receipts, webhook events, or redacted logs. They must reference private artifact storage or workspace-scoped source records; runner credentials, bearer tokens, raw webhook secrets, and unredacted PII must not be stored in artifacts or metadata.
+
+Retry semantics are owned by the evaluation job orchestrator. Runners expose attempt, max attempts, and retryability in `runnerContract` metadata, while the orchestrator decides whether to reschedule a failed job.
 
 ## Constraint
 
