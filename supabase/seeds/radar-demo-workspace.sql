@@ -679,6 +679,241 @@ set
   duration_ms = excluded.duration_ms,
   updated_at = excluded.updated_at;
 
+insert into public.findings (
+  id,
+  workspace_id,
+  assertion_id,
+  evaluation_run_id,
+  test_case_result_id,
+  title,
+  summary,
+  expected,
+  actual,
+  severity,
+  status,
+  confidence,
+  customer_impact,
+  recommended_fix,
+  owner_user_id,
+  dedupe_key,
+  first_seen_at,
+  last_seen_at,
+  resolved_at,
+  resolved_by_user_id,
+  resolution_summary,
+  ignored_until,
+  metadata,
+  created_at,
+  updated_at
+)
+values (
+  '70000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '50000000-0000-4000-8000-000000000001',
+  '60000000-0000-4000-8000-000000000001',
+  '61000000-0000-4000-8000-000000000001',
+  'AI support quoted an outdated plan limit',
+  'The synthetic support answer referenced a previous plan limit instead of the current pricing policy source.',
+  'Pricing answers must match the current pricing policy source.',
+  'The support answer referenced the previous plan limit.',
+  'critical',
+  'open',
+  0.8800,
+  'Customers could receive incorrect plan-limit guidance before checkout or upgrade conversations.',
+  'Update support knowledge and rerun the pricing assertion.',
+  '10000000-0000-4000-8000-000000000002',
+  'pricing-policy-outdated-plan-limit',
+  '2026-07-03 09:20:09+00',
+  '2026-07-03 09:20:09+00',
+  null,
+  null,
+  null,
+  null,
+  '{"demo": true, "category": "pricing"}'::jsonb,
+  '2026-07-03 09:21:00+00',
+  '2026-07-03 09:21:00+00'
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  assertion_id = excluded.assertion_id,
+  evaluation_run_id = excluded.evaluation_run_id,
+  test_case_result_id = excluded.test_case_result_id,
+  title = excluded.title,
+  summary = excluded.summary,
+  expected = excluded.expected,
+  actual = excluded.actual,
+  severity = excluded.severity,
+  status = excluded.status,
+  confidence = excluded.confidence,
+  customer_impact = excluded.customer_impact,
+  recommended_fix = excluded.recommended_fix,
+  owner_user_id = excluded.owner_user_id,
+  dedupe_key = excluded.dedupe_key,
+  first_seen_at = excluded.first_seen_at,
+  last_seen_at = excluded.last_seen_at,
+  resolved_at = excluded.resolved_at,
+  resolved_by_user_id = excluded.resolved_by_user_id,
+  resolution_summary = excluded.resolution_summary,
+  ignored_until = excluded.ignored_until,
+  metadata = excluded.metadata,
+  updated_at = excluded.updated_at;
+
+insert into public.finding_evidence (
+  id,
+  workspace_id,
+  finding_id,
+  evidence_type,
+  source_id,
+  source_document_id,
+  source_chunk_id,
+  evaluation_run_id,
+  test_case_result_id,
+  quote,
+  artifact_path,
+  citation,
+  confidence,
+  metadata,
+  created_at
+)
+values (
+  '72000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '70000000-0000-4000-8000-000000000001',
+  'source_chunk',
+  '40000000-0000-4000-8000-000000000001',
+  '42000000-0000-4000-8000-000000000001',
+  '43000000-0000-4000-8000-000000000001',
+  '60000000-0000-4000-8000-000000000001',
+  '61000000-0000-4000-8000-000000000001',
+  'Synthetic pricing policy: support answers must match the current plan limits and route billing exceptions to a human owner.',
+  null,
+  'Pricing policy excerpt',
+  0.9400,
+  '{"demo": true, "evidenceRole": "expected-policy"}'::jsonb,
+  '2026-07-03 09:21:05+00'
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  finding_id = excluded.finding_id,
+  evidence_type = excluded.evidence_type,
+  source_id = excluded.source_id,
+  source_document_id = excluded.source_document_id,
+  source_chunk_id = excluded.source_chunk_id,
+  evaluation_run_id = excluded.evaluation_run_id,
+  test_case_result_id = excluded.test_case_result_id,
+  quote = excluded.quote,
+  artifact_path = excluded.artifact_path,
+  citation = excluded.citation,
+  confidence = excluded.confidence,
+  metadata = excluded.metadata,
+  created_at = excluded.created_at;
+
+insert into public.finding_assignments (
+  id,
+  workspace_id,
+  finding_id,
+  assignee_user_id,
+  assigned_by_user_id,
+  note,
+  assigned_at,
+  unassigned_at,
+  metadata
+)
+values (
+  '71000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '70000000-0000-4000-8000-000000000001',
+  '10000000-0000-4000-8000-000000000002',
+  '10000000-0000-4000-8000-000000000001',
+  'Demo owner should update support knowledge before rerun.',
+  '2026-07-03 09:21:10+00',
+  null,
+  '{"demo": true}'::jsonb
+)
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  finding_id = excluded.finding_id,
+  assignee_user_id = excluded.assignee_user_id,
+  assigned_by_user_id = excluded.assigned_by_user_id,
+  note = excluded.note,
+  assigned_at = excluded.assigned_at,
+  unassigned_at = excluded.unassigned_at,
+  metadata = excluded.metadata;
+
+insert into public.finding_activity (
+  id,
+  workspace_id,
+  finding_id,
+  actor_user_id,
+  activity_type,
+  from_status,
+  to_status,
+  from_assignee_user_id,
+  to_assignee_user_id,
+  note,
+  metadata,
+  created_at
+)
+values
+  (
+    '73000000-0000-4000-8000-000000000001',
+    '20000000-0000-4000-8000-000000000001',
+    '70000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000002',
+    'created',
+    null,
+    'open',
+    null,
+    null,
+    'Finding created from failed pricing assertion result.',
+    '{"demo": true, "resultId": "61000000-0000-4000-8000-000000000001"}'::jsonb,
+    '2026-07-03 09:21:00+00'
+  ),
+  (
+    '73000000-0000-4000-8000-000000000002',
+    '20000000-0000-4000-8000-000000000001',
+    '70000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000001',
+    'assigned',
+    null,
+    null,
+    null,
+    '10000000-0000-4000-8000-000000000002',
+    'Assigned demo finding to the editor owner.',
+    '{"demo": true, "assignmentId": "71000000-0000-4000-8000-000000000001"}'::jsonb,
+    '2026-07-03 09:21:10+00'
+  ),
+  (
+    '73000000-0000-4000-8000-000000000003',
+    '20000000-0000-4000-8000-000000000001',
+    '70000000-0000-4000-8000-000000000001',
+    '10000000-0000-4000-8000-000000000002',
+    'evidence_added',
+    null,
+    null,
+    null,
+    null,
+    'Linked pricing policy source evidence to the finding.',
+    '{"demo": true, "evidenceId": "72000000-0000-4000-8000-000000000001"}'::jsonb,
+    '2026-07-03 09:21:15+00'
+  )
+on conflict (id) do update
+set
+  workspace_id = excluded.workspace_id,
+  finding_id = excluded.finding_id,
+  actor_user_id = excluded.actor_user_id,
+  activity_type = excluded.activity_type,
+  from_status = excluded.from_status,
+  to_status = excluded.to_status,
+  from_assignee_user_id = excluded.from_assignee_user_id,
+  to_assignee_user_id = excluded.to_assignee_user_id,
+  note = excluded.note,
+  metadata = excluded.metadata,
+  created_at = excluded.created_at;
+
 insert into public.audit_logs (
   id,
   workspace_id,

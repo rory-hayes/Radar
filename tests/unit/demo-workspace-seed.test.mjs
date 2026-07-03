@@ -29,6 +29,10 @@ test("RAD-019 seeds deterministic local demo users and workspace membership", as
   assert.match(seed, /insert into public\.assertion_templates/);
   assert.match(seed, /insert into public\.evaluation_runs/);
   assert.match(seed, /insert into public\.test_case_results/);
+  assert.match(seed, /insert into public\.findings/);
+  assert.match(seed, /insert into public\.finding_evidence/);
+  assert.match(seed, /insert into public\.finding_assignments/);
+  assert.match(seed, /insert into public\.finding_activity/);
   assert.match(seed, /'admin'/);
   assert.match(seed, /'editor'/);
   assert.match(seed, /'viewer'/);
@@ -57,6 +61,9 @@ test("RAD-019 and later data tickets represent demo product state without future
   assert.match(seed, /'failed'/);
   assert.match(seed, /"score": 0\.94/);
   assert.match(seed, /AI support quoted an outdated plan limit/);
+  assert.match(seed, /Update support knowledge and rerun the pricing assertion/);
+  assert.match(seed, /'critical'/);
+  assert.match(seed, /'evidence_added'/);
   assert.match(seed, /workspace_id/);
   assert.doesNotMatch(seed, /create table public\.(sources|assertions|findings|evaluation_runs|test_cases)/i);
   assert.doesNotMatch(seed, /https?:\/\//i);
@@ -64,6 +71,5 @@ test("RAD-019 and later data tickets represent demo product state without future
   assert.match(docs, /RAD-021 introduces real source tables/);
   assert.match(docs, /RAD-022 introduces real assertion and test-case tables/);
   assert.match(docs, /RAD-023 introduces real evaluation run history/);
-  assert.match(docs, /Until finding schemas exist/);
-  assert.match(docs, /workspace-scoped audit metadata/);
+  assert.match(docs, /RAD-024 introduces real finding issue tables/);
 });

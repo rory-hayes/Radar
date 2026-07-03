@@ -76,6 +76,17 @@ RAD-023 adds durable run history:
 
 Both tables are directly workspace-owned and also constrained back to workspace-owned assertions and test cases. Evidence references are bounded JSON arrays that point to source chunks, source documents, or storage artifacts; they must not duplicate raw documents or runner secrets.
 
+## Findings and Evidence
+
+RAD-024 adds the evidence-backed issue layer:
+
+- `findings` stores customer-readable issues with expected versus actual behavior, severity, confidence, customer impact, recommended fix, owner, lifecycle status, dedupe key, and resolution fields.
+- `finding_evidence` stores bounded citations to source chunks, source documents, run outputs, artifacts, or manual notes.
+- `finding_assignments` stores assignment history for ownership changes.
+- `finding_activity` stores lifecycle events, comments, assignment events, linked reruns, and evidence additions.
+
+Findings are workspace-owned and tied back to assertions, evaluation runs, and test-case results. Evidence rows may point to source and run records, but they must not copy full source documents or raw runner secrets.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.

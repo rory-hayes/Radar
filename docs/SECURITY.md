@@ -60,6 +60,12 @@ RAD-023 stores evaluation runs and test-case results with direct `workspace_id` 
 
 Run `execution_metadata`, result `actual_output`, summaries, and `evidence_refs` must remain bounded. They may store synthetic runner outputs, citations, source chunk IDs, artifact paths, scores, and timings, but must not store runner credentials, provider secrets, raw webhook headers, full source documents, or unredacted PII.
 
+## Finding Data Isolation
+
+RAD-024 stores findings, evidence, assignments, and activity with direct `workspace_id` ownership plus workspace-scoped foreign keys back to assertions, sources, runs, and results. RLS allows active workspace members to read findings and related evidence/activity, restricts finding/evidence/assignment/activity creation or updates to active Admin or Editor members, and restricts finding deletes to active Admin members.
+
+Finding summaries, expected/actual text, evidence quotes, activity notes, and resolution summaries must be customer-readable and bounded. They must not include runner credentials, provider secrets, raw webhook headers, full source documents, private keys, or unredacted sensitive customer data.
+
 ## Launch security bar
 
 Before production pilots, run dependency audit, RLS tests, auth bypass tests, upload validation tests, secret scanning, and route access tests.
