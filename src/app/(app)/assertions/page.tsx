@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 
 import {
   AssertionTable,
@@ -7,6 +9,7 @@ import {
 } from "@/components/assertions";
 import { PageHeader } from "@/components/app-shell";
 import { ErrorState, MetricCard } from "@/components/radar";
+import { Button } from "@/components/ui/button";
 import {
   assertionCategories,
   assertionPriorities,
@@ -25,6 +28,7 @@ import {
 } from "@/lib/repositories";
 import { getAppRouteByHref } from "@/lib/radar-routes";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { membershipCan } from "@/lib/workspaces/permissions";
 import { requireActiveWorkspace } from "@/lib/workspaces/server";
 
 const route = getAppRouteByHref("/assertions");
@@ -41,13 +45,15 @@ type AssertionsPageProps = {
 export default async function AssertionsPage({ searchParams }: AssertionsPageProps) {
   const membership = await requireActiveWorkspace();
   const supabase = await createSupabaseServerClient();
+  const canCreateAssertion = membershipCan(membership, "assertion:create");
+  const canEditAssertion = membershipCan(membership, "assertion:edit");
   const resolvedSearchParams = (await searchParams) ?? {};
   const filters = filtersFromSearchParams(resolvedSearchParams);
   const requestedPage = pageFromSearchParams(resolvedSearchParams);
 
   if (!supabase) {
     return (
-      <AssertionsPageShell>
+      <AssertionsPageShell canCreateAssertion={canCreateAssertion}>
         <ErrorState
           title="Assertions could not load"
           description="Supabase is not configured for this environment, so Radar cannot read workspace assertions."
@@ -61,7 +67,7 @@ export default async function AssertionsPage({ searchParams }: AssertionsPagePro
 
   if (assertionResult.error) {
     return (
-      <AssertionsPageShell>
+      <AssertionsPageShell canCreateAssertion={canCreateAssertion}>
         <ErrorState
           title="Assertions could not load"
           description="Radar could not read assertions for the active workspace. Refresh after checking database connectivity and workspace permissions."
@@ -77,13 +83,14 @@ export default async function AssertionsPage({ searchParams }: AssertionsPagePro
   const paginatedAssertions = filteredAssertions.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <AssertionsPageShell assertionCount={assertionResult.assertions.length}>
+    <AssertionsPageShell assertionCount={assertionResult.assertions.length} canCreateAssertion={canCreateAssertion}>
       <AssertionMetrics assertions={assertionResult.assertions} />
       <AssertionTable
         assertions={paginatedAssertions}
         filters={filters}
         ownerOptions={ownerOptions(assertionResult.assertions)}
         totalAssertionCount={assertionResult.assertions.length}
+        canEdit={canEditAssertion}
         pagination={{
           page,
           pageSize,
@@ -129,9 +136,11 @@ async function loadAssertionListItems(
 function AssertionsPageShell({
   children,
   assertionCount,
+  canCreateAssertion = false,
 }: {
   children: React.ReactNode;
   assertionCount?: number;
+  canCreateAssertion?: boolean;
 }) {
   return (
     <section className="flex flex-col gap-6">
@@ -139,9 +148,22 @@ function AssertionsPageShell({
         title={route?.title ?? "Assertions"}
         description={route?.description ?? ""}
         status={typeof assertionCount === "number" ? `${assertionCount} assertions` : undefined}
-      />
+      >
+        {canCreateAssertion ? <AddAssertionButton /> : null}
+      </PageHeader>
       {children}
     </section>
+  );
+}
+
+function AddAssertionButton() {
+  return (
+    <Button asChild>
+      <Link href="/assertions/new">
+        <PlusIcon data-icon="inline-start" />
+        Create assertion
+      </Link>
+    </Button>
   );
 }
 

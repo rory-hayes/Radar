@@ -74,6 +74,7 @@ type AssertionTableProps = {
   pagination: AssertionPagination;
   ownerOptions: readonly OwnerOption[];
   totalAssertionCount: number;
+  canEdit?: boolean;
 };
 
 const allFilterValue = "all";
@@ -84,6 +85,7 @@ export function AssertionTable({
   pagination,
   ownerOptions,
   totalAssertionCount,
+  canEdit = false,
 }: AssertionTableProps) {
   const hasFilters = Object.values(filters).some(Boolean);
 
@@ -108,7 +110,7 @@ export function AssertionTable({
       <CardContent className="flex flex-col gap-4">
         <AssertionFilters filters={filters} ownerOptions={ownerOptions} />
         {assertions.length > 0 ? (
-          <AssertionRows assertions={assertions} />
+          <AssertionRows assertions={assertions} canEdit={canEdit} />
         ) : (
           <EmptyState
             title="No assertions match these filters"
@@ -248,7 +250,13 @@ function OwnerFilterSelect({
   );
 }
 
-function AssertionRows({ assertions }: { assertions: readonly AssertionListItem[] }) {
+function AssertionRows({
+  assertions,
+  canEdit,
+}: {
+  assertions: readonly AssertionListItem[];
+  canEdit: boolean;
+}) {
   return (
     <Table>
       <TableHeader>
@@ -263,6 +271,7 @@ function AssertionRows({ assertions }: { assertions: readonly AssertionListItem[
           <TableHead className="text-right">Pass rate</TableHead>
           <TableHead>Last run</TableHead>
           <TableHead className="text-right">Sources</TableHead>
+          {canEdit ? <TableHead className="text-right">Actions</TableHead> : null}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -287,6 +296,13 @@ function AssertionRows({ assertions }: { assertions: readonly AssertionListItem[
             <TableCell className="text-right">{formatPassRate(assertion.latestRun)}</TableCell>
             <TableCell>{formatLastRun(assertion.latestRun)}</TableCell>
             <TableCell className="text-right">{assertion.sourceCount}</TableCell>
+            {canEdit ? (
+              <TableCell className="text-right">
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/assertions/${assertion.id}/edit`}>Edit</Link>
+                </Button>
+              </TableCell>
+            ) : null}
           </TableRow>
         ))}
       </TableBody>

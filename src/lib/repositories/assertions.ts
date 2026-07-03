@@ -240,6 +240,35 @@ export async function linkAssertionSource(
   return mapAssertionSourceRow(requireRepositoryRow(data, "Assertion source link returned no row"));
 }
 
+export async function replaceAssertionSourcesForAssertion(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  assertionId: string,
+  sourceIds: readonly string[],
+) {
+  const { error: deleteError } = await client
+    .from("assertion_sources")
+    .delete()
+    .eq("workspace_id", workspaceId)
+    .eq("assertion_id", assertionId);
+
+  assertRepositorySuccess(deleteError, "Unable to replace assertion sources");
+
+  const uniqueSourceIds = [...new Set(sourceIds)];
+
+  for (const sourceId of uniqueSourceIds) {
+    await linkAssertionSource(client, workspaceId, {
+      assertionId,
+      sourceId,
+      isRequired: true,
+      relationshipType: "manual",
+      purpose: "Selected as evidence for this customer-facing assertion.",
+    });
+  }
+
+  return uniqueSourceIds.length;
+}
+
 export async function listAssertionSourcesForAssertion(
   client: RadarRepositoryClient,
   workspaceId: string,
