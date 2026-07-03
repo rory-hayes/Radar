@@ -13,6 +13,10 @@ import {
   type JsonRecord,
   type RadarRepositoryClient,
 } from "@/lib/repositories";
+import {
+  detectAffectedAssertionsForSourceChange,
+  type SourceChangeAffectedAssertion,
+} from "@/lib/sources/affected-assertions";
 import { chunkSourceText } from "@/lib/sources/text-chunking";
 import { crawlUrlSource, hashText, type UrlCrawlerLimits } from "@/lib/sources/url-crawler";
 import { persistUrlCrawlResult } from "@/lib/sources/url-ingestion";
@@ -46,6 +50,9 @@ export type SourceSyncJobResult = {
   versionNumber?: number;
   documentCount?: number;
   chunkCount?: number;
+  affectedAssertions?: SourceChangeAffectedAssertion[];
+  affectedAssertionCount?: number;
+  rerunCandidateCount?: number;
   reason?: string;
 };
 
@@ -148,6 +155,12 @@ async function syncUrlSource(
   const persisted = await persistUrlCrawlResult(client, input.workspaceId, source.id, crawlResult, {
     maxChunkCharacters: options.maxChunkCharacters,
   });
+  const sourceChangeImpact = await detectAffectedAssertionsForSourceChange(client, {
+    workspaceId: input.workspaceId,
+    sourceId: source.id,
+    changed: true,
+    detectionReason: "content_changed",
+  });
 
   return {
     jobId,
@@ -158,6 +171,9 @@ async function syncUrlSource(
     versionNumber: persisted.sourceVersion.versionNumber,
     documentCount: persisted.documentCount,
     chunkCount: persisted.chunkCount,
+    affectedAssertions: sourceChangeImpact.affectedAssertions,
+    affectedAssertionCount: sourceChangeImpact.affectedAssertions.length,
+    rerunCandidateCount: sourceChangeImpact.rerunCandidateCount,
   };
 }
 
@@ -238,6 +254,12 @@ async function syncManualTextSource(
     lastSyncedAt: new Date().toISOString(),
     lastSyncError: null,
   });
+  const sourceChangeImpact = await detectAffectedAssertionsForSourceChange(client, {
+    workspaceId: input.workspaceId,
+    sourceId: source.id,
+    changed: true,
+    detectionReason: "content_changed",
+  });
 
   return {
     jobId,
@@ -248,6 +270,9 @@ async function syncManualTextSource(
     versionNumber: sourceVersion.versionNumber,
     documentCount: 1,
     chunkCount: chunks.length,
+    affectedAssertions: sourceChangeImpact.affectedAssertions,
+    affectedAssertionCount: sourceChangeImpact.affectedAssertions.length,
+    rerunCandidateCount: sourceChangeImpact.rerunCandidateCount,
   };
 }
 

@@ -379,6 +379,7 @@ insert into public.assertion_sources (
   assertion_id,
   source_id,
   is_required,
+  relationship_type,
   purpose,
   created_at
 )
@@ -387,6 +388,7 @@ values (
   '50000000-0000-4000-8000-000000000001',
   '40000000-0000-4000-8000-000000000001',
   true,
+  'manual',
   'Pricing policy source required for knowledge runner grounding.',
   '2026-07-03 09:16:00+00'
 )
@@ -394,6 +396,7 @@ on conflict (assertion_id, source_id) do update
 set
   workspace_id = excluded.workspace_id,
   is_required = excluded.is_required,
+  relationship_type = excluded.relationship_type,
   purpose = excluded.purpose;
 
 insert into public.assertion_runs_schedule (

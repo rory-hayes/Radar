@@ -16,6 +16,7 @@ export const runnerTypes = ["knowledge", "journey", "integration"] as const;
 export const testCaseStatuses = ["draft", "approved", "disabled", "archived"] as const;
 export const testCaseTypes = ["customer_question", "journey_scenario", "integration_check"] as const;
 export const assertionScheduleCadences = ["manual", "hourly", "daily", "weekly", "monthly"] as const;
+export const assertionSourceRelationshipTypes = ["manual", "auto_generated"] as const;
 
 export type AssertionStatus = (typeof assertionStatuses)[number];
 export type AssertionPriority = (typeof assertionPriorities)[number];
@@ -24,6 +25,7 @@ export type RunnerType = (typeof runnerTypes)[number];
 export type TestCaseStatus = (typeof testCaseStatuses)[number];
 export type TestCaseType = (typeof testCaseTypes)[number];
 export type AssertionScheduleCadence = (typeof assertionScheduleCadences)[number];
+export type AssertionSourceRelationshipType = (typeof assertionSourceRelationshipTypes)[number];
 
 export type RadarAssertion = {
   id: string;
@@ -70,6 +72,7 @@ export const assertionSourceSchema = z.object({
   assertionId: z.uuid(),
   sourceId: z.uuid(),
   isRequired: z.boolean().default(true),
+  relationshipType: z.enum(assertionSourceRelationshipTypes).default("manual"),
   purpose: z.string().trim().max(500).optional(),
 });
 

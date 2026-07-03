@@ -17,6 +17,7 @@ test("RAD-035 adds a server-only source sync job executor", async () => {
   assert.match(syncJobs, /syncStatus: "synced"/);
   assert.match(syncJobs, /syncStatus: "error"/);
   assert.match(syncJobs, /SourceSyncJobResult/);
+  assert.match(syncJobs, /affectedAssertions\?: SourceChangeAffectedAssertion\[\]/);
 });
 
 test("RAD-035 detects unchanged source content before writing a new version", async () => {
@@ -28,6 +29,7 @@ test("RAD-035 detects unchanged source content before writing a new version", as
   assert.match(syncJobs, /markSourceUnchanged/);
   assert.match(syncJobs, /force = false/);
   assert.match(syncJobs, /previousContentHash: source\.contentHash/);
+  assert.match(syncJobs, /detectAffectedAssertionsForSourceChange/);
   assert.match(repository, /export async function getLatestSourceVersion/);
   assert.match(repository, /export async function getSourceVersionByContentHash/);
   assert.match(repository, /\.eq\("content_hash", contentHash\)/);

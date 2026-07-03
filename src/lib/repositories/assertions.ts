@@ -5,6 +5,7 @@ import {
   type AssertionPriority,
   type AssertionRunScheduleInput,
   type AssertionScheduleCadence,
+  type AssertionSourceRelationshipType,
   type AssertionSourceInput,
   type AssertionStatus,
   type CreateAssertionInput,
@@ -54,6 +55,7 @@ type AssertionSourceRow = {
   assertion_id: string;
   source_id: string;
   is_required: boolean;
+  relationship_type: AssertionSourceRelationshipType;
   purpose: string | null;
 };
 
@@ -83,12 +85,21 @@ type TestCaseRow = {
 
 const assertionSelect =
   "id, workspace_id, title, purpose, expected_behavior, category, priority, runner_type, status, owner_user_id, created_by";
+const assertionSourceSelect = "workspace_id, assertion_id, source_id, is_required, relationship_type, purpose";
+
+const assertionPriorityRank: Record<AssertionPriority, number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
 
 export type RadarAssertionSource = {
   workspaceId: string;
   assertionId: string;
   sourceId: string;
   isRequired: boolean;
+  relationshipType: AssertionSourceRelationshipType;
   purpose?: string;
 };
 
@@ -102,6 +113,17 @@ export type RadarAssertionRunSchedule = {
   isEnabled: boolean;
   nextRunAt?: string;
   metadata: JsonRecord;
+};
+
+export type RadarSourceChangeAffectedAssertion = {
+  assertion: RadarAssertion;
+  sourceLink: RadarAssertionSource;
+  sourceChangeTrigger: boolean;
+  scheduleEnabled: boolean;
+  scheduleCadence?: AssertionScheduleCadence;
+  nextRunAt?: string;
+  shouldRerun: boolean;
+  reason: "linked_source_changed" | "assertion_not_active" | "source_change_trigger_disabled";
 };
 
 export async function listAssertions(client: RadarRepositoryClient, workspaceId: string) {
@@ -204,9 +226,10 @@ export async function linkAssertionSource(
       assertion_id: parsedInput.assertionId,
       source_id: parsedInput.sourceId,
       is_required: parsedInput.isRequired,
+      relationship_type: parsedInput.relationshipType,
       purpose: parsedInput.purpose ?? null,
     })
-    .select("workspace_id, assertion_id, source_id, is_required, purpose")
+    .select(assertionSourceSelect)
     .single<AssertionSourceRow>();
 
   assertRepositorySuccess(error, "Unable to link assertion source");
@@ -220,7 +243,7 @@ export async function listAssertionSourcesForAssertion(
 ) {
   const { data, error } = await client
     .from("assertion_sources")
-    .select("workspace_id, assertion_id, source_id, is_required, purpose")
+    .select(assertionSourceSelect)
     .eq("workspace_id", workspaceId)
     .eq("assertion_id", assertionId)
     .returns<AssertionSourceRow[]>();
@@ -236,13 +259,83 @@ export async function listAssertionSourcesForSource(
 ) {
   const { data, error } = await client
     .from("assertion_sources")
-    .select("workspace_id, assertion_id, source_id, is_required, purpose")
+    .select(assertionSourceSelect)
     .eq("workspace_id", workspaceId)
     .eq("source_id", sourceId)
     .returns<AssertionSourceRow[]>();
 
   assertRepositorySuccess(error, "Unable to list source assertion links");
   return (data ?? []).map(mapAssertionSourceRow);
+}
+
+export async function listSourceChangeAffectedAssertions(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+) {
+  const links = await listAssertionSourcesForSource(client, workspaceId, sourceId);
+
+  if (links.length === 0) {
+    return [];
+  }
+
+  const assertionIds = [...new Set(links.map((link) => link.assertionId))];
+  const { data: assertionRows, error: assertionError } = await client
+    .from("assertions")
+    .select(assertionSelect)
+    .eq("workspace_id", workspaceId)
+    .in("id", assertionIds)
+    .returns<AssertionRow[]>();
+
+  assertRepositorySuccess(assertionError, "Unable to list source-linked assertions");
+
+  const { data: scheduleRows, error: scheduleError } = await client
+    .from("assertion_runs_schedule")
+    .select("id, workspace_id, assertion_id, cadence, timezone, source_change_trigger, is_enabled, next_run_at, metadata")
+    .eq("workspace_id", workspaceId)
+    .in("assertion_id", assertionIds)
+    .returns<AssertionRunScheduleRow[]>();
+
+  assertRepositorySuccess(scheduleError, "Unable to list source-linked assertion schedules");
+
+  const assertionsById = new Map((assertionRows ?? []).map((row) => [row.id, mapAssertionRow(row)]));
+  const schedulesByAssertionId = new Map(
+    (scheduleRows ?? []).map((row) => [row.assertion_id, mapAssertionRunScheduleRow(row)]),
+  );
+
+  return links
+    .map((link) => {
+      const assertion = assertionsById.get(link.assertionId);
+
+      if (!assertion) {
+        return null;
+      }
+
+      const schedule = schedulesByAssertionId.get(link.assertionId);
+      const sourceChangeTrigger = schedule?.sourceChangeTrigger ?? true;
+      const shouldRerun = assertion.status === "active" && sourceChangeTrigger;
+      const reason = affectedAssertionReason(assertion.status, sourceChangeTrigger);
+      const affectedAssertion: RadarSourceChangeAffectedAssertion = {
+        assertion,
+        sourceLink: link,
+        sourceChangeTrigger,
+        scheduleEnabled: schedule?.isEnabled ?? false,
+        shouldRerun,
+        reason,
+      };
+
+      if (schedule?.cadence) {
+        affectedAssertion.scheduleCadence = schedule.cadence;
+      }
+
+      if (schedule?.nextRunAt) {
+        affectedAssertion.nextRunAt = schedule.nextRunAt;
+      }
+
+      return affectedAssertion;
+    })
+    .filter((affected): affected is RadarSourceChangeAffectedAssertion => affected !== null)
+    .sort(sortAffectedAssertions);
 }
 
 export async function upsertAssertionRunSchedule(
@@ -349,6 +442,7 @@ function mapAssertionSourceRow(row: AssertionSourceRow): RadarAssertionSource {
     assertionId: row.assertion_id,
     sourceId: row.source_id,
     isRequired: row.is_required,
+    relationshipType: row.relationship_type,
     purpose: optionalString(row.purpose),
   });
 }
@@ -379,4 +473,36 @@ function mapTestCaseRow(row: TestCaseRow): RadarTestCase {
     expectedResult: row.expected_result,
     ordinal: row.ordinal,
   });
+}
+
+function affectedAssertionReason(
+  assertionStatus: AssertionStatus,
+  sourceChangeTrigger: boolean,
+): RadarSourceChangeAffectedAssertion["reason"] {
+  if (assertionStatus !== "active") {
+    return "assertion_not_active";
+  }
+
+  if (!sourceChangeTrigger) {
+    return "source_change_trigger_disabled";
+  }
+
+  return "linked_source_changed";
+}
+
+function sortAffectedAssertions(
+  first: RadarSourceChangeAffectedAssertion,
+  second: RadarSourceChangeAffectedAssertion,
+) {
+  if (first.shouldRerun !== second.shouldRerun) {
+    return first.shouldRerun ? -1 : 1;
+  }
+
+  const priorityDelta = assertionPriorityRank[first.assertion.priority] - assertionPriorityRank[second.assertion.priority];
+
+  if (priorityDelta !== 0) {
+    return priorityDelta;
+  }
+
+  return first.assertion.title.localeCompare(second.assertion.title);
 }

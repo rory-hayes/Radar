@@ -6,6 +6,7 @@ import {
   assertionRunScheduleSchema,
   assertionScheduleCadences,
   assertionSourceSchema,
+  assertionSourceRelationshipTypes,
   assertionStatuses,
   createAssertionSchema,
   runnerTypes,
@@ -166,6 +167,7 @@ export const assertionSourceResponseSchema = z.object({
   assertionId: radarIdSchema,
   sourceId: radarIdSchema,
   isRequired: z.boolean(),
+  relationshipType: z.enum(assertionSourceRelationshipTypes),
   purpose: z.string().optional(),
 });
 

@@ -87,6 +87,7 @@ test("RAD-022 adds typed assertion validation schemas", async () => {
   assert.match(schema, /runnerTypes = \["knowledge", "journey", "integration"\]/);
   assert.match(schema, /testCaseTypes = \["customer_question", "journey_scenario", "integration_check"\]/);
   assert.match(schema, /assertionScheduleCadences = \["manual", "hourly", "daily", "weekly", "monthly"\]/);
+  assert.match(schema, /assertionSourceRelationshipTypes = \["manual", "auto_generated"\]/);
   assert.match(schema, /createAssertionSchema/);
   assert.match(schema, /assertionSourceSchema/);
   assert.match(schema, /assertionTemplateSchema/);
