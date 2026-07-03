@@ -59,6 +59,11 @@ Examples:
 - Billing state changed.
 - CRM task was created.
 
+RAD-066 adds the server-only Integration Runner foundation in `src/lib/evaluation/integration-runner.ts`.
+The runner executes approved `integration_check` test cases as bounded HTTP requests, supports configured GET/POST/PUT/PATCH/DELETE methods, validates response status and optional response text, injects bearer or API-key auth headers only from execution-time credentials, and persists per-test-case results through the shared evaluation repository path.
+
+Integration evidence is captured as redacted `http_exchange` artifacts and runner metadata. Request URLs are reduced to safe previews, sensitive headers are masked, response bodies are hashed and bounded, and credential values are redacted before entering actual output, metadata, summaries, or errors.
+
 ## Shared runner contract
 
 RAD-061 defines the shared runner contract in `src/lib/evaluation/runner-contract.ts`.
