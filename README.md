@@ -50,6 +50,8 @@ pnpm test:e2e
 pnpm build
 ```
 
+The Next dev/build scripts force Tailwind's WASI path with `NAPI_RS_FORCE_WASI=true` so local Codex runs do not depend on unsigned native Tailwind binaries. Next may still log its SWC native-loader warning locally and fall back to WASM.
+
 The initial app intentionally exposes only a clean Radar placeholder. Product routes for Command Center, Assertions, Findings, and Sources are introduced by later RAD tickets.
 
 

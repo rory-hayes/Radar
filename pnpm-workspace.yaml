@@ -4,3 +4,5 @@ allowBuilds:
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver
+overrides:
+  lightningcss: npm:lightningcss-wasm@1.32.0
