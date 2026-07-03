@@ -50,6 +50,7 @@ test("RAD-012 adds typed workspace helpers and slug validation", async () => {
   assert.match(server, /requireActiveWorkspace/);
   assert.match(server, /createWorkspaceForCurrentUser/);
   assert.match(server, /supabase\.rpc\("create_workspace_with_admin_membership"/);
+  assert.match(server, /team_visibility/);
 });
 
 test("RAD-012 adds an authenticated first-workspace creation flow", async () => {
