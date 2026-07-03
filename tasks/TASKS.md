@@ -96,7 +96,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 | [RAD-057](tasks/phase-5-eval-knowledge-runner/rad-057-persist-test-case-results-and-scoring.md) | Persist test case results and scoring | P0 | Done | Store per-test results with pass/warning/fail/inconclusive/error status, score, confidence, summaries, and evidence refs. |
 | [RAD-058](tasks/phase-5-eval-knowledge-runner/rad-058-build-eval-run-history-ui.md) | Build eval run history UI | P0 | Done | Show latest run state and historical run summaries on the assertion detail page, including pass rate and first failure markers. |
 | [RAD-059](tasks/phase-5-eval-knowledge-runner/rad-059-implement-manual-rerun-action.md) | Implement manual rerun action | P0 | Done | Add server-side action and UI button to rerun an assertion or specific failed test case with permission checks and run status feedback. |
-| [RAD-060](tasks/phase-5-eval-knowledge-runner/rad-060-e2e-gate-6-knowledge-eval-to-traceable-result.md) | E2E Gate 6 — Knowledge eval to traceable result | P0 | Backlog | Run E2E coverage where a source-backed assertion calls a target answer, detects mismatch, stores evidence-backed test results, and supports manual rerun. |
+| [RAD-060](tasks/phase-5-eval-knowledge-runner/rad-060-e2e-gate-6-knowledge-eval-to-traceable-result.md) | E2E Gate 6 — Knowledge eval to traceable result | P0 | Done | Run E2E coverage where a source-backed assertion calls a target answer, detects mismatch, stores evidence-backed test results, and supports manual rerun. |
 ## Phase 6 — Journey and Integration Runners
 
 | ID | Task | Priority | Status | Description |
