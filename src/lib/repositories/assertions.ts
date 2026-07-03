@@ -88,6 +88,10 @@ type TestCaseRow = {
   ordinal: number;
 };
 
+type TestCaseCountRow = {
+  count: number;
+};
+
 const assertionSelect =
   "id, workspace_id, title, purpose, expected_behavior, category, priority, runner_type, status, owner_user_id, created_by";
 const assertionSourceSelect = "workspace_id, assertion_id, source_id, is_required, relationship_type, purpose";
@@ -438,6 +442,18 @@ export async function listTestCasesForAssertion(
 
   assertRepositorySuccess(error, "Unable to list test cases");
   return (data ?? []).map(mapTestCaseRow);
+}
+
+export async function countApprovedTestCasesForWorkspace(client: RadarRepositoryClient, workspaceId: string) {
+  const { count, error } = await client
+    .from("test_cases")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .eq("status", "approved")
+    .returns<TestCaseCountRow[]>();
+
+  assertRepositorySuccess(error, "Unable to count approved test cases");
+  return count ?? 0;
 }
 
 export async function getTestCaseById(client: RadarRepositoryClient, workspaceId: string, testCaseId: string) {

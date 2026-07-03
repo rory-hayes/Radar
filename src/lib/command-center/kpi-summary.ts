@@ -1,6 +1,7 @@
 import { assertionCategories, type AssertionCategory, type RadarAssertion } from "@/lib/assertions/schema";
 import type { RadarFinding, FindingStatus } from "@/lib/findings/schema";
 import { buildRecentActivityFeed, type CommandCenterRecentActivityItem } from "@/lib/command-center/recent-activity";
+import { buildActivationChecklist, type ActivationChecklist } from "@/lib/onboarding/activation";
 import { generateWeeklyTrustReport, type WeeklyTrustReport } from "@/lib/reports/weekly-trust-report";
 import type { RadarEvaluationRunSummary, RadarFindingActivity } from "@/lib/repositories";
 import type { RadarSource } from "@/lib/sources/schema";
@@ -23,6 +24,7 @@ export type CommandCenterKpiSummary = {
   categoryHealth: CommandCenterCategoryHealth[];
   recentActivity: CommandCenterRecentActivityItem[];
   weeklyTrustReport: WeeklyTrustReport;
+  activationChecklist: ActivationChecklist;
   trends: CommandCenterTrend[];
   hasActivity: boolean;
 };
@@ -56,6 +58,7 @@ type CommandCenterKpiInput = {
   sources?: readonly RadarSource[];
   runs: readonly RadarEvaluationRunSummary[];
   findingActivity?: readonly RadarFindingActivity[];
+  approvedTestCaseCount?: number;
   now?: Date;
 };
 
@@ -69,6 +72,7 @@ export function buildCommandCenterKpiSummary({
   sources = [],
   runs,
   findingActivity = [],
+  approvedTestCaseCount = 0,
   now = new Date(),
 }: CommandCenterKpiInput): CommandCenterKpiSummary {
   const activeFindings = findings.filter((finding) =>
@@ -94,6 +98,13 @@ export function buildCommandCenterKpiSummary({
     categoryHealth: buildAssertionCategoryHealth({ assertions, activeFindings, runs: terminalRuns }),
     recentActivity: buildRecentActivityFeed({ assertions, findings, sources, runs, findingActivity }),
     weeklyTrustReport: generateWeeklyTrustReport({ assertions, findings, runs, now }),
+    activationChecklist: buildActivationChecklist({
+      assertions,
+      findings,
+      sources,
+      runs,
+      approvedTestCaseCount,
+    }),
     hasActivity: assertions.length > 0 || findings.length > 0 || sources.length > 0 || terminalRuns.length > 0,
     trends: [
       {

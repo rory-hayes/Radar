@@ -5,6 +5,7 @@ import { EmptyState, MetricCard, StatusBadge, type StatusTone } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ActivationChecklistPanel } from "@/components/command-center/activation-checklist-panel";
 import { AssertionHealthPanel } from "@/components/command-center/assertion-health-panel";
 import { NeedsAttentionPanel } from "@/components/command-center/needs-attention-panel";
 import { RecentActivityFeed } from "@/components/command-center/recent-activity-feed";
@@ -70,6 +71,8 @@ export function CommandCenterKpiSummary({ summary }: CommandCenterKpiSummaryProp
           className="xl:col-span-2"
         />
       </div>
+
+      <ActivationChecklistPanel checklist={summary.activationChecklist} />
 
       <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
         <CardHeader>

@@ -39,7 +39,8 @@ test("RAD-084 loads recent activity from workspace-scoped repositories", async (
 
   assert.match(page, /listSources/);
   assert.match(page, /listRecentFindingActivityForWorkspace/);
-  assert.match(page, /buildCommandCenterKpiSummary\(\{ assertions, findings, sources, runs, findingActivity \}\)/);
+  assert.match(page, /buildCommandCenterKpiSummary\(\{/);
+  assert.match(page, /findingActivity/);
   assert.match(findings, /export async function listRecentFindingActivityForWorkspace/);
   assert.match(findings, /\.eq\("workspace_id", workspaceId\)/);
   assert.match(findings, /\.order\("created_at", \{ ascending: false \}\)/);

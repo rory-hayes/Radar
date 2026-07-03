@@ -7,6 +7,7 @@ import { buildCommandCenterKpiSummary } from "@/lib/command-center/kpi-summary";
 import { getAppRouteByHref } from "@/lib/radar-routes";
 import {
   listAssertions,
+  countApprovedTestCasesForWorkspace,
   listEvaluationRunSummariesForWorkspace,
   listFindings,
   listRecentFindingActivityForWorkspace,
@@ -63,16 +64,24 @@ async function loadCommandCenterSummary(
   workspaceId: string,
 ) {
   try {
-    const [assertions, findings, runs, sources, findingActivity] = await Promise.all([
+    const [assertions, findings, runs, sources, findingActivity, approvedTestCaseCount] = await Promise.all([
       listAssertions(supabase, workspaceId),
       listFindings(supabase, workspaceId),
       listEvaluationRunSummariesForWorkspace(supabase, workspaceId),
       listSources(supabase, workspaceId),
       listRecentFindingActivityForWorkspace(supabase, workspaceId),
+      countApprovedTestCasesForWorkspace(supabase, workspaceId),
     ]);
 
     return {
-      summary: buildCommandCenterKpiSummary({ assertions, findings, sources, runs, findingActivity }),
+      summary: buildCommandCenterKpiSummary({
+        assertions,
+        findings,
+        sources,
+        runs,
+        findingActivity,
+        approvedTestCaseCount,
+      }),
       error: null,
     };
   } catch (error) {
