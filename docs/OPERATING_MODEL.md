@@ -11,7 +11,8 @@ This file defines how the repo-native task system should be used with Codex.
 5. Run required checks.
 6. Update ticket checklist and notes.
 7. Produce a clear PR summary.
-8. Move the ticket to Review or Done only when criteria pass.
+8. Move the ticket to Done only when criteria pass.
+9. Continue to the next numeric ticket without waiting for a separate approval stop.
 
 ## Branch naming
 
@@ -21,7 +22,7 @@ Use `codex/rad-###-short-name`.
 
 Use concise commits that reference the ticket, for example: `RAD-041 build assertions table`.
 
-## Review standard
+## PR summary standard
 
 Every PR should answer:
 

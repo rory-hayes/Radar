@@ -109,4 +109,4 @@ TBD by implementation. Codex must list actual files touched in the PR summary.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task ready for review.
+Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.

@@ -41,7 +41,7 @@ Operating rules:
 7. Maintain workspace isolation and server-side secret boundaries.
 8. Add/update tests with every behavior change.
 9. Update the active ticket checklist when done.
-10. Every tenth task is an E2E gate. Stop after each E2E gate and summarize the result before continuing.
+10. Every tenth task is an E2E gate. Run each gate, document the result, and continue when it passes; stop only when the gate fails or a required decision is blocked.
 
 Definition of done for every ticket:
 - Acceptance criteria met.

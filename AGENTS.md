@@ -34,15 +34,18 @@ Radar is a customer-facing business verification platform. It catches broken cus
 ## Development rules
 
 - Implement one ticket at a time.
+- Advance through RAD tickets in numeric order after the current ticket is Done unless the user changes priority.
 - Do not make unrelated refactors.
 - Do not invent product scope not present in the active ticket.
 - Do not ship mock-only product features unless the ticket explicitly allows local demo seed data.
-- Prefer small, reviewable PRs.
+- Prefer small, auditable commits and PRs.
 - Use strict TypeScript and validated inputs.
 - Keep secrets server-side only.
 - Preserve workspace isolation on every query and mutation.
 - Add or update tests for every behavior change.
-- Update the active ticket checklist before finishing.
+- Update the active ticket checklist and notes before finishing.
+- Mark tickets Done after the criteria and required checks pass; do not hold finished tickets for a separate approval stop.
+- Stop only for ambiguous scope, failed checks or E2E gates that cannot be fixed within the active ticket, missing external credentials, or a required product decision.
 
 ## Required checks before a task is Done
 

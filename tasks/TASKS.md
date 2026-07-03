@@ -7,19 +7,18 @@ This is the repo-native Kanban board for building Radar from zero to controlled 
 - Backlog
 - Ready
 - In Progress
-- Review
 - Done
 
 ## E2E gate rule
 
-Every tenth task is an E2E quality gate. Do not start the next phase until the gate passes or the failure is explicitly documented and accepted.
+Every tenth task is an E2E quality gate. Do not start the next phase until the gate passes or the failure is explicitly documented and accepted. When the gate passes, continue to the next numeric ticket without waiting for a separate approval stop.
 
 ## Phase 0 — Foundation
 
 | ID | Task | Priority | Status | Description |
 |---|---|---|---|---|
 | [RAD-001](tasks/phase-0-foundation/rad-001-initialize-repo-and-baseline-next-js-application.md) | Initialize repo and baseline Next.js application | P0 | Done | Create or normalize the project foundation so Radar has a clean Next.js application structure, package scripts, TypeScript config, and predictable local development workflow. |
-| [RAD-002](tasks/phase-0-foundation/rad-002-add-agents-md-and-engineering-operating-rules.md) | Add AGENTS.md and engineering operating rules | P0 | Backlog | Add the repository-level instructions Codex must follow on every task, including scope control, no unrelated refactors, no mock production data, tests-first discipline, and status updates. |
+| [RAD-002](tasks/phase-0-foundation/rad-002-add-agents-md-and-engineering-operating-rules.md) | Add AGENTS.md and engineering operating rules | P0 | Done | Add the repository-level instructions Codex must follow on every task, including scope control, no unrelated refactors, no mock production data, tests-first discipline, and status updates. |
 | [RAD-003](tasks/phase-0-foundation/rad-003-install-and-configure-core-frontend-stack.md) | Install and configure core frontend stack | P0 | Backlog | Install and configure Tailwind, shadcn/ui conventions, React Hook Form, Zod, lucide icons, class utilities, and baseline component folders. |
 | [RAD-004](tasks/phase-0-foundation/rad-004-create-typed-environment-and-secrets-validation.md) | Create typed environment and secrets validation | P0 | Backlog | Implement typed environment loading and validation so missing Supabase, OpenAI, Trigger.dev, PostHog, Sentry, Resend, and Stripe values fail safely in the correct environments. |
 | [RAD-005](tasks/phase-0-foundation/rad-005-set-up-ci-quality-baseline.md) | Set up CI quality baseline | P0 | Backlog | Add GitHub Actions or equivalent CI checks for install, lint, typecheck, unit tests, and build so every Codex PR is automatically gated. |

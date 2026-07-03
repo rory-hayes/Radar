@@ -97,7 +97,7 @@ package/config/app shell/docs/test files as required by the task.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task ready for review.
+Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
 
 ### RAD-001 implementation notes
 

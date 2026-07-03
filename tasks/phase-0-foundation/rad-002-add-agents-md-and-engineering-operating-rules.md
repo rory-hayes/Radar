@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -60,41 +60,59 @@ package/config/app shell/docs/test files as required by the task.
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant. No UI/API behavior changed in this docs-only ticket.
+- [x] Data persists correctly where applicable. No persistence path changed in this docs-only ticket.
+- [x] Workspace authorization is enforced where applicable. No authorization path changed in this docs-only ticket.
+- [x] No unrelated scope is introduced.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated. No new tests were required for the docs/process-only change; existing tests passed.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally. Reviewed the affected workflow docs and task board locally.
+- [x] Verify the happy path. Confirmed tickets are marked Done and Codex continues to the next numeric ticket after checks pass.
+- [x] Verify at least one relevant sad path. Confirmed failed checks, failed E2E gates, ambiguous scope, missing credentials, and required product decisions still stop progress.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly. No app navigation or product routes changed.
+- [x] Capture screenshots for UI changes. Not applicable; no UI changed.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task ready for review.
+Implemented the RAD-002 operating-rule update:
+
+- Removed the per-ticket Review status from `tasks/TASKS.md`.
+- Updated `AGENTS.md`, `tasks/CODEX_WORKFLOW.md`, `docs/OPERATING_MODEL.md`, setup docs, kickoff prompts, and the task template so Codex marks tickets Done after criteria and checks pass, then continues to the next numeric ticket.
+- Preserved E2E gates as required quality gates. Codex still stops when a gate fails, scope is ambiguous, credentials are missing, or a required product decision is blocked.
+- Replaced the repeated review-ready ticket boilerplate with Done-oriented wording across existing RAD ticket files.
+
+Commands run:
+
+- `pnpm lint` — passed.
+- `pnpm typecheck` — passed.
+- `pnpm test` — passed, 4 unit tests.
+- `pnpm test:e2e` — passed, 3 smoke tests.
+- `pnpm build` — passed. Next.js still logs the local macOS native SWC code-signature warning and falls back to WASM, which is the same known local behavior from RAD-001.
+- `git diff --check` — passed.
+
+Follow-ups:
+
+- Continue with RAD-003 on the next focused branch after this ticket is committed.

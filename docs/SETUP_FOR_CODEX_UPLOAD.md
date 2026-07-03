@@ -15,7 +15,7 @@ export SHADCNIO_BEARER="Bearer $SHADCNIO_TOKEN"
 5. Run `/mcp` to confirm `shadcnio` and/or `shadcn` are available.
 6. Start Codex with `tasks/KICKOFF_GOAL_PROMPT_WITH_SHADCN_MCP.md`.
 7. Codex should start at RAD-001 and proceed one ticket at a time.
-8. Codex must stop after every E2E gate: RAD-010, RAD-020, RAD-030, RAD-040, RAD-050, RAD-060, RAD-070, RAD-080, RAD-090, RAD-100.
+8. Codex must run every E2E gate: RAD-010, RAD-020, RAD-030, RAD-040, RAD-050, RAD-060, RAD-070, RAD-080, RAD-090, RAD-100. When the gate passes, Codex should continue to the next ticket without a separate approval stop.
 
 ## Do not
 

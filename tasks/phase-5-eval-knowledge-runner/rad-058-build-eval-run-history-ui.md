@@ -109,4 +109,4 @@ Evaluation jobs, Knowledge Runner, LLM adapter, scoring logic, run UI, and tests
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task ready for review.
+Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.

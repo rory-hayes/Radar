@@ -84,3 +84,7 @@ Complete this section only if the ticket changes UI.
 - [ ] No mock production data.
 - [ ] Ticket checklist updated.
 - [ ] PR summary includes what changed, tests run, and risks.
+
+## Codex notes
+
+Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
