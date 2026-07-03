@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -65,54 +65,85 @@ package/config/app shell/docs/test files as required by the task.
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
-- [ ] App shell exists and is Radar-owned, not copied template structure.
-- [ ] Primary navigation contains only the locked V1 pages.
-- [ ] Shell renders correctly in desktop and reasonable smaller-width states.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant.
+- [x] Data persists correctly where applicable.
+- [x] Workspace authorization is enforced where applicable.
+- [x] No unrelated scope is introduced.
+- [x] App shell exists and is Radar-owned, not copied template structure.
+- [x] Primary navigation contains only the locked V1 pages.
+- [x] Shell renders correctly in desktop and reasonable smaller-width states.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 
 ## UI / MCP checklist
 
-- [ ] Read `docs/SHADCN_MCP_AND_BLOCKS.md` and `docs/UI_BLOCKS_IMPLEMENTATION_PLAN.md`.
-- [ ] Checked MCP status or documented CLI fallback.
-- [ ] Used only the smallest approved shadcn primitive/block needed.
-- [ ] Removed demo content and unrelated template routes.
-- [ ] Confirmed UI remains enterprise, minimal, and Radar-specific.
-- [ ] Included screenshots or manual QA notes in PR summary.
+- [x] Read `docs/SHADCN_MCP_AND_BLOCKS.md` and `docs/UI_BLOCKS_IMPLEMENTATION_PLAN.md`.
+- [x] Checked MCP status or documented CLI fallback.
+- [x] Used only the smallest approved shadcn primitive/block needed.
+- [x] Removed demo content and unrelated template routes.
+- [x] Confirmed UI remains enterprise, minimal, and Radar-specific.
+- [x] Included screenshots or manual QA notes in PR summary.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Capture screenshots for UI changes.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
 Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+
+## Codex implementation notes
+
+- Added the `(public)` route group for the existing landing placeholder and the `(app)` route group for Radar product routes.
+- Added shell-wrapped routes for `/command-center`, `/assertions`, `/findings`, `/sources`, and hidden-from-primary-nav `/settings`.
+- Added Radar-owned shell boundaries: `AppShell`, `SidebarNav`, `TopBar`, and `PageHeader`.
+- Used existing shadcn primitives only; no dashboard block or template routes were installed.
+- Primary sidebar navigation is limited to Command Center, Assertions, Findings, and Sources. Settings is route-accessible but not in primary nav.
+- Added app route loading/error states and placeholder route content without fake product metrics.
+- Added `tests/unit/app-shell-routes.test.mjs` and updated the foundation smoke test for the public route group.
+- Hardened `pnpm typecheck` to remove stale generated Next route types before `next typegen`.
+- Verified `shadcnio` MCP was connected with a lightweight `list_popular` call. No token or tokenized URL was written to source.
+- Screenshot QA:
+  - Desktop Command Center: `/tmp/radar-rad-007-command-center-desktop.png`
+  - Mobile Assertions: `/tmp/radar-rad-007-assertions-mobile.png`
+- Browser QA against `next start` on port 3011 returned 200 for `/`, `/command-center`, `/assertions`, `/findings`, `/sources`, and `/settings`; Settings was absent from primary nav and there were no console errors.
+- Rechecked `next dev` on port 3012 with `HEAD /command-center`; route returned 200.
+
+Commands run:
+
+```bash
+pnpm dlx shadcn@latest docs sidebar button badge breadcrumb
+pnpm validate:env
+pnpm lint
+pnpm test
+pnpm test:e2e
+pnpm typecheck
+pnpm build
+next start --port 3011
+next dev --webpack --port 3012
+```

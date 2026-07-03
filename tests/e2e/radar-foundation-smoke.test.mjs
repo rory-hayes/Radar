@@ -26,7 +26,7 @@ test("RAD-001 defines the required local development and quality scripts", async
       start: "next start",
       "validate:env": "node scripts/validate-env.mjs",
       lint: "eslint .",
-      typecheck: "NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
+      typecheck: "rm -rf .next/types .next/dev/types && NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
       test: "node --test tests/unit/*.test.mjs",
       "test:e2e": "node --test tests/e2e/*.test.mjs",
     },
@@ -34,7 +34,7 @@ test("RAD-001 defines the required local development and quality scripts", async
 });
 
 test("RAD-001 keeps the placeholder tied to Radar's assertion-led scope", async () => {
-  const pageSource = await readWorkspaceFile("src/app/page.tsx");
+  const pageSource = await readWorkspaceFile("src/app/(public)/page.tsx");
 
   assert.match(pageSource, /customer-facing business still works/);
   assert.match(pageSource, /assertion-led product work/);

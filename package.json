@@ -12,7 +12,7 @@
     "start": "next start",
     "validate:env": "node scripts/validate-env.mjs",
     "lint": "eslint .",
-    "typecheck": "NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
+    "typecheck": "rm -rf .next/types .next/dev/types && NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
     "test": "node --test tests/unit/*.test.mjs",
     "test:e2e": "node --test tests/e2e/*.test.mjs",
     "supabase:start": "supabase start",
