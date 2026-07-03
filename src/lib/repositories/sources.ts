@@ -396,6 +396,45 @@ type SourceChunkEmbeddingInput = {
   metadata: JsonRecord;
 };
 
+type EvidenceChunkMatchRow = {
+  chunk_id: string;
+  source_id: string;
+  source_name: string;
+  source_type: SourceType;
+  source_document_id: string;
+  document_title: string;
+  document_uri: string | null;
+  storage_path: string | null;
+  chunk_index: number;
+  content: string;
+  content_hash: string;
+  token_count: number | null;
+  similarity: number;
+};
+
+export type RadarEvidenceChunkMatch = {
+  chunkId: string;
+  sourceId: string;
+  sourceName: string;
+  sourceType: SourceType;
+  sourceDocumentId: string;
+  documentTitle: string;
+  documentUri?: string;
+  storagePath?: string;
+  chunkIndex: number;
+  content: string;
+  contentHash: string;
+  tokenCount?: number;
+  similarity: number;
+};
+
+type MatchAssertionSourceChunksInput = {
+  assertionId: string;
+  queryEmbedding: readonly number[];
+  limit?: number;
+  sourceIds?: readonly string[];
+};
+
 export async function listSourceChunksNeedingEmbedding(
   client: RadarRepositoryClient,
   workspaceId: string,
@@ -435,6 +474,27 @@ export async function updateSourceChunkEmbedding(
 
   assertRepositorySuccess(error, "Unable to update source chunk embedding");
   return mapSourceChunkRow(requireRepositoryRow(data, "Source chunk embedding update returned no row"));
+}
+
+export async function matchAssertionSourceChunks(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  input: MatchAssertionSourceChunksInput,
+) {
+  const { data, error } = await client
+    .rpc("match_assertion_source_chunks", {
+      p_workspace_id: workspaceId,
+      p_assertion_id: input.assertionId,
+      p_query_embedding: toPgVectorLiteral(input.queryEmbedding),
+      p_match_count: input.limit ?? 8,
+      p_source_ids: input.sourceIds && input.sourceIds.length > 0 ? [...input.sourceIds] : null,
+    })
+    .returns<EvidenceChunkMatchRow[]>();
+
+  assertRepositorySuccess(error, "Unable to retrieve source evidence");
+  const rows = Array.isArray(data) ? data : [];
+
+  return rows.map(mapEvidenceChunkMatchRow);
 }
 
 function mapSourceRow(row: SourceRow): RadarSource {
@@ -507,6 +567,24 @@ function mapSourceChunkForEmbeddingRow(row: SourceChunkForEmbeddingRow): RadarSo
   return {
     ...mapSourceChunkRow(row),
     metadata: jsonRecord(row.metadata),
+  };
+}
+
+function mapEvidenceChunkMatchRow(row: EvidenceChunkMatchRow): RadarEvidenceChunkMatch {
+  return {
+    chunkId: row.chunk_id,
+    sourceId: row.source_id,
+    sourceName: row.source_name,
+    sourceType: row.source_type,
+    sourceDocumentId: row.source_document_id,
+    documentTitle: row.document_title,
+    documentUri: optionalString(row.document_uri),
+    storagePath: optionalString(row.storage_path),
+    chunkIndex: row.chunk_index,
+    content: row.content,
+    contentHash: row.content_hash,
+    tokenCount: optionalNumber(row.token_count),
+    similarity: row.similarity,
   };
 }
 

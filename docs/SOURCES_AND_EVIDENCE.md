@@ -45,6 +45,8 @@ RAD-035 source sync jobs compare each extracted content hash to existing source 
 
 RAD-036 indexing jobs process source chunks with missing embeddings and store vectors in the existing private, workspace-owned `source_chunks.embedding` field. Embedding metadata is limited to model, dimensions, job reason, timestamp, and content hash so retrieval can cite chunks without copying raw source bodies into logs or external traces.
 
+RAD-037 retrieval uses only assertion-linked sources and returns ranked chunk excerpts with citations to source, document, chunk index, and content hash. Retrieval APIs are server guarded and are intended for the eval engine, not as a generic workspace search or exploration surface.
+
 ## Change detection
 
 Radar stores content hashes and source versions. When a source changes, Radar identifies affected assertions and reruns only those checks.

@@ -69,6 +69,8 @@ RAD-035 adds the source sync job boundary. Sync jobs mark supported sources as `
 
 RAD-036 adds the chunk embedding pipeline. Indexing jobs load only `source_chunks` rows with missing pgvector embeddings, batch text through a server-only embedding provider, validate the 1536-dimension vector contract, and update each chunk with a pgvector literal plus bounded embedding metadata. Incremental re-indexing is driven by missing embeddings: already indexed chunks are skipped, and new or changed chunks created by source sync are the rows selected for embedding.
 
+RAD-037 adds assertion-scoped evidence retrieval. Retrieval embeds the query plus assertion/test-case context, searches only chunks from sources linked through `assertion_sources`, and returns bounded excerpts with source document/chunk citations. Workspace ID, assertion ID, optional test-case ID, and optional source filters are all validated server-side before vector matching.
+
 ## Assertions and Test Cases
 
 RAD-022 adds the assertion-led verification layer:

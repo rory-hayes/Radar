@@ -213,6 +213,22 @@ export async function linkAssertionSource(
   return mapAssertionSourceRow(requireRepositoryRow(data, "Assertion source link returned no row"));
 }
 
+export async function listAssertionSourcesForAssertion(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  assertionId: string,
+) {
+  const { data, error } = await client
+    .from("assertion_sources")
+    .select("workspace_id, assertion_id, source_id, is_required, purpose")
+    .eq("workspace_id", workspaceId)
+    .eq("assertion_id", assertionId)
+    .returns<AssertionSourceRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list assertion sources");
+  return (data ?? []).map(mapAssertionSourceRow);
+}
+
 export async function upsertAssertionRunSchedule(
   client: RadarRepositoryClient,
   workspaceId: string,
@@ -253,6 +269,18 @@ export async function listTestCasesForAssertion(
 
   assertRepositorySuccess(error, "Unable to list test cases");
   return (data ?? []).map(mapTestCaseRow);
+}
+
+export async function getTestCaseById(client: RadarRepositoryClient, workspaceId: string, testCaseId: string) {
+  const { data, error } = await client
+    .from("test_cases")
+    .select("id, workspace_id, assertion_id, title, type, status, input, expected_result, ordinal")
+    .eq("workspace_id", workspaceId)
+    .eq("id", testCaseId)
+    .maybeSingle<TestCaseRow>();
+
+  assertRepositorySuccess(error, "Unable to load test case");
+  return data ? mapTestCaseRow(data) : null;
 }
 
 export async function createTestCase(
