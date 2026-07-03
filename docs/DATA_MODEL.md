@@ -61,6 +61,8 @@ RAD-021 adds the first source-of-truth persistence layer:
 
 Every source table has direct `workspace_id` ownership and RLS. Source content may be stored in `source_chunks.content`, but it must not be copied into logs, analytics, or unbounded metadata fields.
 
+RAD-033 adds the first URL ingestion boundary. The crawler accepts only safe `http` and `https` URLs, blocks local/private hosts, applies timeout and byte limits, checks robots.txt when available, keeps sitemap ingestion same-origin and capped, extracts bounded readable text, and stores stable SHA-256 content hashes. Persisted URL crawl output flows through `source_versions`, `source_documents`, and `source_chunks`; crawler metadata stays small and must not include credentials, raw headers, or unrelated site-wide crawl state.
+
 ## Assertions and Test Cases
 
 RAD-022 adds the assertion-led verification layer:

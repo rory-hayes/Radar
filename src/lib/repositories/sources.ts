@@ -87,6 +87,17 @@ type SourceAssertionCountRow = {
   source_id: string;
 };
 
+type SourceVersionNumberRow = {
+  version_number: number;
+};
+
+type SourceSyncStateInput = {
+  syncStatus: SourceSyncStatus;
+  contentHash?: string;
+  lastSyncedAt?: string;
+  lastSyncError?: string;
+};
+
 const sourceSelect =
   "id, workspace_id, name, description, type, sync_status, origin_uri, content_hash, last_synced_at, last_sync_error, created_by";
 
@@ -204,6 +215,43 @@ export async function updateSource(
 export async function deleteSource(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {
   const { error } = await client.from("sources").delete().eq("workspace_id", workspaceId).eq("id", sourceId);
   assertRepositorySuccess(error, "Unable to delete source");
+}
+
+export async function getNextSourceVersionNumber(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {
+  const { data, error } = await client
+    .from("source_versions")
+    .select("version_number")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .returns<SourceVersionNumberRow[]>();
+
+  assertRepositorySuccess(error, "Unable to load next source version");
+  return (data?.[0]?.version_number ?? 0) + 1;
+}
+
+export async function updateSourceSyncState(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+  input: SourceSyncStateInput,
+) {
+  const { data, error } = await client
+    .from("sources")
+    .update({
+      sync_status: input.syncStatus,
+      content_hash: input.contentHash ?? null,
+      last_synced_at: input.lastSyncedAt ?? null,
+      last_sync_error: input.lastSyncError ?? null,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", sourceId)
+    .select(sourceSelect)
+    .single<SourceRow>();
+
+  assertRepositorySuccess(error, "Unable to update source sync state");
+  return mapSourceRow(requireRepositoryRow(data, "Source sync update returned no row"));
 }
 
 export async function createSourceVersion(client: RadarRepositoryClient, workspaceId: string, input: SourceVersionInput) {
