@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/app-shell";
 import { ErrorState } from "@/components/radar";
 import { WeeklyTrustReportDetail } from "@/components/reports/weekly-trust-report-detail";
+import { trackProductEvent } from "@/lib/analytics/posthog";
+import { getAuthenticatedUser } from "@/lib/auth/session";
 import { buildWeeklyTrustReportExportPayload } from "@/lib/reports/report-export";
 import { generateWeeklyTrustReport } from "@/lib/reports/weekly-trust-report";
 import { listAssertions, listEvaluationRunSummariesForWorkspace, listFindings } from "@/lib/repositories";
@@ -44,6 +46,20 @@ export default async function WeeklyTrustReportPage() {
       </ReportShell>
     );
   }
+
+  const user = await getAuthenticatedUser();
+  await trackProductEvent({
+    event: "report_viewed",
+    properties: {
+      workspaceId: membership.workspace.id,
+      userId: user?.id,
+      reportId: result.report.id,
+      periodStart: result.report.period.start,
+      periodEnd: result.report.period.end,
+      activeExceptions: result.report.activeExceptions,
+      passRate: (result.report.passRate ?? 0) / 100,
+    },
+  });
 
   return (
     <ReportShell status={result.report.period.label}>

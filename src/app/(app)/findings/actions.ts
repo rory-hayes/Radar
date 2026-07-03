@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { trackProductEvent } from "@/lib/analytics/posthog";
 import { recordAuditEvent } from "@/lib/audit/server";
 import { approvedRunnableTestCasesForRunner, buildManualRerunMetadata } from "@/lib/evaluation/manual-reruns";
 import { queueEvaluationJob } from "@/lib/evaluation/job-orchestration";
@@ -382,6 +383,17 @@ export async function queueFindingRerunAction(
           workflowVersion: "rad-079",
           evaluationRunId: queued.status === "queued" ? queued.run.id : null,
           testCaseId: requestedTestCase?.id,
+        },
+      });
+      await trackProductEvent({
+        event: "fix_rerun",
+        properties: {
+          workspaceId: membership.workspace.id,
+          userId: user.id,
+          findingId: finding.id,
+          assertionId: assertion.id,
+          runId: queued.status === "queued" ? queued.run.id : undefined,
+          targetedTestCase: Boolean(requestedTestCase),
         },
       });
 

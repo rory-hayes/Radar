@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { trackProductEvent } from "@/lib/analytics/posthog";
 import { createSource, updateSource } from "@/lib/repositories";
 import {
   runWorkspaceServerAction,
@@ -109,6 +110,16 @@ export async function createSourceAction(
           throw serverActionError(uploadFailureMessage(error));
         }
       }
+
+      await trackProductEvent({
+        event: "source_added",
+        properties: {
+          workspaceId: membership.workspace.id,
+          userId: user.id,
+          sourceId: source.id,
+          sourceType: source.type,
+        },
+      });
 
       return source;
     },

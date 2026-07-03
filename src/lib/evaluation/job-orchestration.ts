@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
+import { trackProductEvent } from "@/lib/analytics/posthog";
 import { type RunnerType } from "@/lib/assertions/schema";
 import {
   claimQueuedEvaluationRun,
@@ -198,6 +199,25 @@ export async function runNextEvaluationJob(
       }),
     });
     await processFindingRerunResolutionForRun(client, input.workspaceId, completedRun);
+    await trackProductEvent({
+      event: "run_completed",
+      properties: {
+        workspaceId: input.workspaceId,
+        assertionId: completedRun.assertionId,
+        runId: completedRun.id,
+        runnerType: completedRun.runnerType,
+        status: completedRun.status,
+        triggerType: completedRun.triggerType,
+        totalTestCases: completedRun.totalTestCases,
+        passedCount: completedRun.passedCount,
+        warningCount: completedRun.warningCount,
+        failedCount: completedRun.failedCount,
+        errorCount: completedRun.errorCount,
+        skippedCount: completedRun.skippedCount,
+        score: completedRun.score,
+        confidence: completedRun.confidence,
+      },
+    });
 
     return { status: "completed", run: completedRun, attempt };
   } catch (error) {

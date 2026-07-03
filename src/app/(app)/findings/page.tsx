@@ -8,6 +8,8 @@ import {
   type FindingListItem,
 } from "@/components/findings";
 import { ErrorState, MetricCard } from "@/components/radar";
+import { trackProductEvent } from "@/lib/analytics/posthog";
+import { getAuthenticatedUser } from "@/lib/auth/session";
 import {
   type FindingSeverity,
   type FindingOwnerTeam,
@@ -81,6 +83,22 @@ export default async function FindingsPage({ searchParams }: FindingsPageProps) 
   const selectedDetail = selectedFinding
     ? await loadFindingDetail(supabase, membership.workspace.id, selectedFinding.id)
     : { evidence: [], activity: [], error: null };
+
+  if (selectedFinding && selectedFindingId && !selectedDetail.error) {
+    const user = await getAuthenticatedUser();
+
+    await trackProductEvent({
+      event: "finding_opened",
+      properties: {
+        workspaceId: membership.workspace.id,
+        userId: user?.id,
+        findingId: selectedFinding.id,
+        assertionId: selectedFinding.assertionId,
+        severity: selectedFinding.severity,
+        status: selectedFinding.status,
+      },
+    });
+  }
 
   return (
     <FindingsPageShell findingCount={findingResult.findings.length}>

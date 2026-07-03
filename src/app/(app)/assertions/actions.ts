@@ -14,6 +14,7 @@ import {
   TestCaseSuggestionError,
   type TestCaseSuggestionSourceContext,
 } from "@/lib/assertions/ai-test-cases";
+import { trackProductEvent } from "@/lib/analytics/posthog";
 import {
   assertionCategories,
   assertionPriorities,
@@ -180,6 +181,12 @@ export async function createAssertionAction(
       const assertion = await createAssertion(supabase, membership.workspace.id, user.id, buildAssertionInput(input));
 
       await saveAssertionDetails(supabase, membership.workspace.id, assertion.id, input);
+      await trackAssertionApprovedIfActive({
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        assertion,
+        sourceCount: input.sourceIds.length,
+      });
       return assertion;
     },
   );
@@ -204,7 +211,7 @@ export async function updateAssertionAction(
       permission: "assertion:edit",
       schema: assertionFormActionSchema,
     },
-    async ({ input, membership }) => {
+    async ({ input, membership, user }) => {
       const supabase = await createSupabaseServerClient();
 
       if (!supabase) {
@@ -218,6 +225,12 @@ export async function updateAssertionAction(
       const assertion = await updateAssertion(supabase, membership.workspace.id, input.assertionId, buildAssertionInput(input));
 
       await saveAssertionDetails(supabase, membership.workspace.id, input.assertionId, input);
+      await trackAssertionApprovedIfActive({
+        workspaceId: membership.workspace.id,
+        userId: user.id,
+        assertion,
+        sourceCount: input.sourceIds.length,
+      });
       return assertion;
     },
   );
@@ -734,6 +747,30 @@ function buildAssertionInput(input: AssertionFormInput): CreateAssertionInput {
       formVersion: "rad-042",
     },
   };
+}
+
+async function trackAssertionApprovedIfActive(input: {
+  workspaceId: string;
+  userId: string;
+  assertion: Awaited<ReturnType<typeof createAssertion>>;
+  sourceCount: number;
+}) {
+  if (input.assertion.status !== "active") {
+    return;
+  }
+
+  await trackProductEvent({
+    event: "assertion_approved",
+    properties: {
+      workspaceId: input.workspaceId,
+      userId: input.userId,
+      assertionId: input.assertion.id,
+      category: input.assertion.category,
+      priority: input.assertion.priority,
+      runnerType: input.assertion.runnerType,
+      sourceCount: input.sourceCount,
+    },
+  });
 }
 
 function buildTestCaseInput(input: TestCaseFormInput, status: TestCaseInput["status"]): TestCaseInput {
