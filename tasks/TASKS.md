@@ -110,7 +110,7 @@ Every tenth task is an E2E quality gate. Do not start the next phase until the g
 | [RAD-067](tasks/phase-6-journey-integration-runners/rad-067-build-generic-webhook-and-api-assertion-checks.md) | Build generic webhook and API assertion checks | P1 | Done | Support assertions such as webhook fired, API returned expected state, ticket endpoint accepted request, or billing object updated. |
 | [RAD-068](tasks/phase-6-journey-integration-runners/rad-068-create-minimal-handoff-templates.md) | Create minimal handoff templates | P1 | Done | Add templates for email sent, support ticket created, CRM task created, webhook event received, and billing status changed using generic API or webhook evidence. |
 | [RAD-069](tasks/phase-6-journey-integration-runners/rad-069-harden-runner-credential-handling.md) | Harden runner credential handling | P1 | Done | Encrypt runner credentials, redact secrets from logs/artifacts, enforce workspace isolation, and add credential test actions. |
-| [RAD-070](tasks/phase-6-journey-integration-runners/rad-070-e2e-gate-7-runner-triad-smoke-test.md) | E2E Gate 7 — Runner triad smoke test | P1 | Backlog | Run E2E coverage across one Knowledge assertion, one Journey assertion, and one Integration assertion, proving shared runner contracts and artifacts work. |
+| [RAD-070](tasks/phase-6-journey-integration-runners/rad-070-e2e-gate-7-runner-triad-smoke-test.md) | E2E Gate 7 — Runner triad smoke test | P1 | Done | Run E2E coverage across one Knowledge assertion, one Journey assertion, and one Integration assertion, proving shared runner contracts and artifacts work. |
 ## Phase 7 — Findings and Recommended Fixes
 
 | ID | Task | Priority | Status | Description |

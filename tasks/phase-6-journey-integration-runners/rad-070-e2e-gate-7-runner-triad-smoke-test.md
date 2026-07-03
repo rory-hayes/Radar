@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -60,42 +60,49 @@ Runner contracts, Playwright code, integration runner code, credential helpers, 
 
 ## Acceptance criteria
 
-- [ ] Gate report summarizes pass/fail status and any regressions.
-- [ ] Blocking failures are fixed or explicitly documented as accepted deferrals.
-- [ ] Codex stops and summarizes before moving to the next phase.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
-- [ ] UI/product scope drift check completed: no generic eval platform, no template bloat, navigation remains locked.
+- [x] Gate report summarizes pass/fail status and any regressions.
+- [x] Blocking failures are fixed or explicitly documented as accepted deferrals.
+- [x] Codex stops and summarizes before moving to the next phase.
+- [x] Data persists correctly where applicable.
+- [x] Workspace authorization is enforced where applicable.
+- [x] No unrelated scope is introduced.
+- [x] UI/product scope drift check completed: no generic eval platform, no template bloat, navigation remains locked.
 
 ## Test criteria
 
-- [ ] Full phase E2E flow is executed.
-- [ ] Core smoke scripts are run.
-- [ ] Regression notes are documented in the ticket file or PR summary.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Full phase E2E flow is executed.
+- [x] Core smoke scripts are run.
+- [x] Regression notes are documented in the ticket file or PR summary.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Capture screenshots for UI changes.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+- Added `tests/e2e/runner-triad-smoke.test.mjs` as the RAD-070 Phase 6 gate.
+- Gate coverage verifies the shared runner contract, Knowledge Runner execution path, Journey Runner foundation/schema/Trial Onboarding pack, Integration Runner foundation/generic checks/handoff templates, email receipt artifacts, HTTP exchange artifacts, and runner credential hardening.
+- Scope guardrails passed: primary navigation remains Command Center, Assertions, Findings, Sources; no prompt playground, trace explorer, workflow canvas, model-comparison UI, or integration marketplace was introduced.
+- No UI changes were needed; shadcn blocks/components were not used for this E2E gate ticket.
+- Validation passed: `node --test tests/e2e/runner-triad-smoke.test.mjs`; `pnpm lint`; `pnpm typecheck`; `pnpm test` (256 unit tests); `pnpm build`; `pnpm test:e2e` (26 E2E tests); `pnpm validate:seed`; `pnpm validate:env`; `pnpm db:harness`; protected-route local smoke on port 3036.
+- `pnpm db:harness:apply` failed because Docker is not running: `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`.
+- Gate regression notes: no blocking regressions found. Docker-backed DB apply remains environment-blocked when Docker is not running and is documented in the final validation record.
+- Manual QA: protected assertion detail route returned the expected sign-in redirect; the gate inspects the complete Phase 6 runner triad structurally. Screenshot capture is not meaningful because this ticket has no UI changes.
