@@ -16,14 +16,22 @@ import {
   assertionStatuses,
   runnerTypes,
   type CreateAssertionInput,
+  testCaseTypes,
+  type TestCaseInput,
 } from "@/lib/assertions/schema";
 import {
+  approveTestCase,
   createAssertion,
+  createTestCase,
+  deleteTestCase,
+  disableTestCase,
   getAssertionById,
+  getTestCaseById,
   listSourceChunksPreview,
   listSources,
   replaceAssertionSourcesForAssertion,
   updateAssertion,
+  updateTestCase,
   upsertAssertionRunSchedule,
 } from "@/lib/repositories";
 import {
@@ -87,6 +95,37 @@ const assertionSuggestionActionSchema = z.object({
 
 export type AssertionSuggestionState = {
   error?: string;
+};
+
+const testCaseFormActionSchema = z.object({
+  mode: z.enum(["create", "update"]),
+  assertionId: z.uuid(),
+  testCaseId: optionalTrimmedString.pipe(z.uuid().optional()),
+  title: z.string().trim().min(4, "Test case title must be at least 4 characters.").max(180),
+  type: z.enum(testCaseTypes),
+  inputText: z.string().trim().min(4, "Test input must be at least 4 characters.").max(2000),
+  expectedResult: z.string().trim().min(8, "Expected result must be at least 8 characters.").max(2000),
+  ordinal: z.number().int().min(0).max(999),
+}).superRefine((input, context) => {
+  if (input.mode === "update" && !input.testCaseId) {
+    context.addIssue({
+      code: "custom",
+      path: ["testCaseId"],
+      message: "Test case id is required when updating a test case.",
+    });
+  }
+});
+
+const testCaseStatusActionSchema = z.object({
+  assertionId: z.uuid(),
+  testCaseId: z.uuid(),
+});
+
+type TestCaseFormInput = z.infer<typeof testCaseFormActionSchema>;
+
+export type TestCaseFormState = {
+  error?: string;
+  success?: string;
 };
 
 export async function createAssertionAction(
@@ -219,6 +258,97 @@ export async function updateAssertionSourceLinksAction(
   return {
     success: sourceCount === 1 ? "1 source linked to this assertion." : `${sourceCount} sources linked to this assertion.`,
   };
+}
+
+export async function createTestCaseAction(
+  _previousState: TestCaseFormState,
+  formData: FormData,
+): Promise<TestCaseFormState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: testCaseFormInputFromFormData("create", formData),
+      permission: "assertion:edit",
+      schema: testCaseFormActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      await requireWorkspaceAssertion(supabase, membership.workspace.id, input.assertionId);
+
+      return createTestCase(supabase, membership.workspace.id, user.id, buildTestCaseInput(input, "draft"));
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/assertions");
+  revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
+  return { success: "Test case created as a draft." };
+}
+
+export async function updateTestCaseAction(
+  _previousState: TestCaseFormState,
+  formData: FormData,
+): Promise<TestCaseFormState> {
+  const result = await runWorkspaceServerAction(
+    {
+      input: testCaseFormInputFromFormData("update", formData),
+      permission: "assertion:edit",
+      schema: testCaseFormActionSchema,
+    },
+    async ({ input, membership }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      if (!input.testCaseId) {
+        throw serverActionError("Test case id is required when updating a test case.", "validation");
+      }
+
+      await requireWorkspaceAssertion(supabase, membership.workspace.id, input.assertionId);
+      await requireWorkspaceTestCase(supabase, membership.workspace.id, input.assertionId, input.testCaseId);
+
+      return updateTestCase(supabase, membership.workspace.id, input.testCaseId, buildTestCaseUpdateInput(input));
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
+  }
+
+  revalidatePath("/assertions");
+  revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
+  return { success: "Test case updated." };
+}
+
+export async function approveTestCaseAction(formData: FormData) {
+  await runTestCaseLifecycleAction(formData, async (supabase, workspaceId, testCaseId, userId) => {
+    await approveTestCase(supabase, workspaceId, testCaseId, userId);
+  });
+}
+
+export async function disableTestCaseAction(formData: FormData) {
+  await runTestCaseLifecycleAction(formData, async (supabase, workspaceId, testCaseId) => {
+    await disableTestCase(supabase, workspaceId, testCaseId);
+  });
+}
+
+export async function deleteTestCaseAction(formData: FormData) {
+  await runTestCaseLifecycleAction(formData, async (supabase, workspaceId, testCaseId) => {
+    await deleteTestCase(supabase, workspaceId, testCaseId);
+  });
 }
 
 export async function generateSuggestedAssertionDraftsAction(
@@ -354,6 +484,19 @@ function assertionFormInputFromFormData(mode: AssertionFormInput["mode"], formDa
   };
 }
 
+function testCaseFormInputFromFormData(mode: TestCaseFormInput["mode"], formData: FormData) {
+  return {
+    mode,
+    assertionId: String(formData.get("assertionId") ?? ""),
+    testCaseId: String(formData.get("testCaseId") ?? ""),
+    title: String(formData.get("title") ?? ""),
+    type: String(formData.get("type") ?? "customer_question"),
+    inputText: String(formData.get("inputText") ?? ""),
+    expectedResult: String(formData.get("expectedResult") ?? ""),
+    ordinal: Number(formData.get("ordinal") ?? 0),
+  };
+}
+
 function buildAssertionInput(input: AssertionFormInput): CreateAssertionInput {
   return {
     title: input.title,
@@ -368,6 +511,108 @@ function buildAssertionInput(input: AssertionFormInput): CreateAssertionInput {
       formVersion: "rad-042",
     },
   };
+}
+
+function buildTestCaseInput(input: TestCaseFormInput, status: TestCaseInput["status"]): TestCaseInput {
+  return {
+    assertionId: input.assertionId,
+    title: input.title,
+    type: input.type,
+    status,
+    input: {
+      text: input.inputText,
+    },
+    expectedResult: input.expectedResult,
+    ordinal: input.ordinal,
+    metadata: {
+      formVersion: "rad-047",
+    },
+  };
+}
+
+function buildTestCaseUpdateInput(input: TestCaseFormInput): Partial<TestCaseInput> {
+  return {
+    title: input.title,
+    type: input.type,
+    input: {
+      text: input.inputText,
+    },
+    expectedResult: input.expectedResult,
+    ordinal: input.ordinal,
+    metadata: {
+      formVersion: "rad-047",
+    },
+  };
+}
+
+async function runTestCaseLifecycleAction(
+  formData: FormData,
+  handler: (
+    supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+    workspaceId: string,
+    testCaseId: string,
+    userId: string,
+  ) => Promise<void>,
+) {
+  const result = await runWorkspaceServerAction(
+    {
+      input: {
+        assertionId: String(formData.get("assertionId") ?? ""),
+        testCaseId: String(formData.get("testCaseId") ?? ""),
+      },
+      permission: "assertion:edit",
+      schema: testCaseStatusActionSchema,
+    },
+    async ({ input, membership, user }) => {
+      const supabase = await createSupabaseServerClient();
+
+      if (!supabase) {
+        throw serverActionError("Supabase is not configured for this environment.");
+      }
+
+      await requireWorkspaceAssertion(supabase, membership.workspace.id, input.assertionId);
+      await requireWorkspaceTestCase(supabase, membership.workspace.id, input.assertionId, input.testCaseId);
+      await handler(supabase, membership.workspace.id, input.testCaseId, user.id);
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    throw serverActionError(error);
+  }
+
+  revalidatePath("/assertions");
+  revalidatePath(`/assertions/${String(formData.get("assertionId") ?? "")}`);
+}
+
+async function requireWorkspaceAssertion(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  workspaceId: string,
+  assertionId: string,
+) {
+  const assertion = await getAssertionById(supabase, workspaceId, assertionId);
+
+  if (!assertion) {
+    throw serverActionError("Assertion not found in this workspace.", "validation");
+  }
+
+  return assertion;
+}
+
+async function requireWorkspaceTestCase(
+  supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>,
+  workspaceId: string,
+  assertionId: string,
+  testCaseId: string,
+) {
+  const testCase = await getTestCaseById(supabase, workspaceId, testCaseId);
+
+  if (!testCase || testCase.assertionId !== assertionId) {
+    throw serverActionError("Test case not found for this assertion.", "validation");
+  }
+
+  return testCase;
 }
 
 async function saveAssertionDetails(

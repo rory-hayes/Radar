@@ -147,6 +147,7 @@ export const assertionUpdateRequestSchema = createAssertionSchema.partial();
 export const assertionSourceLinkRequestSchema = assertionSourceSchema;
 export const assertionScheduleUpsertRequestSchema = assertionRunScheduleSchema;
 export const testCaseCreateRequestSchema = testCaseSchema;
+export const testCaseUpdateRequestSchema = testCaseSchema.partial();
 
 export const assertionResponseSchema = z.object({
   id: radarIdSchema,
@@ -351,6 +352,7 @@ export type SourceUpdateRequest = z.infer<typeof sourceUpdateRequestSchema>;
 export type AssertionCreateRequest = z.infer<typeof assertionCreateRequestSchema>;
 export type AssertionUpdateRequest = z.infer<typeof assertionUpdateRequestSchema>;
 export type TestCaseCreateRequest = z.infer<typeof testCaseCreateRequestSchema>;
+export type TestCaseUpdateRequest = z.infer<typeof testCaseUpdateRequestSchema>;
 export type EvaluationRunCreateRequest = z.infer<typeof evaluationRunCreateRequestSchema>;
 export type TestCaseResultCreateRequest = z.infer<typeof testCaseResultCreateRequestSchema>;
 export type FindingCreateRequest = z.infer<typeof findingCreateRequestSchema>;

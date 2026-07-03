@@ -104,6 +104,7 @@ export default async function AssertionDetailPage({ params }: AssertionDetailPag
         runHistory={detail.runHistory}
         findings={detail.findings}
         canEditSources={canEditAssertion}
+        canEditTestCases={canEditAssertion}
       />
     </AssertionDetailShell>
   );

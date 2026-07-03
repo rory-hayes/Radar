@@ -26,6 +26,7 @@ import {
   assertionUpdateRequestSchema,
   testCaseCreateRequestSchema,
   testCaseResponseSchema,
+  testCaseUpdateRequestSchema,
 } from "@/lib/validation";
 import {
   assertRepositorySuccess,
@@ -477,6 +478,73 @@ export async function createTestCase(
 
   assertRepositorySuccess(error, "Unable to create test case");
   return mapTestCaseRow(requireRepositoryRow(data, "Test case insert returned no row"));
+}
+
+export async function updateTestCase(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  testCaseId: string,
+  input: Partial<TestCaseInput>,
+) {
+  const parsedInput = testCaseUpdateRequestSchema.parse(input);
+  const { data, error } = await client
+    .from("test_cases")
+    .update({
+      title: parsedInput.title,
+      type: parsedInput.type,
+      status: parsedInput.status,
+      input: parsedInput.input,
+      expected_result: parsedInput.expectedResult,
+      ordinal: parsedInput.ordinal,
+      metadata: parsedInput.metadata,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", testCaseId)
+    .select("id, workspace_id, assertion_id, title, type, status, input, expected_result, ordinal")
+    .single<TestCaseRow>();
+
+  assertRepositorySuccess(error, "Unable to update test case");
+  return mapTestCaseRow(requireRepositoryRow(data, "Test case update returned no row"));
+}
+
+export async function approveTestCase(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  testCaseId: string,
+  approvedBy: string,
+) {
+  const { data, error } = await client
+    .from("test_cases")
+    .update({
+      status: "approved",
+      approved_by: approvedBy,
+      approved_at: new Date().toISOString(),
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", testCaseId)
+    .select("id, workspace_id, assertion_id, title, type, status, input, expected_result, ordinal")
+    .single<TestCaseRow>();
+
+  assertRepositorySuccess(error, "Unable to approve test case");
+  return mapTestCaseRow(requireRepositoryRow(data, "Test case approval returned no row"));
+}
+
+export async function disableTestCase(client: RadarRepositoryClient, workspaceId: string, testCaseId: string) {
+  const { data, error } = await client
+    .from("test_cases")
+    .update({ status: "disabled" })
+    .eq("workspace_id", workspaceId)
+    .eq("id", testCaseId)
+    .select("id, workspace_id, assertion_id, title, type, status, input, expected_result, ordinal")
+    .single<TestCaseRow>();
+
+  assertRepositorySuccess(error, "Unable to disable test case");
+  return mapTestCaseRow(requireRepositoryRow(data, "Test case disable returned no row"));
+}
+
+export async function deleteTestCase(client: RadarRepositoryClient, workspaceId: string, testCaseId: string) {
+  const { error } = await client.from("test_cases").delete().eq("workspace_id", workspaceId).eq("id", testCaseId);
+  assertRepositorySuccess(error, "Unable to delete test case");
 }
 
 function mapAssertionRow(row: AssertionRow): RadarAssertion {

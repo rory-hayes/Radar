@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";
+import { AssertionTestCaseManager } from "@/components/assertions/assertion-test-case-manager";
 import { EmptyState, MetricCard, SeverityBadge, StatusBadge, type StatusTone } from "@/components/radar";
 import {
   formatSourceTimestamp,
@@ -34,8 +35,6 @@ import type {
   RadarAssertion,
   RadarTestCase,
   RunnerType,
-  TestCaseStatus,
-  TestCaseType,
 } from "@/lib/assertions/schema";
 import type { RadarFinding } from "@/lib/findings/schema";
 import type {
@@ -58,6 +57,7 @@ export type AssertionDetailViewProps = {
   runHistory: readonly RadarEvaluationRunSummary[];
   findings: readonly RadarFinding[];
   canEditSources: boolean;
+  canEditTestCases: boolean;
 };
 
 export function AssertionDetailView({
@@ -69,6 +69,7 @@ export function AssertionDetailView({
   runHistory,
   findings,
   canEditSources,
+  canEditTestCases,
 }: AssertionDetailViewProps) {
   const latestRun = runHistory[0];
   const openFindings = findings.filter((finding) => finding.status !== "resolved" && finding.status !== "ignored").length;
@@ -103,7 +104,7 @@ export function AssertionDetailView({
           />
         </TabsContent>
         <TabsContent value="test-cases">
-          <AssertionTestCases testCases={testCases} />
+          <AssertionTestCaseManager assertion={assertion} testCases={testCases} canEdit={canEditTestCases} />
         </TabsContent>
         <TabsContent value="runs">
           <AssertionRunHistory runs={runHistory} />
@@ -293,55 +294,6 @@ function LinkedSourceTable({ sources }: { sources: readonly AssertionLinkedSourc
   );
 }
 
-function AssertionTestCases({ testCases }: { testCases: readonly RadarTestCase[] }) {
-  if (testCases.length === 0) {
-    return (
-      <EmptyState
-        title="No test cases configured"
-        description="Test cases will show the customer-facing questions, journeys, or handoffs used to verify this assertion."
-        details={["Scenario", "Expected result", "Approval status"]}
-      />
-    );
-  }
-
-  return (
-    <Card size="sm" className="rounded-lg border-border/80 shadow-[var(--radar-shadow-card)]">
-      <CardHeader>
-        <CardTitle>Test cases</CardTitle>
-        <CardDescription>Approved and draft checks linked to this assertion.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="pl-(--card-spacing)">Test case</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="pr-(--card-spacing)">Expected result</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {testCases.map((testCase) => (
-              <TableRow key={testCase.id}>
-                <TableCell className="pl-(--card-spacing)">
-                  <span className="font-medium text-foreground">{testCase.title}</span>
-                </TableCell>
-                <TableCell>{formatTestCaseType(testCase.type)}</TableCell>
-                <TableCell>
-                  <StatusBadge tone={testCaseStatusTone(testCase.status)} label={formatTestCaseStatus(testCase.status)} />
-                </TableCell>
-                <TableCell className="max-w-xl pr-(--card-spacing)">
-                  <p className="line-clamp-2 text-sm text-muted-foreground">{testCase.expectedResult}</p>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-}
-
 function AssertionRunHistory({ runs }: { runs: readonly RadarEvaluationRunSummary[] }) {
   if (runs.length === 0) {
     return (
@@ -478,17 +430,6 @@ function assertionStatusTone(status: AssertionStatus): StatusTone {
   return tones[status];
 }
 
-function testCaseStatusTone(status: TestCaseStatus): StatusTone {
-  const tones: Record<TestCaseStatus, StatusTone> = {
-    approved: "pass",
-    draft: "neutral",
-    disabled: "warning",
-    archived: "neutral",
-  };
-
-  return tones[status];
-}
-
 function runStatusTone(status: RadarEvaluationRunSummary["status"]): StatusTone {
   if (status === "passed") {
     return "pass";
@@ -556,14 +497,6 @@ function formatSchedule(schedule?: RadarAssertionRunSchedule) {
 
   const cadence = titleize(schedule.cadence);
   return schedule.sourceChangeTrigger ? `${cadence} + source change` : cadence;
-}
-
-function formatTestCaseType(type: TestCaseType) {
-  return titleize(type);
-}
-
-function formatTestCaseStatus(status: TestCaseStatus) {
-  return titleize(status);
 }
 
 function formatRunStatus(status: RadarEvaluationRunSummary["status"]) {

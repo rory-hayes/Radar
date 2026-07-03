@@ -43,7 +43,7 @@ test("RAD-043 detail loads summary linked sources test cases run history and fin
   assert.match(page, /listFindingsForAssertion/);
   assert.match(detail, /AssertionOverview/);
   assert.match(detail, /AssertionSources/);
-  assert.match(detail, /AssertionTestCases/);
+  assert.match(detail, /AssertionTestCaseManager/);
   assert.match(detail, /AssertionRunHistory/);
   assert.match(detail, /AssertionFindings/);
   assert.match(assertionRepository, /export async function listTestCasesForAssertion/);
@@ -84,7 +84,7 @@ test("RAD-043 composes approved shadcn primitives and read-only placeholders", a
   assert.match(detail, /StatusBadge/);
   assert.match(detail, /SeverityBadge/);
   assert.match(detail, /EmptyState/);
-  assert.match(detail, /No test cases configured/);
+  assert.match(await readWorkspaceFile("src/components/assertions/assertion-test-case-manager.tsx"), /No test cases configured/);
   assert.match(detail, /No run history yet/);
   assert.match(detail, /No findings linked/);
   assert.match(task, /Assertion detail/);
