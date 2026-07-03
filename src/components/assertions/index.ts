@@ -1,4 +1,5 @@
 export { AssertionForm } from "@/components/assertions/assertion-form";
+export { AssertionTemplatePicker } from "@/components/assertions/assertion-template-picker";
 export { AssertionDetailView } from "@/components/assertions/assertion-detail";
 export type { AssertionDetailViewProps, AssertionLinkedSource } from "@/components/assertions/assertion-detail";
 export { AssertionSourceLinkingPanel } from "@/components/assertions/assertion-source-linking-panel";

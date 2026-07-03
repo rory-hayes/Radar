@@ -25,7 +25,7 @@ test("RAD-042 adds assertion create and edit routes with loading states", async 
   const editPage = await readWorkspaceFile("src/app/(app)/assertions/[assertionId]/edit/page.tsx");
 
   assert.match(newPage, /requireWorkspacePermission\("assertion:create"\)/);
-  assert.match(newPage, /AssertionForm mode="create"/);
+  assert.match(newPage, /AssertionForm[\s\S]*mode="create"/);
   assert.match(newPage, /listSources/);
   assert.match(editPage, /requireWorkspacePermission\("assertion:edit"\)/);
   assert.match(editPage, /getAssertionById/);

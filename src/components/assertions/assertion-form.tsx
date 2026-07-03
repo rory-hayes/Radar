@@ -36,7 +36,10 @@ import {
   assertionScheduleCadences,
   assertionStatuses,
   runnerTypes,
+  type AssertionCategory,
+  type AssertionPriority,
   type RadarAssertion,
+  type RunnerType,
 } from "@/lib/assertions/schema";
 import type { RadarAssertionRunSchedule } from "@/lib/repositories";
 import type { RadarSource } from "@/lib/sources/schema";
@@ -46,6 +49,7 @@ type AssertionFormMode = "create" | "edit";
 type AssertionFormProps = {
   mode: AssertionFormMode;
   assertion?: RadarAssertion;
+  template?: AssertionFormTemplateDefaults;
   schedule?: RadarAssertionRunSchedule;
   sources: readonly Pick<RadarSource, "id" | "name" | "type" | "syncStatus">[];
   linkedSourceIds?: readonly string[];
@@ -53,9 +57,19 @@ type AssertionFormProps = {
 
 const initialState: AssertionFormState = {};
 
+export type AssertionFormTemplateDefaults = {
+  title: string;
+  purpose: string;
+  expectedBehavior: string;
+  category: AssertionCategory;
+  priority: AssertionPriority;
+  runnerType: RunnerType;
+};
+
 export function AssertionForm({
   mode,
   assertion,
+  template,
   schedule,
   sources,
   linkedSourceIds = [],
@@ -99,7 +113,7 @@ export function AssertionForm({
               <Input
                 id={titleId}
                 name="title"
-                defaultValue={assertion?.title}
+                defaultValue={assertion?.title ?? template?.title}
                 placeholder="Pricing answers match the current pricing page"
                 minLength={4}
                 maxLength={180}
@@ -113,7 +127,7 @@ export function AssertionForm({
               <Textarea
                 id={purposeId}
                 name="purpose"
-                defaultValue={assertion?.purpose}
+                defaultValue={assertion?.purpose ?? template?.purpose}
                 placeholder="Verify that customers receive the correct plan limits, pricing, and billing escalation guidance."
                 minLength={8}
                 maxLength={1000}
@@ -126,7 +140,7 @@ export function AssertionForm({
               <Textarea
                 id={expectedBehaviorId}
                 name="expectedBehavior"
-                defaultValue={assertion?.expectedBehavior}
+                defaultValue={assertion?.expectedBehavior ?? template?.expectedBehavior}
                 placeholder="Support answers must match the current pricing page and route exceptions to a human owner."
                 minLength={8}
                 maxLength={2000}
@@ -139,7 +153,7 @@ export function AssertionForm({
                 id={categoryId}
                 name="category"
                 label="Category"
-                defaultValue={assertion?.category ?? "custom"}
+                defaultValue={assertion?.category ?? template?.category ?? "custom"}
                 values={assertionCategories}
                 disabled={isPending}
                 format={formatAssertionValue}
@@ -148,7 +162,7 @@ export function AssertionForm({
                 id={priorityId}
                 name="priority"
                 label="Priority"
-                defaultValue={assertion?.priority ?? "medium"}
+                defaultValue={assertion?.priority ?? template?.priority ?? "medium"}
                 values={assertionPriorities}
                 disabled={isPending}
                 format={formatAssertionValue}
@@ -157,7 +171,7 @@ export function AssertionForm({
                 id={runnerTypeId}
                 name="runnerType"
                 label="Runner type"
-                defaultValue={assertion?.runnerType ?? "knowledge"}
+                defaultValue={assertion?.runnerType ?? template?.runnerType ?? "knowledge"}
                 values={runnerTypes}
                 disabled={isPending}
                 format={(value) => `${formatAssertionValue(value)} Runner`}
