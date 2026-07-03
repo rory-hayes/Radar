@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { recordAuditEvent } from "@/lib/audit/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
@@ -14,6 +15,10 @@ async function signOut(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
 
   if (supabase) {
+    await recordAuditEvent({
+      action: "auth.signed_out",
+      resourceType: "auth_session",
+    });
     await supabase.auth.signOut();
   }
 

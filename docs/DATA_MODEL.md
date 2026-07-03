@@ -40,6 +40,10 @@ RAD-012 establishes the first tenant boundary:
 
 Evaluation results and findings should reference source documents/chunks and artifact files rather than copying unbounded content into many records.
 
+## Audit logs
+
+RAD-016 adds `audit_logs` as the append-only event trail for auth, workspace, source, assertion, run, and finding changes. Every audit event stores workspace, actor, action, resource type, optional resource ID, metadata, and timestamp. Workspace-scoped events are readable by active workspace members; auth events without a workspace are readable by the acting user.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.

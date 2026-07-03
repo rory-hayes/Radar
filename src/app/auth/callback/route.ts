@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { recordAuditEvent } from "@/lib/audit/server";
 import { normalizeAuthRedirectPath } from "@/lib/auth/redirects";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -22,6 +23,11 @@ export async function GET(request: NextRequest) {
   if (error) {
     return redirectToSignIn(requestUrl, nextPath, error.message);
   }
+
+  await recordAuditEvent({
+    action: "auth.signed_in",
+    resourceType: "auth_session",
+  });
 
   return NextResponse.redirect(new URL(nextPath, requestUrl.origin));
 }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { defaultAuthenticatedPath } from "@/lib/auth/redirects";
 import { getAuthenticatedUser } from "@/lib/auth/session";
+import { recordAuditEvent } from "@/lib/audit/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   createWorkspaceSchema,
@@ -108,8 +109,26 @@ export async function createWorkspaceForCurrentUser(input: CreateWorkspaceInput)
     };
   }
 
+  const workspace = mapWorkspaceRow(data as WorkspaceRow);
+  const auditResult = await recordAuditEvent({
+    workspaceId: workspace.id,
+    action: "workspace.created",
+    resourceType: "workspace",
+    resourceId: workspace.id,
+    metadata: {
+      slug: workspace.slug,
+    },
+  });
+
+  if (auditResult.error) {
+    return {
+      workspace: null,
+      error: auditResult.error,
+    };
+  }
+
   return {
-    workspace: mapWorkspaceRow(data as WorkspaceRow),
+    workspace,
     error: null,
   };
 }
@@ -151,8 +170,26 @@ export async function updateWorkspaceSettingsForCurrentUser(input: UpdateWorkspa
     };
   }
 
+  const workspace = mapWorkspaceRow(data);
+  const auditResult = await recordAuditEvent({
+    workspaceId: workspace.id,
+    action: "workspace.updated",
+    resourceType: "workspace",
+    resourceId: workspace.id,
+    metadata: {
+      changedFields: ["name", "slug", "teamVisibility"],
+    },
+  });
+
+  if (auditResult.error) {
+    return {
+      workspace: null,
+      error: auditResult.error,
+    };
+  }
+
   return {
-    workspace: mapWorkspaceRow(data),
+    workspace,
     error: null,
   };
 }

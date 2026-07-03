@@ -61,6 +61,8 @@ test("RAD-011 adds public auth routes and guarded app shell sign-out", async () 
   const authForm = await readWorkspaceFile("src/components/auth/auth-form.tsx");
   const appLayout = await readWorkspaceFile("src/app/(app)/layout.tsx");
   const topBar = await readWorkspaceFile("src/components/app-shell/top-bar.tsx");
+  const callback = await readWorkspaceFile("src/app/auth/callback/route.ts");
+  const signOutRoute = await readWorkspaceFile("src/app/auth/sign-out/route.ts");
 
   assert.match(authForm, /signInWithPassword/);
   assert.match(authForm, /supabase\.auth\.signUp/);
@@ -71,4 +73,6 @@ test("RAD-011 adds public auth routes and guarded app shell sign-out", async () 
   assert.match(appLayout, /requireAuthenticatedUser/);
   assert.match(topBar, /\/auth\/sign-out/);
   assert.match(topBar, /Sign out/);
+  assert.match(callback, /auth\.signed_in/);
+  assert.match(signOutRoute, /auth\.signed_out/);
 });
