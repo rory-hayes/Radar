@@ -40,6 +40,16 @@ type EvaluationRunRow = {
   confidence: number | null;
 };
 
+type EvaluationRunSummaryRow = EvaluationRunRow & {
+  created_at: string;
+  completed_at: string | null;
+  passed_count: number;
+  warning_count: number;
+  failed_count: number;
+  error_count: number;
+  skipped_count: number;
+};
+
 type TestCaseResultRow = {
   id: string;
   workspace_id: string;
@@ -56,6 +66,17 @@ type TestCaseResultRow = {
 
 const evaluationRunSelect =
   "id, workspace_id, assertion_id, runner_type, status, trigger_type, triggered_by_user_id, total_test_cases, score, confidence";
+const evaluationRunSummarySelect = `${evaluationRunSelect}, created_at, completed_at, passed_count, warning_count, failed_count, error_count, skipped_count`;
+
+export type RadarEvaluationRunSummary = RadarEvaluationRun & {
+  createdAt: string;
+  completedAt?: string;
+  passedCount: number;
+  warningCount: number;
+  failedCount: number;
+  errorCount: number;
+  skippedCount: number;
+};
 
 export async function listEvaluationRunsForAssertion(
   client: RadarRepositoryClient,
@@ -72,6 +93,34 @@ export async function listEvaluationRunsForAssertion(
 
   assertRepositorySuccess(error, "Unable to list evaluation runs");
   return (data ?? []).map(mapEvaluationRunRow);
+}
+
+export async function listLatestEvaluationRunsForAssertions(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  assertionIds: readonly string[],
+) {
+  if (assertionIds.length === 0) {
+    return {};
+  }
+
+  const { data, error } = await client
+    .from("evaluation_runs")
+    .select(evaluationRunSummarySelect)
+    .eq("workspace_id", workspaceId)
+    .in("assertion_id", [...assertionIds])
+    .order("created_at", { ascending: false })
+    .returns<EvaluationRunSummaryRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list latest assertion runs");
+
+  return (data ?? []).reduce<Record<string, RadarEvaluationRunSummary>>((runsByAssertion, row) => {
+    if (!runsByAssertion[row.assertion_id]) {
+      runsByAssertion[row.assertion_id] = mapEvaluationRunSummaryRow(row);
+    }
+
+    return runsByAssertion;
+  }, {});
 }
 
 export async function createEvaluationRun(
@@ -195,6 +244,24 @@ function mapEvaluationRunRow(row: EvaluationRunRow): RadarEvaluationRun {
     score: optionalNumber(row.score),
     confidence: optionalNumber(row.confidence),
   });
+}
+
+function mapEvaluationRunSummaryRow(row: EvaluationRunSummaryRow): RadarEvaluationRunSummary {
+  const summary: RadarEvaluationRunSummary = {
+    ...mapEvaluationRunRow(row),
+    createdAt: row.created_at,
+    passedCount: row.passed_count,
+    warningCount: row.warning_count,
+    failedCount: row.failed_count,
+    errorCount: row.error_count,
+    skippedCount: row.skipped_count,
+  };
+
+  if (row.completed_at) {
+    summary.completedAt = row.completed_at;
+  }
+
+  return summary;
 }
 
 function mapTestCaseResultRow(row: TestCaseResultRow): RadarTestCaseResult {

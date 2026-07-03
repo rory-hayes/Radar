@@ -59,6 +59,10 @@ type AssertionSourceRow = {
   purpose: string | null;
 };
 
+type AssertionSourceCountRow = {
+  assertion_id: string;
+};
+
 type AssertionRunScheduleRow = {
   id: string;
   workspace_id: string;
@@ -252,6 +256,21 @@ export async function listAssertionSourcesForAssertion(
   return (data ?? []).map(mapAssertionSourceRow);
 }
 
+export async function listAssertionSourceCounts(client: RadarRepositoryClient, workspaceId: string) {
+  const { data, error } = await client
+    .from("assertion_sources")
+    .select("assertion_id")
+    .eq("workspace_id", workspaceId)
+    .returns<AssertionSourceCountRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list assertion source counts");
+
+  return (data ?? []).reduce<Record<string, number>>((counts, row) => {
+    counts[row.assertion_id] = (counts[row.assertion_id] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
 export async function listAssertionSourcesForSource(
   client: RadarRepositoryClient,
   workspaceId: string,
@@ -361,6 +380,17 @@ export async function upsertAssertionRunSchedule(
 
   assertRepositorySuccess(error, "Unable to upsert assertion run schedule");
   return mapAssertionRunScheduleRow(requireRepositoryRow(data, "Assertion schedule upsert returned no row"));
+}
+
+export async function listAssertionRunSchedules(client: RadarRepositoryClient, workspaceId: string) {
+  const { data, error } = await client
+    .from("assertion_runs_schedule")
+    .select("id, workspace_id, assertion_id, cadence, timezone, source_change_trigger, is_enabled, next_run_at, metadata")
+    .eq("workspace_id", workspaceId)
+    .returns<AssertionRunScheduleRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list assertion schedules");
+  return (data ?? []).map(mapAssertionRunScheduleRow);
 }
 
 export async function listTestCasesForAssertion(
