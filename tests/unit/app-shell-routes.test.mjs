@@ -56,7 +56,7 @@ test("RAD-007 exposes stable shell component boundaries", async () => {
   }
 
   assert.match(appShell, /<SidebarProvider>/);
-  assert.match(appShell, /<SidebarNav \/>/);
+  assert.match(appShell, /<SidebarNav membership=\{membership\} \/>/);
   assert.match(appShell, /<TopBar user=\{user\} membership=\{membership\} \/>/);
 });
 
@@ -65,4 +65,20 @@ test("RAD-010 closes the mobile sidebar after route navigation", async () => {
 
   assert.match(sidebarNav, /setOpenMobile\(false\)/);
   assert.match(sidebarNav, /onClick=\{closeMobileNav\}/);
+});
+
+test("RAD-014 provides minimal authenticated navigation shell controls", async () => {
+  const sidebarNav = await readFile("src/components/app-shell/sidebar-nav.tsx", "utf8");
+  const topBar = await readFile("src/components/app-shell/top-bar.tsx", "utf8");
+
+  assert.match(sidebarNav, /DropdownMenuTrigger asChild/);
+  assert.match(sidebarNav, /Workspace selector placeholder/);
+  assert.match(sidebarNav, /Current workspace/);
+  assert.match(sidebarNav, /Create workspace/);
+  assert.match(sidebarNav, /primaryAppRoutes\.map/);
+  assert.match(topBar, /Global search placeholder/);
+  assert.match(topBar, /Search assertions, findings, sources/);
+  assert.match(topBar, /DropdownMenuLabel>User menu/);
+  assert.match(topBar, /\/auth\/sign-out/);
+  assert.match(topBar, /membership\.workspace\.name/);
 });

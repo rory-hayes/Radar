@@ -15,7 +15,7 @@ type AppShellProps = {
 export function AppShell({ children, user, membership }: AppShellProps) {
   return (
     <SidebarProvider>
-      <SidebarNav />
+      <SidebarNav membership={membership} />
       <SidebarInset>
         <div className="flex min-h-svh flex-col">
           <TopBar user={user} membership={membership} />

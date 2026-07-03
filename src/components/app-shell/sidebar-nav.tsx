@@ -5,11 +5,25 @@ import { usePathname } from "next/navigation";
 import {
   ActivityIcon,
   AlertTriangleIcon,
+  Building2Icon,
+  CheckIcon,
+  ChevronsUpDownIcon,
   DatabaseIcon,
   FileCheck2Icon,
+  PlusIcon,
   type LucideIcon,
 } from "lucide-react";
 
+import { StatusBadge } from "@/components/radar/status-badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Sidebar,
   SidebarContent,
@@ -24,8 +38,8 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { StatusBadge } from "@/components/radar/status-badge";
 import { primaryAppRoutes, type PrimaryAppRouteId } from "@/lib/radar-routes";
+import { type RadarWorkspaceMembership } from "@/lib/workspaces/schema";
 
 const navIcons: Record<PrimaryAppRouteId, LucideIcon> = {
   "command-center": ActivityIcon,
@@ -34,9 +48,14 @@ const navIcons: Record<PrimaryAppRouteId, LucideIcon> = {
   sources: DatabaseIcon,
 };
 
-export function SidebarNav() {
+type SidebarNavProps = {
+  membership: RadarWorkspaceMembership;
+};
+
+export function SidebarNav({ membership }: SidebarNavProps) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
+  const workspaceInitial = membership.workspace.name.charAt(0).toUpperCase();
 
   function closeMobileNav() {
     if (isMobile) {
@@ -49,15 +68,47 @@ export function SidebarNav() {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="h-12">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton className="h-12" aria-label="Workspace selector placeholder">
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+                    {workspaceInitial || "R"}
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-semibold">{membership.workspace.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">Current workspace</span>
+                  </span>
+                  <ChevronsUpDownIcon className="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="start">
+                <DropdownMenuLabel>Workspace</DropdownMenuLabel>
+                <DropdownMenuGroup>
+                  <DropdownMenuItem disabled>
+                    <Building2Icon />
+                    <span className="truncate">{membership.workspace.name}</span>
+                    <CheckIcon className="ml-auto" />
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem asChild>
+                    <Link href="/workspace/new" onClick={closeMobileNav}>
+                      <PlusIcon />
+                      <span>Create workspace</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild size="sm">
               <Link href="/command-center" aria-label="Radar Command Center" onClick={closeMobileNav}>
-                <span className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+                <span className="flex size-6 items-center justify-center rounded-md bg-sidebar-accent text-xs font-semibold text-sidebar-accent-foreground">
                   R
                 </span>
-                <span className="flex min-w-0 flex-col">
-                  <span className="truncate text-sm font-semibold">Radar</span>
-                  <span className="truncate text-xs text-muted-foreground">Business verification</span>
-                </span>
+                <span>Business verification</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
