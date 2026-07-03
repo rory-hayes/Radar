@@ -8,7 +8,8 @@ Radar must be built carefully enough to avoid slop. Every task should add or upd
 2. Integration tests — database repositories, RLS expectations, API/server actions, jobs.
 3. E2E tests — browser flows through the four core pages and runner workflows.
 4. Security tests — auth, workspace isolation, secret redaction, upload limits, route guards.
-5. Smoke tests — build, app boot, page navigation, seed data, production deploy health.
+5. Performance smoke tests — `pnpm perf:pilot` models pilot-scale ingestion, embedding scheduling, eval job throughput, and dashboard aggregation budgets without external services.
+6. Smoke tests — build, app boot, page navigation, seed data, production deploy health.
 
 ## E2E gate rule
 
@@ -22,6 +23,7 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm test:e2e
+pnpm perf:pilot
 ```
 
 ## Manual QA

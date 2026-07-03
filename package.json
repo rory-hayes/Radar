@@ -18,6 +18,7 @@
     "typecheck": "rm -rf .next/types .next/dev/types && NAPI_RS_FORCE_WASI=true next typegen && tsc --noEmit",
     "test": "node --test tests/unit/*.test.mjs",
     "test:e2e": "node --test tests/e2e/*.test.mjs",
+    "perf:pilot": "node scripts/run-pilot-load-smoke.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",
