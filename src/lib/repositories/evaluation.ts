@@ -95,6 +95,25 @@ export async function listEvaluationRunsForAssertion(
   return (data ?? []).map(mapEvaluationRunRow);
 }
 
+export async function listEvaluationRunSummariesForAssertion(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  assertionId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("evaluation_runs")
+    .select(evaluationRunSummarySelect)
+    .eq("workspace_id", workspaceId)
+    .eq("assertion_id", assertionId)
+    .order("created_at", { ascending: false })
+    .limit(options.limit ?? 8)
+    .returns<EvaluationRunSummaryRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list assertion run history");
+  return (data ?? []).map(mapEvaluationRunSummaryRow);
+}
+
 export async function listLatestEvaluationRunsForAssertions(
   client: RadarRepositoryClient,
   workspaceId: string,

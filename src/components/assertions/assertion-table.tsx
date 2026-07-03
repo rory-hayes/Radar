@@ -279,7 +279,9 @@ function AssertionRows({
           <TableRow key={assertion.id}>
             <TableCell className="min-w-80 whitespace-normal">
               <div className="flex flex-col gap-1">
-                <span className="font-medium text-foreground">{assertion.title}</span>
+                <Link href={`/assertions/${assertion.id}`} className="font-medium text-foreground underline-offset-4 hover:underline">
+                  {assertion.title}
+                </Link>
                 <span className="line-clamp-2 max-w-xl text-muted-foreground">{assertion.purpose}</span>
               </div>
             </TableCell>

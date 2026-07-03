@@ -129,6 +129,25 @@ export async function listFindings(client: RadarRepositoryClient, workspaceId: s
   return (data ?? []).map(mapFindingRow);
 }
 
+export async function listFindingsForAssertion(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  assertionId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("findings")
+    .select(findingSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("assertion_id", assertionId)
+    .order("last_seen_at", { ascending: false })
+    .limit(options.limit ?? 8)
+    .returns<FindingRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list assertion findings");
+  return (data ?? []).map(mapFindingRow);
+}
+
 export async function getFindingById(client: RadarRepositoryClient, workspaceId: string, findingId: string) {
   const { data, error } = await client
     .from("findings")
