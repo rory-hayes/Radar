@@ -50,6 +50,12 @@ RAD-026 centralizes operation-level Zod schemas in `src/lib/validation`. Server 
 
 Validation is not authorization. Client-provided IDs, statuses, source links, or evidence references are still untrusted until the server resolves workspace membership, enforces RBAC, and applies RLS-backed database constraints.
 
+## RLS Policy Hardening
+
+RAD-027 adds security-definer workspace membership helpers and forces RLS on workspace-owned product tables. Product policies should call `current_user_is_workspace_member(...)`, `current_user_can_edit_workspace(...)`, or `current_user_is_workspace_admin(...)` instead of repeating ad hoc `workspace_members` subqueries in every policy.
+
+The same migration defines storage object policies for the private `radar-evidence-artifacts` bucket path convention: object names must start with the workspace UUID, members can read, Admin/Editor users can create or update, and Admin users can delete. RAD-028 owns bucket creation and storage helpers, but storage object policies must remain workspace- and role-scoped.
+
 ## Audit Logging
 
 RAD-016 records security-relevant actions in `audit_logs` with actor, workspace, action, resource, metadata, and timestamp. Server-side mutation helpers should call `recordAuditEvent(...)` after successful writes. Metadata must stay small and must not include raw source content, runner credentials, provider secrets, or customer-sensitive evidence bodies.

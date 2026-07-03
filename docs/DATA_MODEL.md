@@ -36,6 +36,8 @@ RAD-012 establishes the first tenant boundary:
 - First-workspace creation happens through `create_workspace_with_admin_membership(...)` so the workspace row and initial admin membership are created in one database transaction.
 - Initial RLS allows authenticated workspace members to read their workspaces and memberships. Broader product-table policies are added with each data-model ticket and hardened in the RLS phase.
 
+RAD-027 adds RLS hardening through centralized workspace membership helper functions, forced RLS on workspace-owned product tables, and role-scoped storage object policies for evidence artifacts. Storage object paths must start with the owning workspace UUID so private artifact access can be checked with the same membership model as database rows.
+
 ## Evidence references
 
 Evaluation results and findings should reference source documents/chunks and artifact files rather than copying unbounded content into many records.

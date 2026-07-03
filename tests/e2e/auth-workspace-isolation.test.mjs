@@ -54,6 +54,7 @@ test("RAD-020 gate verifies RLS policies and seeded tenant records are workspace
   const workspaceMigration = await readWorkspaceFile("supabase/migrations/20260703090000_create_workspaces_and_memberships.sql");
   const settingsMigration = await readWorkspaceFile("supabase/migrations/20260703093000_add_workspace_settings_fields.sql");
   const auditMigration = await readWorkspaceFile("supabase/migrations/20260703100000_create_audit_logs.sql");
+  const hardenedRlsMigration = await readWorkspaceFile("supabase/migrations/20260703111500_harden_workspace_rls_policies.sql");
   const seed = await readWorkspaceFile("supabase/seeds/radar-demo-workspace.sql");
 
   assert.match(workspaceMigration, /alter table public\.workspaces enable row level security/);
@@ -65,6 +66,9 @@ test("RAD-020 gate verifies RLS policies and seeded tenant records are workspace
   assert.match(auditMigration, /alter table public\.audit_logs enable row level security/);
   assert.match(auditMigration, /workspace members can read workspace audit logs/);
   assert.match(auditMigration, /authenticated users can write scoped audit logs/);
+  assert.match(hardenedRlsMigration, /current_user_is_workspace_member/);
+  assert.match(hardenedRlsMigration, /alter table public\.sources force row level security/);
+  assert.match(hardenedRlsMigration, /workspace members can read evidence artifacts/);
   assert.match(seed, /insert into public\.workspace_members/);
   assert.match(seed, /insert into public\.audit_logs/);
   assert.match(seed, /'20000000-0000-4000-8000-000000000001'/);
