@@ -29,7 +29,9 @@ import {
   jsonRecord,
   optionalNumber,
   optionalString,
+  RadarRepositoryError,
   requireRepositoryRow,
+  type JsonRecord,
   type RadarRepositoryClient,
 } from "@/lib/repositories/client";
 
@@ -381,6 +383,60 @@ export async function createSourceChunk(client: RadarRepositoryClient, workspace
   return mapSourceChunkRow(requireRepositoryRow(data, "Source chunk insert returned no row"));
 }
 
+type SourceChunkForEmbeddingRow = SourceChunkRow & {
+  metadata: unknown;
+};
+
+export type RadarSourceChunkForEmbedding = RadarSourceChunk & {
+  metadata: JsonRecord;
+};
+
+type SourceChunkEmbeddingInput = {
+  embedding: readonly number[];
+  metadata: JsonRecord;
+};
+
+export async function listSourceChunksNeedingEmbedding(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+  options: { limit?: number } = {},
+) {
+  const { data, error } = await client
+    .from("source_chunks")
+    .select("id, workspace_id, source_id, source_document_id, chunk_index, content, content_hash, token_count, metadata")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .is("embedding", null)
+    .order("chunk_index", { ascending: true })
+    .limit(options.limit ?? 100)
+    .returns<SourceChunkForEmbeddingRow[]>();
+
+  assertRepositorySuccess(error, "Unable to list source chunks needing embeddings");
+  return (data ?? []).map(mapSourceChunkForEmbeddingRow);
+}
+
+export async function updateSourceChunkEmbedding(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  chunkId: string,
+  input: SourceChunkEmbeddingInput,
+) {
+  const { data, error } = await client
+    .from("source_chunks")
+    .update({
+      embedding: toPgVectorLiteral(input.embedding),
+      metadata: input.metadata,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", chunkId)
+    .select("id, workspace_id, source_id, source_document_id, chunk_index, content, content_hash, token_count")
+    .single<SourceChunkRow>();
+
+  assertRepositorySuccess(error, "Unable to update source chunk embedding");
+  return mapSourceChunkRow(requireRepositoryRow(data, "Source chunk embedding update returned no row"));
+}
+
 function mapSourceRow(row: SourceRow): RadarSource {
   return sourceResponseSchema.parse({
     id: row.id,
@@ -445,4 +501,23 @@ function mapSourceChunkRow(row: SourceChunkRow): RadarSourceChunk {
     contentHash: row.content_hash,
     tokenCount: optionalNumber(row.token_count),
   });
+}
+
+function mapSourceChunkForEmbeddingRow(row: SourceChunkForEmbeddingRow): RadarSourceChunkForEmbedding {
+  return {
+    ...mapSourceChunkRow(row),
+    metadata: jsonRecord(row.metadata),
+  };
+}
+
+function toPgVectorLiteral(embedding: readonly number[]) {
+  return `[${embedding.map(formatVectorValue).join(",")}]`;
+}
+
+function formatVectorValue(value: number) {
+  if (!Number.isFinite(value)) {
+    throw new RadarRepositoryError("Embedding contains a non-finite vector value.");
+  }
+
+  return Number(value).toString();
 }

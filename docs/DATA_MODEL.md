@@ -67,6 +67,8 @@ RAD-034 adds uploaded document extraction for PDF, Markdown, and TXT files. Uplo
 
 RAD-035 adds the source sync job boundary. Sync jobs mark supported sources as `syncing`, fetch or extract bounded content, compare the resulting content hash against existing `source_versions`, skip unchanged snapshots without inserting duplicate versions, and mark failures on `sources.last_sync_error` while preserving the previous content hash for explainability. URL and manual text sources can be resynced directly; uploaded documents require a new file payload, and endpoint sources wait for their runner-specific execution paths.
 
+RAD-036 adds the chunk embedding pipeline. Indexing jobs load only `source_chunks` rows with missing pgvector embeddings, batch text through a server-only embedding provider, validate the 1536-dimension vector contract, and update each chunk with a pgvector literal plus bounded embedding metadata. Incremental re-indexing is driven by missing embeddings: already indexed chunks are skipped, and new or changed chunks created by source sync are the rows selected for embedding.
+
 ## Assertions and Test Cases
 
 RAD-022 adds the assertion-led verification layer:

@@ -43,6 +43,8 @@ RAD-034 processes uploaded PDF, Markdown, and TXT source documents server-side. 
 
 RAD-035 source sync jobs compare each extracted content hash to existing source versions before writing a new snapshot. Unchanged syncs update health and `last_synced_at` without duplicating documents or chunks; changed syncs create a new version. Failed syncs keep the prior hash and store only a bounded error message.
 
+RAD-036 indexing jobs process source chunks with missing embeddings and store vectors in the existing private, workspace-owned `source_chunks.embedding` field. Embedding metadata is limited to model, dimensions, job reason, timestamp, and content hash so retrieval can cite chunks without copying raw source bodies into logs or external traces.
+
 ## Change detection
 
 Radar stores content hashes and source versions. When a source changes, Radar identifies affected assertions and reruns only those checks.
