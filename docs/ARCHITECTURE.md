@@ -30,6 +30,10 @@ Radar is built around an assertion-led architecture: users define what should be
 
 Radar must not connect every system up front. Each assertion declares the minimum sources and runner credentials needed to verify that specific business truth.
 
+## Server guardrails
+
+RAD-017 adds a server-only guardrail layer for backend entrypoints. Server actions and JSON route handlers use standardized action and JSON API response envelopes, Zod-backed input validation, authenticated-user resolution, workspace membership resolution, and permission checks before repositories or Supabase writes run. Product tables remain assertion-led and workspace-owned; guardrails prevent future source, assertion, run, and finding mutations from trusting client-provided workspace context.
+
 ## Bootstrap stack
 
 - Next.js and Vercel for the web app.

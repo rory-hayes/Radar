@@ -34,6 +34,12 @@ RAD-013 defines the first application permission matrix:
 
 Server actions and route handlers must call `requireWorkspacePermission(...)` before mutating workspace-owned data. UI controls should use `WorkspacePermissionGate` or the same permission matrix to hide or explain unavailable actions, but client-side checks are never the source of truth.
 
+## Server Action and API Guardrails
+
+RAD-017 standardizes mutation entrypoints in `src/lib/server/guardrails.ts`. Server actions should use `runAuthenticatedServerAction(...)` for account-level work and `runWorkspaceServerAction(...)` for workspace-owned mutations. JSON route handlers should use `runAuthenticatedApiHandler(...)` or `runWorkspaceApiHandler(...)`. These helpers must validate input before writes, resolve the authenticated user on the server, resolve workspace membership on the server, enforce the required permission, and return a consistent `{ ok, data }` or `{ ok, code, error }` response envelope.
+
+Future source, assertion, run, and finding mutations must enter through these guardrails before touching repositories or calling Supabase. Client-provided `workspace_id` values are not authorization; workspace context must come from server-side membership resolution.
+
 ## Audit Logging
 
 RAD-016 records security-relevant actions in `audit_logs` with actor, workspace, action, resource, metadata, and timestamp. Server-side mutation helpers should call `recordAuditEvent(...)` after successful writes. Metadata must stay small and must not include raw source content, runner credentials, provider secrets, or customer-sensitive evidence bodies.

@@ -2,7 +2,7 @@
 
 ## Status
 
-Backlog
+Done
 
 ## Priority
 
@@ -56,45 +56,67 @@ RAD-016 should be complete or deliberately skipped with notes.
 
 ## Expected files touched
 
-TBD by implementation. Codex must list actual files touched in the PR summary.
+- `src/lib/server/guardrails.ts`
+- `src/app/(workspace)/workspace/new/actions.ts`
+- `src/app/(app)/settings/actions.ts`
+- `docs/SECURITY.md`
+- `docs/ARCHITECTURE.md`
+- `tests/unit/server-guardrails.test.mjs`
+- `tasks/TASKS.md`
+- `tasks/phase-1-auth-workspaces/rad-017-create-server-side-api-and-action-guardrails.md`
 
 ## Acceptance criteria
 
-- [ ] The implemented behavior matches the objective and outcome.
-- [ ] The implementation fits Radar's assertion-led model.
-- [ ] The UI/API handles success, loading, empty, and error states where relevant.
-- [ ] Data persists correctly where applicable.
-- [ ] Workspace authorization is enforced where applicable.
-- [ ] No unrelated scope is introduced.
+- [x] The implemented behavior matches the objective and outcome.
+- [x] The implementation fits Radar's assertion-led model.
+- [x] The UI/API handles success, loading, empty, and error states where relevant.
+- [x] Data persists correctly where applicable.
+- [x] Workspace authorization is enforced where applicable.
+- [x] No unrelated scope is introduced.
 
 ## Test criteria
 
-- [ ] Relevant unit and integration tests are added or updated.
-- [ ] Manual QA steps are documented in the PR summary.
-- [ ] No existing E2E smoke flow is broken.
-- [ ] `pnpm lint` passes.
-- [ ] `pnpm typecheck` passes.
-- [ ] `pnpm test` passes or a documented reason is provided for unavailable test command.
-- [ ] `pnpm build` passes.
-- [ ] `pnpm test:e2e` passes where applicable.
+- [x] Relevant unit and integration tests are added or updated.
+- [x] Manual QA steps are documented in the PR summary.
+- [x] No existing E2E smoke flow is broken.
+- [x] `pnpm lint` passes.
+- [x] `pnpm typecheck` passes.
+- [x] `pnpm test` passes or a documented reason is provided for unavailable test command.
+- [x] `pnpm build` passes.
+- [x] `pnpm test:e2e` passes where applicable.
 
 ## Manual QA checklist
 
-- [ ] Open the affected page or run the affected workflow locally.
-- [ ] Verify the happy path.
-- [ ] Verify at least one relevant sad path.
-- [ ] Verify no unrelated primary navigation/pages changed unexpectedly.
-- [ ] Capture screenshots for UI changes.
+- [x] Open the affected page or run the affected workflow locally.
+- [x] Verify the happy path.
+- [x] Verify at least one relevant sad path.
+- [x] Verify no unrelated primary navigation/pages changed unexpectedly.
+- [x] Capture screenshots for UI changes.
 
 ## Definition of done
 
-- [ ] Code complete and scoped to this ticket.
-- [ ] Acceptance criteria satisfied.
-- [ ] Test criteria satisfied or documented with approved exception.
-- [ ] No hardcoded secrets or sensitive logging.
-- [ ] Ticket checklist updated.
-- [ ] PR summary includes changed files, testing, screenshots for UI work, and risks.
+- [x] Code complete and scoped to this ticket.
+- [x] Acceptance criteria satisfied.
+- [x] Test criteria satisfied or documented with approved exception.
+- [x] No hardcoded secrets or sensitive logging.
+- [x] Ticket checklist updated.
+- [x] PR summary includes changed files, testing, screenshots for UI work, and risks.
 
 ## Codex notes
 
-Codex should append implementation notes, commands run, failures, and follow-ups here before marking this task Done.
+- Implemented `src/lib/server/guardrails.ts` as the server-only entrypoint convention for authenticated server actions, workspace server actions, authenticated JSON API handlers, and workspace JSON API handlers.
+- Standardized responses around `{ ok, data }` and `{ ok, code, error }`, with Zod validation errors, unauthenticated errors, missing-workspace errors, permission errors, and generic server errors mapped consistently.
+- Refactored first-workspace creation and workspace settings actions to use the guardrails instead of hand-rolled Zod/error handling.
+- Documented the mutation-entrypoint rule in `docs/SECURITY.md` and the architecture-level guardrail layer in `docs/ARCHITECTURE.md`.
+- Added `tests/unit/server-guardrails.test.mjs` to lock down auth, workspace membership, permission, validation, response, and action-refactor conventions.
+- Manual QA: this ticket has no UI changes. Verified the existing action workflows through unit coverage and confirmed the app build still includes the existing `/workspace/new`, `/settings`, and primary navigation routes without introducing new product pages.
+- Commands run:
+  - `pnpm lint`
+  - `pnpm test`
+  - `pnpm validate:env`
+  - `pnpm validate:seed`
+  - `pnpm typecheck`
+  - `pnpm test:e2e`
+  - `pnpm build`
+- Screenshots: not applicable; no UI surface changed.
+- Risks/follow-ups: future source, assertion, run, and finding mutations should use `runWorkspaceServerAction(...)` or `runWorkspaceApiHandler(...)` as they are introduced.

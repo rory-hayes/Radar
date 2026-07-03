@@ -1,9 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 
-import { workspaceTeamVisibilities, type WorkspaceTeamVisibility } from "@/lib/workspaces/schema";
+import {
+  runWorkspaceServerAction,
+  serverActionError,
+  serverActionErrorState,
+} from "@/lib/server/guardrails";
+import {
+  updateWorkspaceSettingsSchema,
+  workspaceTeamVisibilities,
+  type WorkspaceTeamVisibility,
+} from "@/lib/workspaces/schema";
 import { updateWorkspaceSettingsForCurrentUser } from "@/lib/workspaces/server";
 
 export type WorkspaceSettingsFormState = {
@@ -24,18 +32,27 @@ export async function updateWorkspaceSettingsAction(
       : "private",
   };
 
-  try {
-    const result = await updateWorkspaceSettingsForCurrentUser(input);
+  const result = await runWorkspaceServerAction(
+    {
+      input,
+      permission: "workspace:manage",
+      schema: updateWorkspaceSettingsSchema,
+    },
+    async ({ input: parsedInput }) => {
+      const updateResult = await updateWorkspaceSettingsForCurrentUser(parsedInput);
 
-    if (result.error) {
-      return { error: result.error };
-    }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return { error: error.issues[0]?.message ?? "Enter valid workspace settings." };
-    }
+      if (updateResult.error) {
+        throw serverActionError(updateResult.error);
+      }
 
-    return { error: "Radar could not update workspace settings. Try again." };
+      return updateResult.workspace;
+    },
+  );
+
+  const error = serverActionErrorState(result);
+
+  if (error) {
+    return { error };
   }
 
   revalidatePath("/settings");
