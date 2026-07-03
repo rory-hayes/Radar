@@ -65,6 +65,8 @@ RAD-033 adds the first URL ingestion boundary. The crawler accepts only safe `ht
 
 RAD-034 adds uploaded document extraction for PDF, Markdown, and TXT files. Upload processing validates MIME type, extension, and size, stores the original artifact under the private `uploaded-document` storage path, extracts bounded text, writes stable content hashes, and persists the extracted text through `source_documents` and `source_chunks`. Basic PDF extraction handles text-based PDFs only; failures are recorded on the source sync state instead of logging raw document content.
 
+RAD-035 adds the source sync job boundary. Sync jobs mark supported sources as `syncing`, fetch or extract bounded content, compare the resulting content hash against existing `source_versions`, skip unchanged snapshots without inserting duplicate versions, and mark failures on `sources.last_sync_error` while preserving the previous content hash for explainability. URL and manual text sources can be resynced directly; uploaded documents require a new file payload, and endpoint sources wait for their runner-specific execution paths.
+
 ## Assertions and Test Cases
 
 RAD-022 adds the assertion-led verification layer:

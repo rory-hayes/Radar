@@ -41,6 +41,8 @@ Clients should receive only signed upload or download URLs created by server-sid
 
 RAD-034 processes uploaded PDF, Markdown, and TXT source documents server-side. Uploads are size- and MIME-validated, stored as private `uploaded-document` artifacts, extracted into source documents/chunks with stable content hashes, and marked failed on the source if extraction cannot produce text.
 
+RAD-035 source sync jobs compare each extracted content hash to existing source versions before writing a new snapshot. Unchanged syncs update health and `last_synced_at` without duplicating documents or chunks; changed syncs create a new version. Failed syncs keep the prior hash and store only a bounded error message.
+
 ## Change detection
 
 Radar stores content hashes and source versions. When a source changes, Radar identifies affected assertions and reruns only those checks.

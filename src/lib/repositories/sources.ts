@@ -47,6 +47,11 @@ type SourceRow = {
   created_by: string;
 };
 
+type SourceSyncTargetRow = SourceRow & {
+  config: unknown;
+  metadata: unknown;
+};
+
 type SourceVersionRow = {
   id: string;
   workspace_id: string;
@@ -93,13 +98,14 @@ type SourceVersionNumberRow = {
 
 type SourceSyncStateInput = {
   syncStatus: SourceSyncStatus;
-  contentHash?: string;
-  lastSyncedAt?: string;
-  lastSyncError?: string;
+  contentHash?: string | null;
+  lastSyncedAt?: string | null;
+  lastSyncError?: string | null;
 };
 
 const sourceSelect =
   "id, workspace_id, name, description, type, sync_status, origin_uri, content_hash, last_synced_at, last_sync_error, created_by";
+const sourceSyncTargetSelect = `${sourceSelect}, config, metadata`;
 
 export async function listSources(client: RadarRepositoryClient, workspaceId: string) {
   const { data, error } = await client
@@ -138,6 +144,18 @@ export async function getSourceById(client: RadarRepositoryClient, workspaceId: 
 
   assertRepositorySuccess(error, "Unable to load source");
   return data ? mapSourceRow(data) : null;
+}
+
+export async function getSourceSyncTarget(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {
+  const { data, error } = await client
+    .from("sources")
+    .select(sourceSyncTargetSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("id", sourceId)
+    .maybeSingle<SourceSyncTargetRow>();
+
+  assertRepositorySuccess(error, "Unable to load source sync target");
+  return data ? mapSourceSyncTargetRow(data) : null;
 }
 
 export async function createSource(
@@ -231,20 +249,63 @@ export async function getNextSourceVersionNumber(client: RadarRepositoryClient, 
   return (data?.[0]?.version_number ?? 0) + 1;
 }
 
+export async function getLatestSourceVersion(client: RadarRepositoryClient, workspaceId: string, sourceId: string) {
+  const { data, error } = await client
+    .from("source_versions")
+    .select("id, workspace_id, source_id, version_number, sync_status, content_hash, document_count, chunk_count")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .order("version_number", { ascending: false })
+    .limit(1)
+    .returns<SourceVersionRow[]>();
+
+  assertRepositorySuccess(error, "Unable to load latest source version");
+  return data?.[0] ? mapSourceVersionRow(data[0]) : null;
+}
+
+export async function getSourceVersionByContentHash(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  sourceId: string,
+  contentHash: string,
+) {
+  const { data, error } = await client
+    .from("source_versions")
+    .select("id, workspace_id, source_id, version_number, sync_status, content_hash, document_count, chunk_count")
+    .eq("workspace_id", workspaceId)
+    .eq("source_id", sourceId)
+    .eq("content_hash", contentHash)
+    .maybeSingle<SourceVersionRow>();
+
+  assertRepositorySuccess(error, "Unable to load source version by content hash");
+  return data ? mapSourceVersionRow(data) : null;
+}
+
 export async function updateSourceSyncState(
   client: RadarRepositoryClient,
   workspaceId: string,
   sourceId: string,
   input: SourceSyncStateInput,
 ) {
+  const updatePayload: Record<string, unknown> = {
+    sync_status: input.syncStatus,
+  };
+
+  if (input.contentHash !== undefined) {
+    updatePayload.content_hash = input.contentHash;
+  }
+
+  if (input.lastSyncedAt !== undefined) {
+    updatePayload.last_synced_at = input.lastSyncedAt;
+  }
+
+  if (input.lastSyncError !== undefined) {
+    updatePayload.last_sync_error = input.lastSyncError;
+  }
+
   const { data, error } = await client
     .from("sources")
-    .update({
-      sync_status: input.syncStatus,
-      content_hash: input.contentHash ?? null,
-      last_synced_at: input.lastSyncedAt ?? null,
-      last_sync_error: input.lastSyncError ?? null,
-    })
+    .update(updatePayload)
     .eq("workspace_id", workspaceId)
     .eq("id", sourceId)
     .select(sourceSelect)
@@ -334,6 +395,14 @@ function mapSourceRow(row: SourceRow): RadarSource {
     lastSyncError: optionalString(row.last_sync_error),
     createdBy: row.created_by,
   });
+}
+
+function mapSourceSyncTargetRow(row: SourceSyncTargetRow) {
+  return {
+    ...mapSourceRow(row),
+    config: jsonRecord(row.config),
+    metadata: jsonRecord(row.metadata),
+  };
 }
 
 function mapSourceVersionRow(row: SourceVersionRow): RadarSourceVersion {

@@ -73,7 +73,8 @@ test("RAD-033 persists crawl output as source versions documents chunks and sync
   assert.match(repository, /\.order\("version_number", \{ ascending: false \}\)/);
   assert.match(repository, /updateSourceSyncState/);
   assert.match(repository, /sync_status: input\.syncStatus/);
-  assert.match(repository, /last_synced_at: input\.lastSyncedAt/);
+  assert.match(repository, /input\.lastSyncedAt !== undefined/);
+  assert.match(repository, /updatePayload\.last_synced_at = input\.lastSyncedAt/);
 });
 
 test("RAD-033 keeps URL ingestion source-minimal and free of unrelated platform scope", async () => {
