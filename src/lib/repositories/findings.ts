@@ -160,6 +160,18 @@ export async function getFindingById(client: RadarRepositoryClient, workspaceId:
   return data ? mapFindingRow(data) : null;
 }
 
+export async function getFindingByDedupeKey(client: RadarRepositoryClient, workspaceId: string, dedupeKey: string) {
+  const { data, error } = await client
+    .from("findings")
+    .select(findingSelect)
+    .eq("workspace_id", workspaceId)
+    .eq("dedupe_key", dedupeKey)
+    .maybeSingle<FindingRow>();
+
+  assertRepositorySuccess(error, "Unable to load finding by dedupe key");
+  return data ? mapFindingRow(data) : null;
+}
+
 export async function createFinding(client: RadarRepositoryClient, workspaceId: string, input: FindingInput) {
   const parsedInput = findingCreateRequestSchema.parse(input);
   const { data, error } = await client
@@ -193,6 +205,33 @@ export async function createFinding(client: RadarRepositoryClient, workspaceId: 
 
   assertRepositorySuccess(error, "Unable to create finding");
   return mapFindingRow(requireRepositoryRow(data, "Finding insert returned no row"));
+}
+
+export async function updateFindingOccurrence(
+  client: RadarRepositoryClient,
+  workspaceId: string,
+  findingId: string,
+  input: Pick<FindingInput, "evaluationRunId" | "testCaseResultId" | "summary" | "actual" | "severity" | "confidence" | "lastSeenAt" | "metadata">,
+) {
+  const { data, error } = await client
+    .from("findings")
+    .update({
+      evaluation_run_id: input.evaluationRunId ?? null,
+      test_case_result_id: input.testCaseResultId ?? null,
+      summary: input.summary,
+      actual: input.actual,
+      severity: input.severity,
+      confidence: input.confidence,
+      last_seen_at: input.lastSeenAt,
+      metadata: input.metadata,
+    })
+    .eq("workspace_id", workspaceId)
+    .eq("id", findingId)
+    .select(findingSelect)
+    .single<FindingRow>();
+
+  assertRepositorySuccess(error, "Unable to update finding occurrence");
+  return mapFindingRow(requireRepositoryRow(data, "Finding occurrence update returned no row"));
 }
 
 export async function updateFindingStatus(

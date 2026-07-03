@@ -107,6 +107,8 @@ RAD-024 adds the evidence-backed issue layer:
 
 Findings are workspace-owned and tied back to assertions, evaluation runs, and test-case results. Evidence rows may point to source and run records, but they must not copy full source documents or raw runner secrets.
 
+RAD-071 keeps duplicate runner failures from flooding the inbox by looking up findings through the workspace-scoped `dedupe_key` before insert. New failed or warning results create a finding with `first_seen_at` and `last_seen_at`; repeated active failures update `last_seen_at`, the latest run/result pointers, severity, confidence, bounded actual text, metadata, evidence, and activity while preserving the original first-seen timestamp. Closed lifecycle states remain separate records if the same failure appears again later.
+
 ## Versioning
 
 Sources, prompts, rubrics, runner definitions, and assertion templates must be versioned so historical runs remain explainable.

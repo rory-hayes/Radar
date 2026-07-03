@@ -33,6 +33,7 @@ import {
   type RadarEvaluationRunJob,
   type RadarRepositoryClient,
 } from "@/lib/repositories";
+import { createOrUpdateFindingForResult } from "@/lib/findings/creation-engine";
 
 export const integrationRunnerVersion = "rad-066";
 
@@ -332,53 +333,57 @@ async function executeIntegrationTestCase(
     const evaluation = validateIntegrationResponse(check, response);
     const completedAt = options.now?.() ?? new Date();
     const artifact = buildHttpExchangeArtifact({ check, request, response, credentials: options.credentials ?? [] });
-
-    return {
-      result: await createTestCaseResult(client, run.workspaceId, {
-        evaluationRunId: run.id,
-        assertionId: assertion.id,
-        testCaseId: testCase.id,
-        runnerType: "integration",
-        status: evaluation.status,
-        score: evaluation.score,
-        confidence: evaluation.confidence,
-        actualOutput: actualOutputForExchange(check, request, response, evaluation, options.credentials ?? []),
-        actualSummary: evaluation.summary,
-        evaluatorSummary: evaluation.summary,
-        evidenceRefs: [],
-        executionMetadata: testCaseExecutionMetadata(check, response, evaluation.status, {
-          startedAt: startedAt.toISOString(),
-          completedAt: completedAt.toISOString(),
-        }),
+    const result = await createTestCaseResult(client, run.workspaceId, {
+      evaluationRunId: run.id,
+      assertionId: assertion.id,
+      testCaseId: testCase.id,
+      runnerType: "integration",
+      status: evaluation.status,
+      score: evaluation.score,
+      confidence: evaluation.confidence,
+      actualOutput: actualOutputForExchange(check, request, response, evaluation, options.credentials ?? []),
+      actualSummary: evaluation.summary,
+      evaluatorSummary: evaluation.summary,
+      evidenceRefs: [{ storagePath: artifact.storagePath, citation: artifact.label }],
+      executionMetadata: testCaseExecutionMetadata(check, response, evaluation.status, {
         startedAt: startedAt.toISOString(),
         completedAt: completedAt.toISOString(),
-        durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
       }),
+      startedAt: startedAt.toISOString(),
+      completedAt: completedAt.toISOString(),
+      durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
+    });
+    await createOrUpdateFindingForResult(client, { workspaceId: run.workspaceId, assertion, testCase, run, result });
+
+    return {
+      result,
       artifacts: [artifact],
     };
   } catch (error) {
     const completedAt = options.now?.() ?? new Date();
-
-    return {
-      result: await createTestCaseResult(client, run.workspaceId, {
-        evaluationRunId: run.id,
-        assertionId: assertion.id,
-        testCaseId: testCase.id,
-        runnerType: "integration",
+    const result = await createTestCaseResult(client, run.workspaceId, {
+      evaluationRunId: run.id,
+      assertionId: assertion.id,
+      testCaseId: testCase.id,
+      runnerType: "integration",
+      status: "error",
+      actualOutput: actualOutputForError(testCase, error),
+      evidenceRefs: [],
+      executionMetadata: integrationRunnerMetadata({
+        state: "test_case_error",
         status: "error",
-        actualOutput: actualOutputForError(testCase, error),
-        evidenceRefs: [],
-        executionMetadata: integrationRunnerMetadata({
-          state: "test_case_error",
-          status: "error",
-          startedAt: startedAt.toISOString(),
-          completedAt: completedAt.toISOString(),
-        }),
-        errorMessage: errorMessage(error),
         startedAt: startedAt.toISOString(),
         completedAt: completedAt.toISOString(),
-        durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
       }),
+      errorMessage: errorMessage(error),
+      startedAt: startedAt.toISOString(),
+      completedAt: completedAt.toISOString(),
+      durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
+    });
+    await createOrUpdateFindingForResult(client, { workspaceId: run.workspaceId, assertion, testCase, run, result });
+
+    return {
+      result,
       artifacts: [],
     };
   }

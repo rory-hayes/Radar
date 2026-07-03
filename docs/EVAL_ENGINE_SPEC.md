@@ -73,3 +73,7 @@ Knowledge Runner outputs are scored by the hybrid evaluator before persistence. 
 ## Evidence rule
 
 No evidence means no critical finding. Serious findings must include expected vs actual plus source evidence or runner artifact.
+
+RAD-071 adds the findings creation engine that turns failed or warning `test_case_results` into evidence-backed findings. The engine validates workspace consistency across the assertion, test case, run, and result; skips non-actionable statuses; derives severity from assertion priority plus result status; stores bounded expected, actual, customer-impact, and recommended-fix text; and links run output plus source/artifact evidence rows.
+
+Repeated failures are deduplicated with a stable key built from workspace, assertion, test case, runner type, result status, and a bounded failure fingerprint. Active duplicates update `last_seen_at`, latest run/result links, summary, actual output, severity, confidence, evidence, and activity instead of creating a new issue. Resolved, ignored, or false-positive findings are not silently reopened by the creation path.

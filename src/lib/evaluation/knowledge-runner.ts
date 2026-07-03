@@ -13,6 +13,7 @@ import {
   type EvaluationEvidenceRefInput,
   type TestCaseResultStatus,
 } from "@/lib/evaluation/schema";
+import { createOrUpdateFindingForResult } from "@/lib/findings/creation-engine";
 import {
   loadEvaluationEvidence,
   type EvaluationEvidenceContext,
@@ -291,7 +292,7 @@ async function executeKnowledgeTestCase(
       { judgeProvider: options.judgeProvider },
     );
 
-    return createTestCaseResult(client, run.workspaceId, {
+    const result = await createTestCaseResult(client, run.workspaceId, {
       evaluationRunId: run.id,
       assertionId: assertion.id,
       testCaseId: testCase.id,
@@ -312,10 +313,12 @@ async function executeKnowledgeTestCase(
       completedAt: completedAt.toISOString(),
       durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
     });
+    await createOrUpdateFindingForResult(client, { workspaceId: run.workspaceId, assertion, testCase, run, result });
+    return result;
   } catch (error) {
     const completedAt = options.now?.() ?? new Date();
 
-    return createTestCaseResult(client, run.workspaceId, {
+    const result = await createTestCaseResult(client, run.workspaceId, {
       evaluationRunId: run.id,
       assertionId: assertion.id,
       testCaseId: testCase.id,
@@ -333,6 +336,8 @@ async function executeKnowledgeTestCase(
       completedAt: completedAt.toISOString(),
       durationMs: Math.max(0, completedAt.getTime() - startedAt.getTime()),
     });
+    await createOrUpdateFindingForResult(client, { workspaceId: run.workspaceId, assertion, testCase, run, result });
+    return result;
   }
 }
 
