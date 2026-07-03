@@ -1,6 +1,7 @@
 import { assertionCategories, type AssertionCategory, type RadarAssertion } from "@/lib/assertions/schema";
 import type { RadarFinding, FindingStatus } from "@/lib/findings/schema";
 import { buildRecentActivityFeed, type CommandCenterRecentActivityItem } from "@/lib/command-center/recent-activity";
+import { generateWeeklyTrustReport, type WeeklyTrustReport } from "@/lib/reports/weekly-trust-report";
 import type { RadarEvaluationRunSummary, RadarFindingActivity } from "@/lib/repositories";
 import type { RadarSource } from "@/lib/sources/schema";
 
@@ -21,6 +22,7 @@ export type CommandCenterKpiSummary = {
   needsAttention: CommandCenterNeedsAttentionItem[];
   categoryHealth: CommandCenterCategoryHealth[];
   recentActivity: CommandCenterRecentActivityItem[];
+  weeklyTrustReport: WeeklyTrustReport;
   trends: CommandCenterTrend[];
   hasActivity: boolean;
 };
@@ -91,6 +93,7 @@ export function buildCommandCenterKpiSummary({
     needsAttention: selectNeedsAttentionFindings(activeFindings, assertionTitles),
     categoryHealth: buildAssertionCategoryHealth({ assertions, activeFindings, runs: terminalRuns }),
     recentActivity: buildRecentActivityFeed({ assertions, findings, sources, runs, findingActivity }),
+    weeklyTrustReport: generateWeeklyTrustReport({ assertions, findings, runs, now }),
     hasActivity: assertions.length > 0 || findings.length > 0 || sources.length > 0 || terminalRuns.length > 0,
     trends: [
       {
